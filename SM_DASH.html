@@ -563,6 +563,7 @@ var ATTN_EMOJIS = {backlog_aging:'&#9201;',sla_breach:'&#128308;',open_gt_close:
 var selProject = null, selYear = null, selMonth = null;
 var activeSev = null, activeView = null;
 var charts = {};
+var _ocDetailOpen = false;
 
 // Status que contam como assigned/cli para metricas
 var ASSIGNED_STATUS = {
@@ -1578,6 +1579,7 @@ function panelHTML(sev) {
     (hasRC?'<div class="cb"><div class="cbt" style="margin-bottom:10px">Root Cause</div><div id="rc-'+sev+'"></div></div>':'') +
     (sev==='incident'
       ? '<div class="cb" style="padding:8px 4px"><div id="inc-kpi-strip"></div></div>' +
+        '<div id="inc-oncall-detail" style="display:none"></div>' +
         '<div class="r2">' +
           '<div class="cb"><div class="cbt" style="margin-bottom:10px">MTTR vs Benchmark (Config)</div><div id="inc-mttr"></div></div>' +
           '<div class="cb"><div class="cbt" style="margin-bottom:10px">Aging Heatmap</div><div id="inc-aging"></div></div>' +
@@ -1771,7 +1773,7 @@ function doRefresh() {
       buildBacklog(sev, 'bk-'+sev);
       buildRC(sev, 'rc-'+sev);
       try { buildAssigned(sev, 'ass-'+sev); } catch(e) { console.warn('buildAssigned error:',e.message); }
-      if (sev === 'incident') { buildSLAMini('sla-mini-incident'); buildIncKPIs(); }
+      if (sev === 'incident') { buildSLAMini('sla-mini-incident'); buildIncKPIs(); buildOncallDetail(false); }
       if (['incident','user_request','problem'].indexOf(sev)>=0) { 
         buildTimesheetKPI(sev,'ts-'+sev); 
         buildStaffKPI(sev,'ts-staff-chart-'+sev); 
@@ -2028,7 +2030,9 @@ function buildIncKPIs() {
       // P1 oncall %
       var p1oc = (ocPrj.by_priority || {})['P1'] || {};
       var p1ocLabel = p1oc.pct ? 'P1: '+p1oc.pct+'% oncall' : ocPrj.countries.join(', ');
-      ocCard = kpiCard('&#127758; On-Call', ocCount+' ('+ocPct+'%)', p1ocLabel, ocCol, 'Tickets abertos fora do horário comercial.\nFarmatodo: Seg-Sex 11h-23h UTC\n(VE/AR/CO cobertura combinada)\nGDN: Seg-Sex 11h-21h UTC (Argentina)\nChanel: Seg-Sex 11h-21h UTC (Brasil)\nFins de semana = sempre on-call.');
+      ocCard = '<div onclick="toggleOncallDetail()" style="cursor:pointer">' +
+        kpiCard('&#127758; On-Call &#9660;', ocCount+' ('+ocPct+'%)', p1ocLabel, ocCol, 'Tickets abertos fora do horário comercial.\nFarmatodo: Seg-Sex 11h-23h UTC\n(VE/AR/CO cobertura combinada)\nGDN: Seg-Sex 11h-21h UTC (Argentina)\nChanel: Seg-Sex 11h-21h UTC (Brasil)\nFins de semana = sempre on-call.\n\nClique para ver análise detalhada.') +
+        '</div>';
     }
     // ────────────────────────────────────────────────────────────
 
@@ -2095,6 +2099,190 @@ function buildIncKPIs() {
      return '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px"><span>'+esc(r.rct)+'</span><span style="font-weight:700">'+r.count+'</span></div>'+
      '<div style="height:4px;background:var(--border);border-radius:2px"><div style="height:4px;background:var(--purple);width:'+w+'%;border-radius:2px"></div></div></div>';
   }).join('');
+}
+
+function toggleOncallDetail() {
+  _ocDetailOpen = !_ocDetailOpen;
+  var el = document.getElementById('inc-oncall-detail');
+  if (!el) return;
+  if (_ocDetailOpen) { buildOncallDetail(true); el.style.display = 'block'; }
+  else { el.style.display = 'none'; }
+}
+
+function buildOncallDetail(forceShow) {
+  var el = document.getElementById('inc-oncall-detail');
+  if (!el || (!_ocDetailOpen && !forceShow)) return;
+
+  var _oc = (typeof SMD_ONCALL !== 'undefined') ? SMD_ONCALL : {};
+  var OC_PROJECTS = ['Farmatodo', 'GDN', 'Chanel'];
+  var showProjects = (selProject && OC_PROJECTS.indexOf(selProject) >= 0) ? [selProject] : OC_PROJECTS;
+  var validProjects = showProjects.filter(function(p) { return _oc[p]; });
+
+  if (!_ocDetailOpen) { el.style.display = 'none'; return; }
+
+  if (validProjects.length === 0) {
+    el.innerHTML = '<div style="padding:12px 16px;text-align:center;color:var(--muted);font-size:11px;background:var(--card);border-radius:10px;border:1px solid var(--border);margin-bottom:10px">Sem dados de on-call para o projeto selecionado.</div>';
+    return;
+  }
+
+  var fi_sv = _TF.indexOf('sv'), fi_prj = _TF.indexOf('prj'), fi_ap = _TF.indexOf('ap');
+  var fi_yo = _TF.indexOf('y_o'), fi_mo = _TF.indexOf('m_o');
+
+  function getOcStats(prj) {
+    var cfg = _oc[prj]; if (!cfg) return null;
+    if (!selYear && !selMonth) return { count: cfg.total_oncall, total: cfg.total_incidents, pct: cfg.pct_oncall };
+    var count = 0, total = 0;
+    Object.keys(cfg.by_month || {}).forEach(function(ym) {
+      var y = +ym.split('-')[0], m = +ym.split('-')[1];
+      if (selYear && y !== +selYear) return;
+      if (selMonth && m !== selMonth) return;
+      count += cfg.by_month[ym].oncall; total += cfg.by_month[ym].total;
+    });
+    return { count: count, total: total, pct: total > 0 ? Math.round(count / total * 100) : 0 };
+  }
+
+  function getTopApps(prj) {
+    var appTot = {};
+    _ROWS.forEach(function(r) {
+      if (r[fi_sv] !== 'incident') return;
+      if (r[fi_prj] !== prj) return;
+      if (selYear && r[fi_yo] !== +selYear) return;
+      if (selMonth && r[fi_mo] !== selMonth) return;
+      var ap = r[fi_ap] || 'N/A';
+      appTot[ap] = (appTot[ap] || 0) + 1;
+    });
+    return Object.keys(appTot)
+      .map(function(k) { return { app: k, tot: appTot[k] }; })
+      .sort(function(a, b) { return b.tot - a.tot; }).slice(0, 6);
+  }
+
+  function getTrend(prj) {
+    var cfg = _oc[prj]; if (!cfg || !cfg.by_month) return [];
+    var months = Object.keys(cfg.by_month).sort().slice(-6);
+    return months.map(function(ym) {
+      return { ym: ym, pct: cfg.by_month[ym].pct, oncall: cfg.by_month[ym].oncall, total: cfg.by_month[ym].total };
+    });
+  }
+
+  function buildHourChart(prj) {
+    var cfg = _oc[prj];
+    if (!cfg || !cfg.hour_distribution || !cfg.hour_distribution.length) return '<span style="color:var(--muted);font-size:10px">Sem dados</span>';
+    var dist = cfg.hour_distribution;
+    var bsUtc = cfg.biz_start_utc, beUtc = cfg.biz_end_utc;
+    var buckets = {};
+    dist.forEach(function(d) { var b = Math.floor(d.h / 3) * 3; buckets[b] = (buckets[b] || 0) + d.count; });
+    var maxB = Math.max.apply(null, Object.keys(buckets).map(function(k) { return buckets[k]; })) || 1;
+    var html = '<div style="display:flex;align-items:flex-end;gap:2px;height:48px">';
+    for (var h = 0; h < 24; h += 3) {
+      var cnt = buckets[h] || 0;
+      var barH = Math.max(2, Math.round(cnt / maxB * 44));
+      var isBiz = (h >= bsUtc && h < beUtc);
+      var col = isBiz ? 'rgba(52,211,153,0.3)' : 'rgba(248,113,113,0.75)';
+      html += '<div title="' + h + 'h-' + (h+3) + 'h UTC: ' + cnt + ' tickets" style="display:flex;flex-direction:column;align-items:center;gap:1px">' +
+        '<div style="width:13px;height:' + barH + 'px;background:' + col + ';border-radius:2px 2px 0 0"></div>' +
+        '<div style="font-size:7px;color:var(--dim)">' + String(h).padStart(2,'0') + '</div>' +
+      '</div>';
+    }
+    html += '</div><div style="font-size:8px;color:var(--dim);margin-top:3px"><span style="color:rgba(248,113,113,.85)">■</span> on-call &nbsp;<span style="color:rgba(52,211,153,.5)">■</span> comercial</div>';
+    return html;
+  }
+
+  function buildTrendChart(prj) {
+    var trend = getTrend(prj);
+    if (!trend.length) return '<span style="color:var(--muted);font-size:10px">Sem dados</span>';
+    return trend.map(function(t, i) {
+      var col = t.pct >= 40 ? '#f87171' : t.pct >= 25 ? '#fbbf24' : '#34d399';
+      var w = Math.max(6, Math.round(t.pct));
+      var prev = i > 0 ? trend[i-1].pct : t.pct;
+      var arrow = t.pct > prev + 2 ? ' ↑' : t.pct < prev - 2 ? ' ↓' : ' —';
+      var arrowCol = arrow === ' ↑' ? '#f87171' : arrow === ' ↓' ? '#34d399' : '#475569';
+      return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">' +
+        '<div style="font-size:9px;color:var(--muted);width:36px;flex-shrink:0">' + t.ym.replace(/^\d{4}-/, '') + '</div>' +
+        '<div style="flex:1;height:9px;background:rgba(255,255,255,0.05);border-radius:3px">' +
+          '<div style="width:' + w + '%;height:100%;background:' + col + ';border-radius:3px;transition:.3s"></div>' +
+        '</div>' +
+        '<div style="font-size:9px;font-weight:700;color:' + col + ';min-width:30px;text-align:right">' + t.pct + '%</div>' +
+        '<div style="font-size:9px;color:' + arrowCol + ';width:12px">' + arrow + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function getRecs(prj) {
+    var cfg = _oc[prj]; if (!cfg) return [];
+    var stats = getOcStats(prj); if (!stats) return [];
+    var recs = [];
+    var pct = stats.pct;
+    if (pct >= 40) recs.push({ lvl:'red',    msg: pct + '% dos incidentes são on-call — nível crítico. Revisar janelas de batch e alertas proativos.' });
+    else if (pct >= 25) recs.push({ lvl:'yellow', msg: pct + '% dos incidentes são on-call. Analisar aplicações recorrentes.' });
+    if (!selMonth && cfg.total_oncall > 0) {
+      var wkPct = Math.round((cfg.total_weekend || 0) / cfg.total_oncall * 100);
+      if (wkPct >= 35) recs.push({ lvl:'yellow', msg: wkPct + '% do on-call em fins de semana. Avaliar plantão dedicado ou automação de remediação.' });
+    }
+    var bsUtc = cfg.biz_start_utc;
+    var earlyCount = (cfg.hour_distribution || []).filter(function(h) { return h.h < bsUtc; })
+      .reduce(function(s, h) { return s + h.count; }, 0);
+    if (earlyCount > 20) recs.push({ lvl:'yellow', msg: earlyCount + ' tickets on-call antes das ' + bsUtc + 'h UTC — suspeita de batch noturno. Revisar janela de execução dos jobs.' });
+    var trend = getTrend(prj);
+    if (trend.length >= 2) {
+      var last = trend[trend.length - 1], prev2 = trend[trend.length - 2];
+      if (last.pct > prev2.pct + 10) recs.push({ lvl:'red', msg: 'Tendência piorando: ' + prev2.ym + ' ' + prev2.pct + '% → ' + last.ym + ' ' + last.pct + '%. Investigar causa raiz.' });
+    }
+    var p1 = (cfg.by_priority || {})['P1'] || {};
+    if (p1.oncall > 50) recs.push({ lvl:'yellow', msg: p1.oncall + ' tickets P1 on-call (' + (p1.pct || 0) + '%). Criar runbook para as aplicações mais recorrentes.' });
+    recs.push({ lvl:'gray', msg: 'Root cause obrigatório ao fechar ticket — "N/A" e "Not Identified" mascaram recorrência.' });
+    return recs.slice(0, 5);
+  }
+
+  var LVL_COL  = { red:'#f87171', yellow:'#fbbf24', gray:'#475569' };
+  var LVL_ICON = { red:'🔴', yellow:'🟡', gray:'⚪' };
+
+  var projectBlocks = validProjects.map(function(prj) {
+    var cfg = _oc[prj];
+    var stats = getOcStats(prj);
+    if (!stats || !cfg) return '';
+    var pctCol = stats.pct >= 40 ? '#f87171' : stats.pct >= 25 ? '#fbbf24' : '#34d399';
+    var topApps = getTopApps(prj);
+    var maxAppTot = topApps.length ? topApps[0].tot : 1;
+    var appsHtml = topApps.map(function(a) {
+      var w = Math.round(a.tot / maxAppTot * 100);
+      return '<div style="margin-bottom:6px">' +
+        '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px">' +
+          '<span style="color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px" title="' + a.app + '">' + a.app + '</span>' +
+          '<span style="color:var(--muted);flex-shrink:0;margin-left:4px">' + a.tot + '</span>' +
+        '</div>' +
+        '<div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px">' +
+          '<div style="width:' + w + '%;height:100%;background:#60a5fa;border-radius:2px;transition:.3s"></div>' +
+        '</div></div>';
+    }).join('');
+    var recsHtml = getRecs(prj).map(function(r) {
+      return '<div style="display:flex;gap:8px;padding:6px 8px;background:rgba(255,255,255,0.03);border-radius:5px;border-left:2px solid ' + LVL_COL[r.lvl] + ';margin-bottom:5px;font-size:10px;line-height:1.45;color:#94a3b8">' +
+        '<span style="flex-shrink:0">' + LVL_ICON[r.lvl] + '</span>' +
+        '<span>' + r.msg + '</span></div>';
+    }).join('');
+    return '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)">' +
+        '<span style="font-family:var(--ft);font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text)">' + prj.toUpperCase() + '</span>' +
+        '<span style="font-size:22px;font-weight:700;color:' + pctCol + '">' + stats.pct + '%</span>' +
+        '<span style="font-size:10px;color:var(--muted)">on-call &nbsp;(' + stats.count + '/' + stats.total + ' incidentes)</span>' +
+        '<span style="margin-left:auto;font-size:9px;color:var(--dim)">' + cfg.business_hours_note + '</span>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:12px">' +
+        '<div><div style="font-family:var(--ft);font-size:7px;letter-spacing:.1em;color:var(--muted);margin-bottom:8px">TOP APLICAÇÕES</div>' + appsHtml + '</div>' +
+        '<div><div style="font-family:var(--ft);font-size:7px;letter-spacing:.1em;color:var(--muted);margin-bottom:8px">DISTRIBUIÇÃO HORÁRIA (UTC)</div>' + buildHourChart(prj) + '</div>' +
+        '<div><div style="font-family:var(--ft);font-size:7px;letter-spacing:.1em;color:var(--muted);margin-bottom:8px">TENDÊNCIA (6 MESES)</div>' + buildTrendChart(prj) + '</div>' +
+      '</div>' +
+      '<div><div style="font-family:var(--ft);font-size:7px;letter-spacing:.1em;color:var(--muted);margin-bottom:7px">RECOMENDAÇÕES</div>' + recsHtml + '</div>' +
+    '</div>';
+  }).join('');
+
+  el.innerHTML =
+    '<div style="padding:4px 0 2px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
+        '<div style="font-family:var(--ft);font-size:9px;font-weight:700;letter-spacing:.12em;color:#f87171">&#127758; ON-CALL INTELLIGENCE</div>' +
+        '<button onclick="toggleOncallDetail()" style="background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);font-size:10px;padding:2px 10px;cursor:pointer">Fechar ✕</button>' +
+      '</div>' +
+      projectBlocks +
+    '</div>';
 }
 
 function kpiCard(label, value, note, col, tip) {
@@ -2352,26 +2540,69 @@ var tsK = getTimesheetKpis();
 function getTimesheetKpis() {
   var ts = D.timesheet || {};
   var SLA_H = {P1:6,P2:12,P3:32,P4:48};
-  var entries = {};
+  var filterKey = (selYear && selMonth) ? (selYear + '-' + String(selMonth).padStart(2,'0')) : null;
+  
+  var totalH=0, totalD=0, nTix=0, over80=0, staffMap={}, sevH={};
+  var ticketsFound = false;
+
   Object.keys(ts).forEach(function(tid) {
-    var d = ts[tid]; if (selProject && d.prj !== selProject) return;
-    if (d.h === 0) return; entries[tid] = d;
-  });
-  if (!Object.keys(entries).length) return {has_data:false};
-  var totalH=0,totalD=0,nTix=0,over80=0,staffMap={},sevH={};
-  Object.keys(entries).forEach(function(tid) {
-    var d=entries[tid]; totalH+=d.h; totalD+=d.d; nTix++;
-    sevH[d.sv]=(sevH[d.sv]||0)+d.h;
-    var slaH=SLA_H[d.pr]; if(slaH&&d.h/slaH*100>=80) over80++;
-    (d.staff||[]).forEach(function(s){
-      if(!staffMap[s.n]) staffMap[s.n]={h:0,d:0,tix:0};
-      staffMap[s.n].h+=s.h; staffMap[s.n].d+=s.d; staffMap[s.n].tix++;
+    var d = ts[tid]; 
+    if (selProject && d.prj !== selProject) return;
+    
+    var h = 0, dt = 0;
+    var analystWorkedOnThisTicket = new Set();
+
+    Object.keys(d.periods || {}).forEach(function(pk) {
+      if (filterKey) {
+        if (pk !== filterKey) return;
+      } else if (selYear) {
+        if (!pk.startsWith(selYear)) return;
+      }
+      
+      var p = d.periods[pk];
+      h += (p.h || 0);
+      dt += (p.d || 0);
+      
+      if (p.staff) {
+        Object.keys(p.staff).forEach(function(name) {
+          if (!staffMap[name]) staffMap[name] = {h:0, tix:0};
+          staffMap[name].h += p.staff[name];
+          analystWorkedOnThisTicket.add(name);
+        });
+      }
     });
+
+    if (h > 0) {
+      ticketsFound = true;
+      totalH += h;
+      totalD += dt;
+      nTix++;
+      sevH[d.sv] = (sevH[d.sv] || 0) + h;
+      var slaH = SLA_H[d.pr]; 
+      if (slaH && (h / slaH * 100) >= 80) over80++;
+      
+      analystWorkedOnThisTicket.forEach(function(name) {
+        staffMap[name].tix++;
+      });
+    }
   });
-  var top=Object.keys(staffMap).map(function(n){return{n:n,h:staffMap[n].h,d:staffMap[n].d,tix:staffMap[n].tix};})
-    .sort(function(a,b){return b.h-a.h;}).slice(0,5);
-  return {has_data:true,total_h:Math.round(totalH*100)/100,total_d:Math.round(totalD*100)/100,
-    n_tickets:nTix,avg_h:nTix?Math.round(totalH/nTix*10)/10:0,top_staff:top,sev_h:sevH,over80_sla:over80};
+
+  if (!ticketsFound) return {has_data:false};
+
+  var top = Object.keys(staffMap).map(function(n) {
+    return {n:n, h:staffMap[n].h, tix: staffMap[n].tix}; 
+  }).sort(function(a,b) { return b.h - a.h; }).slice(0,5);
+
+  return {
+    has_data: true,
+    total_h: Math.round(totalH*100)/100,
+    total_d: Math.round(totalD*100)/100,
+    n_tickets: nTix,
+    avg_h: nTix ? Math.round(totalH/nTix*10)/10 : 0,
+    top_staff: top,
+    sev_h: sevH,
+    over80_sla: over80
+  };
 }
 
 function genOpsRealData(kpi) {

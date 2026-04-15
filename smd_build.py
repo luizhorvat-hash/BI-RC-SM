@@ -266,8 +266,11 @@ def parse_timesheet(path, tickets_df):
                 # Col 22: Hours, Col 23: Days
                 try:
                     hc = row_data.get(22)
+                    dc = row_data.get(23)
                     hours = float(hc) if hc else 0
-                    if hours <= 0:
+                    days  = float(dc) if dc else 0
+                    
+                    if hours <= 0 and days <= 0:
                         elem.clear(); continue
                     
                     staff_name = row_data.get(7, "Unknown")
@@ -305,15 +308,16 @@ def parse_timesheet(path, tickets_df):
                         ts_final[tid_match] = {
                             'prj': t_meta['prj'],
                             'sv': t_meta['sv'],
-                            'periods': {} # { "Y-M": { "h": X, "staff": { name: h } } }
+                            'periods': {} # { "Y-M": { "h": X, "d": Y, "staff": { name: h } } }
                         }
                     
                     entry = ts_final[tid_match]
                     if mk not in entry['periods']:
-                        entry['periods'][mk] = {'h': 0, 'staff': {}}
+                        entry['periods'][mk] = {'h': 0, 'd': 0, 'staff': {}}
                     
                     p = entry['periods'][mk]
                     p['h'] += hours
+                    p['d'] += days
                     p['staff'][staff_name] = p['staff'].get(staff_name, 0) + hours
                     stats["match_ticket"] += 1
 
