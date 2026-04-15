@@ -101,6 +101,19 @@ class SMDAIEngine:
             median_mttr_days = 0
         median_mttr_h = int(median_mttr_days * 24)
 
+        # CÁLCULO DE TENDÊNCIA ESTATÍSTICA (Regressão Linear Simples)
+        trend_slope = 0
+        if len(weekly_vol) >= 2:
+            x = list(range(len(weekly_vol)))
+            y = [v['incidents'] + v['user_requests'] for v in weekly_vol]
+            n = len(x)
+            sum_x = sum(x)
+            sum_y = sum(y)
+            sum_xy = sum(xi*yi for xi, yi in zip(x, y))
+            sum_xx = sum(xi*xi for xi in x)
+            denom = (n * sum_xx - sum_x**2)
+            trend_slope = (n * sum_xy - sum_x * sum_y) / denom if denom != 0 else 0
+
         start_7d = today - pd.Timedelta(days=7)
         opened_7d = len(v[(v['Severity'] == 'incident') & (pd.to_datetime(v['Opening Date'], errors='coerce') >= start_7d)])
         closed_7d = len(v[(v['Severity'] == 'incident') & (v['Status'].isin(CLOSED)) & (pd.to_datetime(v['Close Date'], errors='coerce') >= start_7d)])
@@ -132,6 +145,18 @@ class SMDAIEngine:
         calc_hs_col = "green" if hs >= 75 else ("yellow" if hs >= 50 else "red")
         calc_hs_lbl = "SAUDÁVEL" if hs >= 75 else ("ATENÇÃO" if hs >= 50 else "CRÍTICO")
 
+        # PREVISÃO MATEMÁTICA PARA AS PRÓXIMAS 4 SEMANAS
+        forecast = []
+        if len(weekly_vol) > 0:
+            last_inc = weekly_vol[-1]['incidents']
+            last_req = weekly_vol[-1]['user_requests']
+            for i in range(1, 5):
+                forecast.append({
+                    "week": i,
+                    "incidents": max(0, int(last_inc + (trend_slope * i))),
+                    "user_requests": max(0, int(last_req + (trend_slope * 0.5 * i))) # Reqs tendem a seguir mas com menos volatilidade
+                })
+
         return {
             'total_tickets': int(len(v)),
             'summary': summary,
@@ -139,11 +164,14 @@ class SMDAIEngine:
             'backlog_rc': int(v['Status'].isin(MY_BK).sum()),
             'backlog_cli': int(v['Status'].isin(CLI_BK).sum()),
             'historical_weekly_volume': weekly_vol,
+            'stat_forecast': forecast,
             'aging_30d': aging_30d,
             'dormant_7d': dormant_7d,
             'burn_rate': burn_rate,
             'prob_ratio': prob_ratio,
             'median_mttr_h': median_mttr_h,
+            'trend_slope': round(trend_slope, 2),
+            'trend_label': "CRESCENTE 📈" if trend_slope > 0.5 else ("DECRESCENTE 📉" if trend_slope < -0.5 else "ESTÁVEL 平"),
             'calculated_health': {'value': calc_hs_val, 'label': calc_hs_lbl, 'color': calc_hs_col},
             'timestamp': today.strftime('%Y-%m-%d %H:%M:%S')
         }
@@ -239,32 +267,25 @@ JSON_DATA:
 }}"""
 
         elif key == "predictive":
-            prompt = f"""PERSONA: Sênior Data Scientist especializado em Capacity Planning e ITSM (AI_Predictive_Analyst).
-Postura: Analítica, focada em tendências e riscos de saturação da equipe.
+            trend_info = f"TENDÊNCIA ESTATÍSTICA: {ctx.get('trend_label')} (Slope: {ctx.get('trend_slope')})"
+            forecast_str = json.dumps(ctx.get('stat_forecast', []), indent=2)
+            
+            prompt = f"""PERSONA: Sênior Data Scientist (AI_Predictive_Analyst).
+            
+PREVISÃO ESTATÍSTICA CALCULADA (Próximos 30 dias):
+{forecast_str}
 
-DADOS RECENTES (Últimos 30 dias):
-{data_str}
-{hist_str}
+TENDÊNCIA ATUAL: {trend_info}
+CAPACIDADE (Burn Rate): {ctx.get('burn_rate', 0)}
 
-REGRAS DE ANÁLISE:
-- Identificar se o volume de novos tickets está crescendo acima do Burn Rate ({ctx.get('burn_rate', 0)}).
-- Projetar picos com base no histórico semanal fornecido.
-- Avaliar o Prediction Risk baseado na estabilidade dos dados semanais.
+TAREFA: Escreva um resumo executivo de no MÁXIMO 2 frases comentando se a equipe vai suportar este volume ou se há risco de saturação.
+Retorne JSON puro.
 
-TAREFA: Retorne JSON puro (sem markdown).
 JSON_DATA:
 {{
-  "executive_summary": "<análise de fôlego operacional e tendências para 30 dias em 3 frases>",
-  "weekly_forecast": [
-    {{ "week": 1, "incidents": <int>, "user_requests": <int> }},
-    {{ "week": 2, "incidents": <int>, "user_requests": <int> }},
-    {{ "week": 3, "incidents": <int>, "user_requests": <int> }},
-    {{ "week": 4, "incidents": <int>, "user_requests": <int> }}
-  ],
+  "executive_summary": "<sua analise em 2 frases>",
   "prediction_risk": "<BAIXO|MEDIO|ALTO>",
-  "alerts": [
-    {{ "level": "<ALTO|MEDIO>", "message": "<risco identificado na tendência>", "metric": "<valor projetado>" }}
-  ]
+  "alerts": [{{ "level": "MEDIO", "message": "Analise baseada em tendencia estatistica", "metric": "{ctx.get('trend_slope')}" }}]
 }}"""
 
         else:
@@ -310,6 +331,28 @@ JSON_DATA: {{"executive_summary": "...", "alerts": [{{ "level": "INF", "message"
                 return data.get('response', '').strip()
         except Exception as e:
             return f"Erro Ollama (Timeout/Falha): {e}"
+
+    def call_ollama_custom(self, prompt, timeout=45):
+        """Versão customizada do call_ollama com suporte a timeout dinâmico."""
+        body = json.dumps({
+            "model": smd_config.OLLAMA_MODEL,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "temperature": 0.1,
+                "num_predict": 1024,
+                "num_ctx": 1500,
+                "top_k": 10
+            }
+        }).encode('utf-8')
+        
+        req = urllib.request.Request(smd_config.OLLAMA_URL, data=body, headers={"Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                data = json.loads(resp.read())
+                return data.get('response', '').strip()
+        except Exception as e:
+            return f"Erro Ollama (Timeout {timeout}s): {e}"
 
     def call_gemini(self, prompt, model=smd_config.GEMINI_MODEL):
         if not smd_config.GEMINI_API_KEY:
@@ -410,22 +453,38 @@ JSON_DATA: {{"executive_summary": "...", "alerts": [{{ "level": "INF", "message"
             result["sla_analysis"] = {"p1_pct": p1_pct, "overall_status": "OK" if p1_pct >= 95 else "EM_RISCO"}
         
         if key == "predictive":
-            if "weekly_forecast" in structured_info:
-                result["weekly_forecast"] = structured_info["weekly_forecast"]
-            if "prediction_risk" in structured_info:
-                result["prediction_risk"] = structured_info["prediction_risk"]
-        
+            # PRIORIDADE: Usar a previsão estatística do Python se a IA não gerou uma válida
+            if "weekly_forecast" not in result or not result["weekly_forecast"]:
+                result["weekly_forecast"] = ctx.get("stat_forecast", [])
+            
+            if "prediction_risk" not in result or not result["prediction_risk"]:
+                slope = ctx.get("trend_slope", 0)
+                result["prediction_risk"] = "ALTO" if slope > 1.0 else ("MEDIO" if slope > 0.5 else "BAIXO")
+                
         return result
 
     def run_agent(self, key, ctx):
         prompt = self.generate_prompt(key, ctx)
         log.info(f"Executando agente {key} via {self.provider}...")
         
+        # TIMEOUT DINÂMICO
+        tm = 120 if key == "predictive" else 45
+        text = ""
+        
         if self.provider == "gemini":
             text = self.call_gemini(prompt)
         elif self.provider == "anthropic":
             text = self.call_anthropic(prompt)
         else:
-            text = self.call_ollama(prompt)
+            # Tenta Ollama primeiro
+            text = self.call_ollama_custom(prompt, timeout=tm)
+            
+            # FALLBACK AUTOMÁTICO PARA CLOUD (Se configurado e falhar localmente no Preditivo)
+            if key == "predictive" and ("Erro" in text or "Timeout" in text):
+                log.warning(f"Ollama falhou para Preditivo. Tentando Fallback via Nuvem (Anthropic)...")
+                if smd_config.ANTHROPIC_API_KEY:
+                    text = self.call_anthropic(prompt)
+                elif smd_config.GEMINI_API_KEY:
+                    text = self.call_gemini(prompt)
             
         return self.get_structured_result(key, text, ctx)
