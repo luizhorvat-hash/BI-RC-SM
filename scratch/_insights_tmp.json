@@ -1,0 +1,1055 @@
+{
+  "Todos": {
+    "ops": {
+      "agent": "AI_OPS",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Saúde operacional de Todos: ATENÇÃO (65/100). SLA P1: 99.7% (DENTRO_DO_TARGET), P2: 98.6%. MTTR P1 mediano: 72.0h vs benchmark ITIL 4h. Incidents abertos: 71. Backlog RC: 107, Cliente: 103. Aging >30d: 40 tickets. Tendência semanal: queda de 27%. Apps críticas: RMS, RIB, XStore. Root causes dominantes: Bug, Infrastructure, Problem Analysis.",
+      "reasoning": "Análise completa de 25368 tickets do projeto Todos (referência 2026-04-14).\n\n**SLA Performance:**\n- P1: 99.7% de cumprimento (4041/4055 tickets) — benchmark ITIL: 99%+\n- P2: 98.6% (2975/3018 tickets)\n- P3: 99.2% | P4: 99.4%\n\n**MTTR (Incidentes PRD fechados):**\n- P1: 72.0h mediano | P2: 1668.0h | P3: 2040.0h\n- P1 está 18.0x acima do benchmark ITIL (4h) (ATENCAO)\n\n**Backlog e Aging:**\n- RC (nosso lado): 107 tickets em análise/desenvolvimento\n- Cliente: 103 tickets aguardando resposta do cliente\n- 40 tickets abertos há mais de 30 dias requerem revisão urgente\n\n**Distribuição por Severidade:**\n- Incidents: 14289 total, 71 abertos\n- User Requests: 4260 total\n- Problems: 6056 total\n\n**Recomendações:**\n1. Manter SLA P1 — implementar revisão semanal preventiva.\n2. Reduzir MTTR P1 com escalonamento automático após 2h sem resolução.\n3. Revisar backlog RC com o gerente para identificar bloqueios técnicos.\n4. Apps críticas a monitorar proativamente: RMS, RIB, XStore.",
+      "health_score": {
+        "value": 65,
+        "label": "ATENÇÃO",
+        "color": "yellow"
+      },
+      "sla_analysis": {
+        "p1_pct": 99.7,
+        "p2_pct": 98.6,
+        "overall_status": "DENTRO_DO_TARGET"
+      },
+      "alerts": [
+        {
+          "level": "MEDIO",
+          "message": "MTTR P1 mediano 72.0h (18.0x acima do benchmark ITIL de 4h)",
+          "metric": "MTTR_P1"
+        },
+        {
+          "level": "ALTO",
+          "message": "Backlog RC com 107 tickets — risco de SLA futuro",
+          "metric": "BACKLOG_RC"
+        },
+        {
+          "level": "MEDIO",
+          "message": "40 tickets com aging >30 dias",
+          "metric": "AGING"
+        }
+      ]
+    },
+    "predictive": {
+      "agent": "AI_PREDICTIVE",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Análise preditiva de Todos: tendência de incidents queda de 27%. Média últimas 4 semanas: 16.0 incidents/semana, 7.8 URs/semana. Backlog RC atual: 107 — crítico. Previsão próximas 4 semanas: 21-->25 incidents/sem. Root causes recorrentes: Bug, Infrastructure, Problem Analysis.",
+      "reasoning": "**Análise Preditiva — Todos (2026-04-14):**\n\n**Volume Histórico (últimas 13 semanas):**\n- Sem 2026-W23: 13 incidents, 12 URs\n- Sem 2026-W27: 12 incidents, 5 URs\n- Sem 2026-W31: 7 incidents, 0 URs\n- Sem 2026-W32: 4 incidents, 3 URs\n- Sem 2026-W36: 23 incidents, 13 URs\n- Sem 2026-W40: 14 incidents, 8 URs\n- Sem 2026-W45: 15 incidents, 4 URs\n- Sem 2026-W49: 12 incidents, 6 URs\n\n**Tendência:** QUEDA DE 27%\n\n**Projeção Próximas 4 Semanas:**\n- Semana +1: ~21 incidents, ~10 user requests\n- Semana +2: ~22 incidents, ~11 user requests\n- Semana +3: ~24 incidents, ~12 user requests\n- Semana +4: ~25 incidents, ~13 user requests\n\n**Fatores de Risco:**\n- Backlog RC: 107 tickets acumulados (ALTO — pode inflar volume futuro)\n- Aging >30d: 40 tickets — indica gargalo de resolução\n- Root causes recorrentes sem resolução definitiva: Bug, Infrastructure, Problem Analysis\n\n**Recomendações:**\n1. Implementar problema formal para RCAs recorrentes: Bug.\n2. Revisar capacidade da equipe — volume projetado pode exceder SLA.\n3. Priorizar resolução do backlog RC antes do acúmulo virar débito de SLA.",
+      "health_score": {
+        "value": 65,
+        "label": "ATENÇÃO",
+        "color": "yellow"
+      },
+      "weekly_forecast": [
+        {
+          "week": 1,
+          "incidents": 21,
+          "user_requests": 10
+        },
+        {
+          "week": 2,
+          "incidents": 22,
+          "user_requests": 11
+        },
+        {
+          "week": 3,
+          "incidents": 24,
+          "user_requests": 12
+        },
+        {
+          "week": 4,
+          "incidents": 25,
+          "user_requests": 13
+        }
+      ]
+    },
+    "improvement": {
+      "agent": "AI_IMPROVEMENT",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Maturidade ITIL estimada: Nível 2 (Definido) — Todos. Quick Win 1: Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução... Quick Win 2: Backlog Sprint: Dedicar 20% da capacidade semanal para resolver os 107 tickets R... Apps críticas a automatizar: RMS, RIB, XStore.",
+      "reasoning": "**Plano de Melhoria Contínua — Todos (2026-04-14):**\n\n**Nível de Maturidade ITIL:** Nível 2 (Definido)\n\n**Quick Wins Identificados:**\n1. Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução de 68.0h no MTTR (de 72.0h para ~4h).\n\n2. Backlog Sprint: Dedicar 20% da capacidade semanal para resolver os 107 tickets RC acumulados. Meta: zerar em 3 sprints.\n\n3. Aging Review: 40 tickets com >30 dias — implementar alerta automático no D+15 para escalonamento preventivo.\n\n**Métricas Atuais vs Targets:**\n| Métrica      | Atual   | Target ITIL | Gap   |\n|--------------|---------|-------------|-------|\n| SLA P1       | 99.7%  | 99%+        | ok |\n| SLA P3       | 99.2% | 95%+      | ok |\n| MTTR P1      | 72.0h   | <4h         | +68.0h |\n| Backlog RC   | 107 | <10      | +97 |\n| Aging >30d   | 40    | 0           | +40 |\n\n**Roadmap Sugerido (90 dias):**\n- Mês 1: Implementar quick wins de processo (runbooks, RCA formal)\n- Mês 2: Automatizar alertas e categorização\n- Mês 3: Medir impacto e ajustar — revisão de maturidade ITIL",
+      "health_score": {
+        "value": 65,
+        "label": "ATENÇÃO",
+        "color": "yellow"
+      },
+      "quick_wins": [
+        "Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução de 68.0h no MTTR (de 72.0h para ~4h).",
+        "Backlog Sprint: Dedicar 20% da capacidade semanal para resolver os 107 tickets RC acumulados. Meta: zerar em 3 sprints.",
+        "Aging Review: 40 tickets com >30 dias — implementar alerta automático no D+15 para escalonamento preventivo."
+      ]
+    },
+    "market": {
+      "agent": "AI_MARKET",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Benchmark de mercado — Todos. SLA P1 99.7% -> top 5% (referência HDI 2024: top quartil >=99%). SLA P2 98.6% -> top 10%. MTTR P1 72.0h -> abaixo da mediana (benchmark ITIL: <4h, excelência: <2h). Posicionamento MSP: intermediário.",
+      "reasoning": "**Análise de Benchmarking — Todos (2026-04-14):**\n\nReferências: HDI Service Desk Practices Report 2024, ITIL 4 Guidelines, Gartner IT Key Metrics 2024\n\n| Métrica   | Todos   | Top 10% | Mediana | Posição |\n|-----------|---------|---------|---------|--------|\n| SLA P1    | 99.7%  | >=99.5% | 97%     | top 5% |\n| SLA P2    | 98.6%  | >=98%   | 93%     | top 10% |\n| MTTR P1   | 72.0h   | <=2h    | 6h      | abaixo da mediana |\n| MTTR P2   | 1668.0h | <=4h | 12h    | — |\n\n**Análise Competitiva:**\n- SLA P1 (99.7%): Usar SLA P1 99.7% como argumento comercial em RFPs.\n- MTTR P1 (72.0h): Acima do benchmark — risco em contratos com SLA MTTR explícito.\n- Health Score 65/100: Necessita investimento para atingir benchmark de MSPs tier-1.\n\n**Recomendações para Posicionamento:**\n1. Usar SLA P1 99.7% como argumento comercial em RFPs.\n2. Implementar relatório mensal de benchmark para evidenciar evolução ao cliente.\n3. Investigar práticas de top performers para reduzir MTTR P1.",
+      "health_score": {
+        "value": 65,
+        "label": "ATENÇÃO",
+        "color": "yellow"
+      },
+      "benchmark": {
+        "sla_p1_position": "top 5%",
+        "mttr_p1_position": "abaixo da mediana"
+      }
+    },
+    "qa": {
+      "agent": "AI_QA",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Quality Score: 60/100 — Todos. Gaps principais: MTTR P1 (72.0h) acima do benchmark ITIL — processo de escalação ineficiente. Backlog RC (107 tickets) indica gargalo de capacidade ou processo. Root causes sem RCA formal: Bug, Infrastructure, Problem Analysis. Apps com maior incidência: RMS, RIB, XStore.",
+      "reasoning": "**Auditoria de Qualidade e Conformidade — Todos (2026-04-14):**\n\n**Quality Score: 60/100**\n\n**Gaps Identificados:**\n1. MTTR P1 (72.0h) acima do benchmark ITIL — processo de escalação ineficiente\n2. Backlog RC (107 tickets) indica gargalo de capacidade ou processo\n3. 40 tickets aging >30d — falha no processo de revisão periódica\n\n**Conformidade ITIL 4:**\n- Incident Management: Não conforme — SLA/MTTR fora dos targets\n- Problem Management: Ativo\n- Change Management: 167 CRs registradas\n- Continual Improvement: Backlog RC elevado indica débito técnico\n\n**Root Causes (Todos):**\n- Top causas: Bug, Infrastructure, Problem Analysis\n- Implementar problema formal para causas recorrentes.\n\n**Recomendações:**\n1. Manter processo de P1 — criar checklist de verificação mensal.\n2. Implementar revisão semanal de tickets aging >15 dias (preventivo antes de 30d).\n3. Criar dashboard de qualidade com alertas automáticos para desvios de SLA em tempo real.",
+      "health_score": {
+        "value": 65,
+        "label": "ATENÇÃO",
+        "color": "yellow"
+      },
+      "quality_score": 60,
+      "gaps": [
+        "MTTR P1 (72.0h) acima do benchmark ITIL — processo de escalação ineficiente",
+        "Backlog RC (107 tickets) indica gargalo de capacidade ou processo",
+        "40 tickets aging >30d — falha no processo de revisão periódica"
+      ]
+    },
+    "triage": {
+      "agent": "AI_TRIAGE",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Triagem de urgência CRÍTICA — Todos. Incidents abertos: 71. Backlog RC: 107 | Cliente: 103. Aging critico (>30d): 40 tickets. Analista gdn.support concentra 26 tickets — rebalancear carga. Apps prioritárias: RMS, RIB, XStore.",
+      "reasoning": "**Triagem e Priorização — Todos (2026-04-14):**\n\n**Nível de Urgência Atual: CRÍTICA**\n\n**Action Items Imediatos:**\n1. Revisar 71 incidents abertos — priorizar P1s e P2s sem atualização há >4h\n2. 107 tickets RC em análise/desenvolvimento — checar bloqueios com analistas\n3. 103 tickets aguardando cliente — enviar follow-up proativo se >5 dias\n4. 40 tickets com aging >30 dias — escalonar para gestor se sem movimento >7 dias\n5. Analista gdn.support com 26 tickets no backlog — verificar distribuição de carga\n\n**Distribuição do Backlog:**\n- RC (nosso backlog): 107 tickets\n- Aguardando cliente: 103 tickets\n- Total incidents abertos: 71\n\n**Aging Analysis:**\n- Tickets com aging >30 dias: 40 (REVISAR URGENTE)\n- SLA P1 atual: 99.7% (OK)\n- MTTR P1: 72.0h (Acima do benchmark)\n\n**Critérios de Escalonamento:**\n- P1 sem atualização >2h: escalar para gerente de operações\n- P2 sem atualização >4h: notificar analista sênior\n- Aging >30d sem movimento >7d: escalar para diretoria de serviços\n\n**Recomendações:**\n1. Reunião de war room imediata para incidents P1/P2 abertos.\n2. Rebalancear carga do analista gdn.support (26 tickets).\n3. Implementar alertas automáticos de aging no D+15 para ação preventiva.",
+      "health_score": {
+        "value": 65,
+        "label": "ATENÇÃO",
+        "color": "yellow"
+      },
+      "urgency": "CRÍTICA",
+      "action_items": [
+        "Revisar 71 incidents abertos — priorizar P1s e P2s sem atualização há >4h",
+        "107 tickets RC em análise/desenvolvimento — checar bloqueios com analistas",
+        "103 tickets aguardando cliente — enviar follow-up proativo se >5 dias",
+        "40 tickets com aging >30 dias — escalonar para gestor se sem movimento >7 dias",
+        "Analista gdn.support com 26 tickets no backlog — verificar distribuição de carga"
+      ]
+    }
+  },
+  "Chanel": {
+    "ops": {
+      "agent": "AI_OPS",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Saúde operacional de Chanel: BOM (70/100). SLA P1: 82.6% (EM_RISCO), P2: 97.3%. MTTR P1 mediano: 168.0h vs benchmark ITIL 4h. Incidents abertos: 2. Backlog RC: 5, Cliente: 5. Aging >30d: 2 tickets. Tendência semanal: alta de 50%. Apps críticas: RCIB, Xstore, XOffice. Root causes dominantes: N/A, Bug, Business Process.",
+      "reasoning": "Análise completa de 335 tickets do projeto Chanel (referência 2026-04-14).\n\n**SLA Performance:**\n- P1: 82.6% de cumprimento (19/23 tickets) — benchmark ITIL: 99%+\n- P2: 97.3% (72/74 tickets)\n- P3: 100.0% | P4: 100.0%\n\n**MTTR (Incidentes PRD fechados):**\n- P1: 168.0h mediano | P2: 0h | P3: 0h\n- P1 está 42.0x acima do benchmark ITIL (4h) (ATENCAO)\n\n**Backlog e Aging:**\n- RC (nosso lado): 5 tickets em análise/desenvolvimento\n- Cliente: 5 tickets aguardando resposta do cliente\n- 2 tickets abertos há mais de 30 dias requerem revisão urgente\n\n**Distribuição por Severidade:**\n- Incidents: 166 total, 2 abertos\n- User Requests: 45 total\n- Problems: 110 total\n\n**Recomendações:**\n1. Priorizar resolução de P1s em aberto para recuperar SLA.\n2. Reduzir MTTR P1 com escalonamento automático após 2h sem resolução.\n3. Manter cadência de backlog grooming semanal.\n4. Apps críticas a monitorar proativamente: RCIB, Xstore, XOffice.",
+      "health_score": {
+        "value": 70,
+        "label": "BOM",
+        "color": "green"
+      },
+      "sla_analysis": {
+        "p1_pct": 82.6,
+        "p2_pct": 97.3,
+        "overall_status": "EM_RISCO"
+      },
+      "alerts": [
+        {
+          "level": "ALTO",
+          "message": "SLA P1 em 82.6% — abaixo do target de 98%",
+          "metric": "SLA_P1"
+        },
+        {
+          "level": "MEDIO",
+          "message": "MTTR P1 mediano 168.0h (42.0x acima do benchmark ITIL de 4h)",
+          "metric": "MTTR_P1"
+        }
+      ]
+    },
+    "predictive": {
+      "agent": "AI_PREDICTIVE",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Análise preditiva de Chanel: tendência de incidents alta de 50%. Média últimas 4 semanas: 1.2 incidents/semana, 1.0 URs/semana. Backlog RC atual: 5 — controlado. Previsão próximas 4 semanas: 2-->3 incidents/sem. Root causes recorrentes: N/A, Bug, Business Process.",
+      "reasoning": "**Análise Preditiva — Chanel (2026-04-14):**\n\n**Volume Histórico (últimas 8 semanas):**\n- Sem 2026-W10: 1 incidents, 0 URs\n- Sem 2026-W18: 1 incidents, 0 URs\n- Sem 2026-W23: 0 incidents, 2 URs\n- Sem 2026-W27: 0 incidents, 1 URs\n- Sem 2026-W36: 2 incidents, 0 URs\n- Sem 2026-W40: 0 incidents, 2 URs\n- Sem 2026-W45: 2 incidents, 1 URs\n- Sem 2026-W49: 1 incidents, 1 URs\n\n**Tendência:** ALTA DE 50%\n\n**Projeção Próximas 4 Semanas:**\n- Semana +1: ~2 incidents, ~1 user requests\n- Semana +2: ~3 incidents, ~1 user requests\n- Semana +3: ~3 incidents, ~0 user requests\n- Semana +4: ~3 incidents, ~0 user requests\n\n**Fatores de Risco:**\n- Backlog RC: 5 tickets acumulados (controlado)\n- Aging >30d: 2 tickets — dentro do normal\n- Root causes recorrentes sem resolução definitiva: N/A, Bug, Business Process\n\n**Recomendações:**\n1. Implementar problema formal para RCAs recorrentes: N/A.\n2. Revisar capacidade da equipe — volume projetado pode exceder SLA.\n3. Priorizar resolução do backlog RC antes do acúmulo virar débito de SLA.",
+      "health_score": {
+        "value": 70,
+        "label": "BOM",
+        "color": "green"
+      },
+      "weekly_forecast": [
+        {
+          "week": 1,
+          "incidents": 2,
+          "user_requests": 1
+        },
+        {
+          "week": 2,
+          "incidents": 3,
+          "user_requests": 1
+        },
+        {
+          "week": 3,
+          "incidents": 3,
+          "user_requests": 0
+        },
+        {
+          "week": 4,
+          "incidents": 3,
+          "user_requests": 0
+        }
+      ]
+    },
+    "improvement": {
+      "agent": "AI_IMPROVEMENT",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Maturidade ITIL estimada: Nível 2 (Definido) — Chanel. Quick Win 1: Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução... Quick Win 2: Automação de Categorização: Implementar regras automáticas para root causes em N... Apps críticas a automatizar: RCIB, Xstore, XOffice.",
+      "reasoning": "**Plano de Melhoria Contínua — Chanel (2026-04-14):**\n\n**Nível de Maturidade ITIL:** Nível 2 (Definido)\n\n**Quick Wins Identificados:**\n1. Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução de 164.0h no MTTR (de 168.0h para ~4h).\n\n2. Automação de Categorização: Implementar regras automáticas para root causes em N/A, Bug, Business Process — reduz tempo de triagem em ~30%.\n\n**Métricas Atuais vs Targets:**\n| Métrica      | Atual   | Target ITIL | Gap   |\n|--------------|---------|-------------|-------|\n| SLA P1       | 82.6%  | 99%+        | 16.4pp |\n| SLA P3       | 100.0% | 95%+      | ok |\n| MTTR P1      | 168.0h   | <4h         | +164.0h |\n| Backlog RC   | 5 | <10      | ok |\n| Aging >30d   | 2    | 0           | +2 |\n\n**Roadmap Sugerido (90 dias):**\n- Mês 1: Implementar quick wins de processo (runbooks, RCA formal)\n- Mês 2: Automatizar alertas e categorização\n- Mês 3: Medir impacto e ajustar — revisão de maturidade ITIL",
+      "health_score": {
+        "value": 70,
+        "label": "BOM",
+        "color": "green"
+      },
+      "quick_wins": [
+        "Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução de 164.0h no MTTR (de 168.0h para ~4h).",
+        "Automação de Categorização: Implementar regras automáticas para root causes em N/A, Bug, Business Process — reduz tempo de triagem em ~30%."
+      ]
+    },
+    "market": {
+      "agent": "AI_MARKET",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Benchmark de mercado — Chanel. SLA P1 82.6% -> abaixo da mediana (referência HDI 2024: top quartil >=99%). SLA P2 97.3% -> top 25%. MTTR P1 168.0h -> abaixo da mediana (benchmark ITIL: <4h, excelência: <2h). Posicionamento MSP: intermediário.",
+      "reasoning": "**Análise de Benchmarking — Chanel (2026-04-14):**\n\nReferências: HDI Service Desk Practices Report 2024, ITIL 4 Guidelines, Gartner IT Key Metrics 2024\n\n| Métrica   | Chanel   | Top 10% | Mediana | Posição |\n|-----------|---------|---------|---------|--------|\n| SLA P1    | 82.6%  | >=99.5% | 97%     | abaixo da mediana |\n| SLA P2    | 97.3%  | >=98%   | 93%     | top 25% |\n| MTTR P1   | 168.0h   | <=2h    | 6h      | abaixo da mediana |\n| MTTR P2   | 0h | <=4h | 12h    | — |\n\n**Análise Competitiva:**\n- SLA P1 (82.6%): Definir plano de ação para SLA P1 atingir 99% em 60 dias.\n- MTTR P1 (168.0h): Acima do benchmark — risco em contratos com SLA MTTR explícito.\n- Health Score 70/100: Necessita investimento para atingir benchmark de MSPs tier-1.\n\n**Recomendações para Posicionamento:**\n1. Definir plano de ação para SLA P1 atingir 99% em 60 dias.\n2. Implementar relatório mensal de benchmark para evidenciar evolução ao cliente.\n3. Investigar práticas de top performers para reduzir MTTR P1.",
+      "health_score": {
+        "value": 70,
+        "label": "BOM",
+        "color": "green"
+      },
+      "benchmark": {
+        "sla_p1_position": "abaixo da mediana",
+        "mttr_p1_position": "abaixo da mediana"
+      }
+    },
+    "qa": {
+      "agent": "AI_QA",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Quality Score: 60/100 — Chanel. Gaps principais: SLA P1 (82.6%) abaixo do target — risco de penalidade contratual. MTTR P1 (168.0h) acima do benchmark ITIL — processo de escalação ineficiente. Root causes sem RCA formal: N/A, Bug, Business Process. Apps com maior incidência: RCIB, Xstore, XOffice.",
+      "reasoning": "**Auditoria de Qualidade e Conformidade — Chanel (2026-04-14):**\n\n**Quality Score: 60/100**\n\n**Gaps Identificados:**\n1. SLA P1 (82.6%) abaixo do target — risco de penalidade contratual\n2. MTTR P1 (168.0h) acima do benchmark ITIL — processo de escalação ineficiente\n\n**Conformidade ITIL 4:**\n- Incident Management: Não conforme — SLA/MTTR fora dos targets\n- Problem Management: Ativo\n- Change Management: 7 CRs registradas\n- Continual Improvement: Backlog controlado\n\n**Root Causes (Chanel):**\n- Top causas: N/A, Bug, Business Process\n- Implementar problema formal para causas recorrentes.\n\n**Recomendações:**\n1. Revisão imediata do processo de triagem de P1s — meta: <2h para first response.\n2. Implementar revisão semanal de tickets aging >15 dias (preventivo antes de 30d).\n3. Criar dashboard de qualidade com alertas automáticos para desvios de SLA em tempo real.",
+      "health_score": {
+        "value": 70,
+        "label": "BOM",
+        "color": "green"
+      },
+      "quality_score": 60,
+      "gaps": [
+        "SLA P1 (82.6%) abaixo do target — risco de penalidade contratual",
+        "MTTR P1 (168.0h) acima do benchmark ITIL — processo de escalação ineficiente"
+      ]
+    },
+    "triage": {
+      "agent": "AI_TRIAGE",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Triagem de urgência CRÍTICA — Chanel. Incidents abertos: 2. Backlog RC: 5 | Cliente: 5. Aging critico (>30d): 2 tickets. Carga distribuída adequadamente. Apps prioritárias: RCIB, Xstore, XOffice.",
+      "reasoning": "**Triagem e Priorização — Chanel (2026-04-14):**\n\n**Nível de Urgência Atual: CRÍTICA**\n\n**Action Items Imediatos:**\n1. Revisar 2 incidents abertos — priorizar P1s e P2s sem atualização há >4h\n2. 5 tickets RC em análise/desenvolvimento — checar bloqueios com analistas\n3. 5 tickets aguardando cliente — enviar follow-up proativo se >5 dias\n4. 2 tickets com aging >30 dias — escalonar para gestor se sem movimento >7 dias\n\n**Distribuição do Backlog:**\n- RC (nosso backlog): 5 tickets\n- Aguardando cliente: 5 tickets\n- Total incidents abertos: 2\n\n**Aging Analysis:**\n- Tickets com aging >30 dias: 2 (dentro do normal)\n- SLA P1 atual: 82.6% (ATENCAO)\n- MTTR P1: 168.0h (Acima do benchmark)\n\n**Critérios de Escalonamento:**\n- P1 sem atualização >2h: escalar para gerente de operações\n- P2 sem atualização >4h: notificar analista sênior\n- Aging >30d sem movimento >7d: escalar para diretoria de serviços\n\n**Recomendações:**\n1. Revisão daily standup de tickets prioritários.\n2. Manter distribuição atual de carga.\n3. Implementar alertas automáticos de aging no D+15 para ação preventiva.",
+      "health_score": {
+        "value": 70,
+        "label": "BOM",
+        "color": "green"
+      },
+      "urgency": "CRÍTICA",
+      "action_items": [
+        "Revisar 2 incidents abertos — priorizar P1s e P2s sem atualização há >4h",
+        "5 tickets RC em análise/desenvolvimento — checar bloqueios com analistas",
+        "5 tickets aguardando cliente — enviar follow-up proativo se >5 dias",
+        "2 tickets com aging >30 dias — escalonar para gestor se sem movimento >7 dias"
+      ]
+    }
+  },
+  "Farmacia Arrocha": {
+    "ops": {
+      "agent": "AI_OPS",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Saúde operacional de Farmacia Arrocha: BOM (83/100). SLA P1: 100.0% (DENTRO_DO_TARGET), P2: 99.3%. MTTR P1 mediano: 144.0h vs benchmark ITIL 4h. Incidents abertos: 16. Backlog RC: 16, Cliente: 19. Aging >30d: 6 tickets. Tendência semanal: queda de 38%. Apps críticas: XStore, ORCE, Infrastructure. Root causes dominantes: Infrastructure, Problem Analysis, N/A.",
+      "reasoning": "Análise completa de 3134 tickets do projeto Farmacia Arrocha (referência 2026-04-14).\n\n**SLA Performance:**\n- P1: 100.0% de cumprimento (167/167 tickets) — benchmark ITIL: 99%+\n- P2: 99.3% (554/558 tickets)\n- P3: 100.0% | P4: 100.0%\n\n**MTTR (Incidentes PRD fechados):**\n- P1: 144.0h mediano | P2: 0h | P3: 0h\n- P1 está 36.0x acima do benchmark ITIL (4h) (ATENCAO)\n\n**Backlog e Aging:**\n- RC (nosso lado): 16 tickets em análise/desenvolvimento\n- Cliente: 19 tickets aguardando resposta do cliente\n- 6 tickets abertos há mais de 30 dias requerem revisão urgente\n\n**Distribuição por Severidade:**\n- Incidents: 1440 total, 16 abertos\n- User Requests: 848 total\n- Problems: 804 total\n\n**Recomendações:**\n1. Manter SLA P1 — implementar revisão semanal preventiva.\n2. Reduzir MTTR P1 com escalonamento automático após 2h sem resolução.\n3. Revisar backlog RC com o gerente para identificar bloqueios técnicos.\n4. Apps críticas a monitorar proativamente: XStore, ORCE, Infrastructure.",
+      "health_score": {
+        "value": 83,
+        "label": "BOM",
+        "color": "green"
+      },
+      "sla_analysis": {
+        "p1_pct": 100.0,
+        "p2_pct": 99.3,
+        "overall_status": "DENTRO_DO_TARGET"
+      },
+      "alerts": [
+        {
+          "level": "MEDIO",
+          "message": "MTTR P1 mediano 144.0h (36.0x acima do benchmark ITIL de 4h)",
+          "metric": "MTTR_P1"
+        }
+      ]
+    },
+    "predictive": {
+      "agent": "AI_PREDICTIVE",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Análise preditiva de Farmacia Arrocha: tendência de incidents queda de 38%. Média últimas 4 semanas: 5.2 incidents/semana, 0.8 URs/semana. Backlog RC atual: 16 — controlado. Previsão próximas 4 semanas: 6-->8 incidents/sem. Root causes recorrentes: Infrastructure, Problem Analysis, N/A.",
+      "reasoning": "**Análise Preditiva — Farmacia Arrocha (2026-04-14):**\n\n**Volume Histórico (últimas 11 semanas):**\n- Sem 2026-W23: 3 incidents, 1 URs\n- Sem 2026-W27: 2 incidents, 0 URs\n- Sem 2026-W31: 1 incidents, 0 URs\n- Sem 2026-W32: 1 incidents, 1 URs\n- Sem 2026-W36: 8 incidents, 1 URs\n- Sem 2026-W40: 5 incidents, 0 URs\n- Sem 2026-W45: 7 incidents, 1 URs\n- Sem 2026-W49: 1 incidents, 1 URs\n\n**Tendência:** QUEDA DE 38%\n\n**Projeção Próximas 4 Semanas:**\n- Semana +1: ~6 incidents, ~1 user requests\n- Semana +2: ~7 incidents, ~1 user requests\n- Semana +3: ~7 incidents, ~2 user requests\n- Semana +4: ~8 incidents, ~2 user requests\n\n**Fatores de Risco:**\n- Backlog RC: 16 tickets acumulados (controlado)\n- Aging >30d: 6 tickets — indica gargalo de resolução\n- Root causes recorrentes sem resolução definitiva: Infrastructure, Problem Analysis, N/A\n\n**Recomendações:**\n1. Implementar problema formal para RCAs recorrentes: Infrastructure.\n2. Revisar capacidade da equipe — volume projetado pode exceder SLA.\n3. Priorizar resolução do backlog RC antes do acúmulo virar débito de SLA.",
+      "health_score": {
+        "value": 83,
+        "label": "BOM",
+        "color": "green"
+      },
+      "weekly_forecast": [
+        {
+          "week": 1,
+          "incidents": 6,
+          "user_requests": 1
+        },
+        {
+          "week": 2,
+          "incidents": 7,
+          "user_requests": 1
+        },
+        {
+          "week": 3,
+          "incidents": 7,
+          "user_requests": 2
+        },
+        {
+          "week": 4,
+          "incidents": 8,
+          "user_requests": 2
+        }
+      ]
+    },
+    "improvement": {
+      "agent": "AI_IMPROVEMENT",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Maturidade ITIL estimada: Nível 3 (Gerenciado) — Farmacia Arrocha. Quick Win 1: Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução... Quick Win 2: Backlog Sprint: Dedicar 20% da capacidade semanal para resolver os 16 tickets RC... Apps críticas a automatizar: XStore, ORCE, Infrastructure.",
+      "reasoning": "**Plano de Melhoria Contínua — Farmacia Arrocha (2026-04-14):**\n\n**Nível de Maturidade ITIL:** Nível 3 (Gerenciado)\n\n**Quick Wins Identificados:**\n1. Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução de 140.0h no MTTR (de 144.0h para ~4h).\n\n2. Backlog Sprint: Dedicar 20% da capacidade semanal para resolver os 16 tickets RC acumulados. Meta: zerar em 3 sprints.\n\n3. Aging Review: 6 tickets com >30 dias — implementar alerta automático no D+15 para escalonamento preventivo.\n\n**Métricas Atuais vs Targets:**\n| Métrica      | Atual   | Target ITIL | Gap   |\n|--------------|---------|-------------|-------|\n| SLA P1       | 100.0%  | 99%+        | ok |\n| SLA P3       | 100.0% | 95%+      | ok |\n| MTTR P1      | 144.0h   | <4h         | +140.0h |\n| Backlog RC   | 16 | <10      | +6 |\n| Aging >30d   | 6    | 0           | +6 |\n\n**Roadmap Sugerido (90 dias):**\n- Mês 1: Implementar quick wins de processo (runbooks, RCA formal)\n- Mês 2: Automatizar alertas e categorização\n- Mês 3: Medir impacto e ajustar — revisão de maturidade ITIL",
+      "health_score": {
+        "value": 83,
+        "label": "BOM",
+        "color": "green"
+      },
+      "quick_wins": [
+        "Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução de 140.0h no MTTR (de 144.0h para ~4h).",
+        "Backlog Sprint: Dedicar 20% da capacidade semanal para resolver os 16 tickets RC acumulados. Meta: zerar em 3 sprints.",
+        "Aging Review: 6 tickets com >30 dias — implementar alerta automático no D+15 para escalonamento preventivo."
+      ]
+    },
+    "market": {
+      "agent": "AI_MARKET",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Benchmark de mercado — Farmacia Arrocha. SLA P1 100.0% -> top 5% (referência HDI 2024: top quartil >=99%). SLA P2 99.3% -> top 10%. MTTR P1 144.0h -> abaixo da mediana (benchmark ITIL: <4h, excelência: <2h). Posicionamento MSP: premium.",
+      "reasoning": "**Análise de Benchmarking — Farmacia Arrocha (2026-04-14):**\n\nReferências: HDI Service Desk Practices Report 2024, ITIL 4 Guidelines, Gartner IT Key Metrics 2024\n\n| Métrica   | Farmacia Arrocha   | Top 10% | Mediana | Posição |\n|-----------|---------|---------|---------|--------|\n| SLA P1    | 100.0%  | >=99.5% | 97%     | top 5% |\n| SLA P2    | 99.3%  | >=98%   | 93%     | top 10% |\n| MTTR P1   | 144.0h   | <=2h    | 6h      | abaixo da mediana |\n| MTTR P2   | 0h | <=4h | 12h    | — |\n\n**Análise Competitiva:**\n- SLA P1 (100.0%): Usar SLA P1 100.0% como argumento comercial em RFPs.\n- MTTR P1 (144.0h): Acima do benchmark — risco em contratos com SLA MTTR explícito.\n- Health Score 83/100: Posicionamento premium — argumento para upsell de serviços gerenciados.\n\n**Recomendações para Posicionamento:**\n1. Usar SLA P1 100.0% como argumento comercial em RFPs.\n2. Implementar relatório mensal de benchmark para evidenciar evolução ao cliente.\n3. Investigar práticas de top performers para reduzir MTTR P1.",
+      "health_score": {
+        "value": 83,
+        "label": "BOM",
+        "color": "green"
+      },
+      "benchmark": {
+        "sla_p1_position": "top 5%",
+        "mttr_p1_position": "abaixo da mediana"
+      }
+    },
+    "qa": {
+      "agent": "AI_QA",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Quality Score: 73/100 — Farmacia Arrocha. Gaps principais: MTTR P1 (144.0h) acima do benchmark ITIL — processo de escalação ineficiente. Backlog RC (16 tickets) indica gargalo de capacidade ou processo. Root causes sem RCA formal: Infrastructure, Problem Analysis, N/A. Apps com maior incidência: XStore, ORCE, Infrastructure.",
+      "reasoning": "**Auditoria de Qualidade e Conformidade — Farmacia Arrocha (2026-04-14):**\n\n**Quality Score: 73/100**\n\n**Gaps Identificados:**\n1. MTTR P1 (144.0h) acima do benchmark ITIL — processo de escalação ineficiente\n2. Backlog RC (16 tickets) indica gargalo de capacidade ou processo\n3. 6 tickets aging >30d — falha no processo de revisão periódica\n\n**Conformidade ITIL 4:**\n- Incident Management: Não conforme — SLA/MTTR fora dos targets\n- Problem Management: Ativo\n- Change Management: 27 CRs registradas\n- Continual Improvement: Backlog RC elevado indica débito técnico\n\n**Root Causes (Farmacia Arrocha):**\n- Top causas: Infrastructure, Problem Analysis, N/A\n- Implementar problema formal para causas recorrentes.\n\n**Recomendações:**\n1. Manter processo de P1 — criar checklist de verificação mensal.\n2. Implementar revisão semanal de tickets aging >15 dias (preventivo antes de 30d).\n3. Criar dashboard de qualidade com alertas automáticos para desvios de SLA em tempo real.",
+      "health_score": {
+        "value": 83,
+        "label": "BOM",
+        "color": "green"
+      },
+      "quality_score": 73,
+      "gaps": [
+        "MTTR P1 (144.0h) acima do benchmark ITIL — processo de escalação ineficiente",
+        "Backlog RC (16 tickets) indica gargalo de capacidade ou processo",
+        "6 tickets aging >30d — falha no processo de revisão periódica"
+      ]
+    },
+    "triage": {
+      "agent": "AI_TRIAGE",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Triagem de urgência ALTA — Farmacia Arrocha. Incidents abertos: 16. Backlog RC: 16 | Cliente: 19. Aging critico (>30d): 6 tickets. Analista luiz.horvat concentra 7 tickets — rebalancear carga. Apps prioritárias: XStore, ORCE, Infrastructure.",
+      "reasoning": "**Triagem e Priorização — Farmacia Arrocha (2026-04-14):**\n\n**Nível de Urgência Atual: ALTA**\n\n**Action Items Imediatos:**\n1. Revisar 16 incidents abertos — priorizar P1s e P2s sem atualização há >4h\n2. 16 tickets RC em análise/desenvolvimento — checar bloqueios com analistas\n3. 19 tickets aguardando cliente — enviar follow-up proativo se >5 dias\n4. 6 tickets com aging >30 dias — escalonar para gestor se sem movimento >7 dias\n5. Analista luiz.horvat com 7 tickets no backlog — verificar distribuição de carga\n\n**Distribuição do Backlog:**\n- RC (nosso backlog): 16 tickets\n- Aguardando cliente: 19 tickets\n- Total incidents abertos: 16\n\n**Aging Analysis:**\n- Tickets com aging >30 dias: 6 (REVISAR URGENTE)\n- SLA P1 atual: 100.0% (OK)\n- MTTR P1: 144.0h (Acima do benchmark)\n\n**Critérios de Escalonamento:**\n- P1 sem atualização >2h: escalar para gerente de operações\n- P2 sem atualização >4h: notificar analista sênior\n- Aging >30d sem movimento >7d: escalar para diretoria de serviços\n\n**Recomendações:**\n1. Reunião de war room imediata para incidents P1/P2 abertos.\n2. Rebalancear carga do analista luiz.horvat (7 tickets).\n3. Implementar alertas automáticos de aging no D+15 para ação preventiva.",
+      "health_score": {
+        "value": 83,
+        "label": "BOM",
+        "color": "green"
+      },
+      "urgency": "ALTA",
+      "action_items": [
+        "Revisar 16 incidents abertos — priorizar P1s e P2s sem atualização há >4h",
+        "16 tickets RC em análise/desenvolvimento — checar bloqueios com analistas",
+        "19 tickets aguardando cliente — enviar follow-up proativo se >5 dias",
+        "6 tickets com aging >30 dias — escalonar para gestor se sem movimento >7 dias",
+        "Analista luiz.horvat com 7 tickets no backlog — verificar distribuição de carga"
+      ]
+    }
+  },
+  "Farmatodo": {
+    "ops": {
+      "agent": "AI_OPS",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Saúde operacional de Farmatodo: EXCELENTE (93/100). SLA P1: 99.8% (DENTRO_DO_TARGET), P2: 97.6%. MTTR P1 mediano: 72.0h vs benchmark ITIL 4h. Incidents abertos: 2. Backlog RC: 15, Cliente: 22. Aging >30d: 8 tickets. Tendência semanal: queda de 50%. Apps críticas: WMS, RMS, XStore. Root causes dominantes: Bug, Infrastructure, Problem Analysis.",
+      "reasoning": "Análise completa de 4621 tickets do projeto Farmatodo (referência 2026-04-14).\n\n**SLA Performance:**\n- P1: 99.8% de cumprimento (536/537 tickets) — benchmark ITIL: 99%+\n- P2: 97.6% (561/575 tickets)\n- P3: 98.9% | P4: 98.9%\n\n**MTTR (Incidentes PRD fechados):**\n- P1: 72.0h mediano | P2: 0h | P3: 0h\n- P1 está 18.0x acima do benchmark ITIL (4h) (ATENCAO)\n\n**Backlog e Aging:**\n- RC (nosso lado): 15 tickets em análise/desenvolvimento\n- Cliente: 22 tickets aguardando resposta do cliente\n- 8 tickets abertos há mais de 30 dias requerem revisão urgente\n\n**Distribuição por Severidade:**\n- Incidents: 2782 total, 2 abertos\n- User Requests: 409 total\n- Problems: 1159 total\n\n**Recomendações:**\n1. Manter SLA P1 — implementar revisão semanal preventiva.\n2. Reduzir MTTR P1 com escalonamento automático após 2h sem resolução.\n3. Manter cadência de backlog grooming semanal.\n4. Apps críticas a monitorar proativamente: WMS, RMS, XStore.",
+      "health_score": {
+        "value": 93,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "sla_analysis": {
+        "p1_pct": 99.8,
+        "p2_pct": 97.6,
+        "overall_status": "DENTRO_DO_TARGET"
+      },
+      "alerts": [
+        {
+          "level": "MEDIO",
+          "message": "MTTR P1 mediano 72.0h (18.0x acima do benchmark ITIL de 4h)",
+          "metric": "MTTR_P1"
+        }
+      ]
+    },
+    "predictive": {
+      "agent": "AI_PREDICTIVE",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Análise preditiva de Farmatodo: tendência de incidents queda de 50%. Média últimas 4 semanas: 1.5 incidents/semana, 0.5 URs/semana. Backlog RC atual: 15 — controlado. Previsão próximas 4 semanas: 1-->1 incidents/sem. Root causes recorrentes: Bug, Infrastructure, Problem Analysis.",
+      "reasoning": "**Análise Preditiva — Farmatodo (2026-04-14):**\n\n**Volume Histórico (últimas 12 semanas):**\n- Sem 2026-W19: 1 incidents, 0 URs\n- Sem 2026-W23: 1 incidents, 0 URs\n- Sem 2026-W27: 1 incidents, 0 URs\n- Sem 2026-W31: 1 incidents, 0 URs\n- Sem 2026-W36: 2 incidents, 1 URs\n- Sem 2026-W40: 2 incidents, 1 URs\n- Sem 2026-W45: 1 incidents, 0 URs\n- Sem 2026-W49: 1 incidents, 0 URs\n\n**Tendência:** QUEDA DE 50%\n\n**Projeção Próximas 4 Semanas:**\n- Semana +1: ~1 incidents, ~0 user requests\n- Semana +2: ~1 incidents, ~0 user requests\n- Semana +3: ~1 incidents, ~0 user requests\n- Semana +4: ~1 incidents, ~0 user requests\n\n**Fatores de Risco:**\n- Backlog RC: 15 tickets acumulados (controlado)\n- Aging >30d: 8 tickets — indica gargalo de resolução\n- Root causes recorrentes sem resolução definitiva: Bug, Infrastructure, Problem Analysis\n\n**Recomendações:**\n1. Implementar problema formal para RCAs recorrentes: Bug.\n2. Manter monitoramento semanal de volume.\n3. Priorizar resolução do backlog RC antes do acúmulo virar débito de SLA.",
+      "health_score": {
+        "value": 93,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "weekly_forecast": [
+        {
+          "week": 1,
+          "incidents": 1,
+          "user_requests": 0
+        },
+        {
+          "week": 2,
+          "incidents": 1,
+          "user_requests": 0
+        },
+        {
+          "week": 3,
+          "incidents": 1,
+          "user_requests": 0
+        },
+        {
+          "week": 4,
+          "incidents": 1,
+          "user_requests": 0
+        }
+      ]
+    },
+    "improvement": {
+      "agent": "AI_IMPROVEMENT",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Maturidade ITIL estimada: Nível 3 (Gerenciado) — Farmatodo. Quick Win 1: Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução... Quick Win 2: Automação de Categorização: Implementar regras automáticas para root causes em B... Apps críticas a automatizar: WMS, RMS, XStore.",
+      "reasoning": "**Plano de Melhoria Contínua — Farmatodo (2026-04-14):**\n\n**Nível de Maturidade ITIL:** Nível 3 (Gerenciado)\n\n**Quick Wins Identificados:**\n1. Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução de 68.0h no MTTR (de 72.0h para ~4h).\n\n2. Automação de Categorização: Implementar regras automáticas para root causes em Bug, Infrastructure, Problem Analysis — reduz tempo de triagem em ~30%.\n\n3. Aging Review: 8 tickets com >30 dias — implementar alerta automático no D+15 para escalonamento preventivo.\n\n**Métricas Atuais vs Targets:**\n| Métrica      | Atual   | Target ITIL | Gap   |\n|--------------|---------|-------------|-------|\n| SLA P1       | 99.8%  | 99%+        | ok |\n| SLA P3       | 98.9% | 95%+      | ok |\n| MTTR P1      | 72.0h   | <4h         | +68.0h |\n| Backlog RC   | 15 | <10      | +5 |\n| Aging >30d   | 8    | 0           | +8 |\n\n**Roadmap Sugerido (90 dias):**\n- Mês 1: Implementar quick wins de processo (runbooks, RCA formal)\n- Mês 2: Automatizar alertas e categorização\n- Mês 3: Medir impacto e ajustar — revisão de maturidade ITIL",
+      "health_score": {
+        "value": 93,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "quick_wins": [
+        "Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução de 68.0h no MTTR (de 72.0h para ~4h).",
+        "Automação de Categorização: Implementar regras automáticas para root causes em Bug, Infrastructure, Problem Analysis — reduz tempo de triagem em ~30%.",
+        "Aging Review: 8 tickets com >30 dias — implementar alerta automático no D+15 para escalonamento preventivo."
+      ]
+    },
+    "market": {
+      "agent": "AI_MARKET",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Benchmark de mercado — Farmatodo. SLA P1 99.8% -> top 5% (referência HDI 2024: top quartil >=99%). SLA P2 97.6% -> top 25%. MTTR P1 72.0h -> abaixo da mediana (benchmark ITIL: <4h, excelência: <2h). Posicionamento MSP: premium.",
+      "reasoning": "**Análise de Benchmarking — Farmatodo (2026-04-14):**\n\nReferências: HDI Service Desk Practices Report 2024, ITIL 4 Guidelines, Gartner IT Key Metrics 2024\n\n| Métrica   | Farmatodo   | Top 10% | Mediana | Posição |\n|-----------|---------|---------|---------|--------|\n| SLA P1    | 99.8%  | >=99.5% | 97%     | top 5% |\n| SLA P2    | 97.6%  | >=98%   | 93%     | top 25% |\n| MTTR P1   | 72.0h   | <=2h    | 6h      | abaixo da mediana |\n| MTTR P2   | 0h | <=4h | 12h    | — |\n\n**Análise Competitiva:**\n- SLA P1 (99.8%): Usar SLA P1 99.8% como argumento comercial em RFPs.\n- MTTR P1 (72.0h): Acima do benchmark — risco em contratos com SLA MTTR explícito.\n- Health Score 93/100: Posicionamento premium — argumento para upsell de serviços gerenciados.\n\n**Recomendações para Posicionamento:**\n1. Usar SLA P1 99.8% como argumento comercial em RFPs.\n2. Implementar relatório mensal de benchmark para evidenciar evolução ao cliente.\n3. Investigar práticas de top performers para reduzir MTTR P1.",
+      "health_score": {
+        "value": 93,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "benchmark": {
+        "sla_p1_position": "top 5%",
+        "mttr_p1_position": "abaixo da mediana"
+      }
+    },
+    "qa": {
+      "agent": "AI_QA",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Quality Score: 73/100 — Farmatodo. Gaps principais: MTTR P1 (72.0h) acima do benchmark ITIL — processo de escalação ineficiente. Backlog RC (15 tickets) indica gargalo de capacidade ou processo. Root causes sem RCA formal: Bug, Infrastructure, Problem Analysis. Apps com maior incidência: WMS, RMS, XStore.",
+      "reasoning": "**Auditoria de Qualidade e Conformidade — Farmatodo (2026-04-14):**\n\n**Quality Score: 73/100**\n\n**Gaps Identificados:**\n1. MTTR P1 (72.0h) acima do benchmark ITIL — processo de escalação ineficiente\n2. Backlog RC (15 tickets) indica gargalo de capacidade ou processo\n3. 8 tickets aging >30d — falha no processo de revisão periódica\n\n**Conformidade ITIL 4:**\n- Incident Management: Não conforme — SLA/MTTR fora dos targets\n- Problem Management: Ativo\n- Change Management: 33 CRs registradas\n- Continual Improvement: Backlog controlado\n\n**Root Causes (Farmatodo):**\n- Top causas: Bug, Infrastructure, Problem Analysis\n- Implementar problema formal para causas recorrentes.\n\n**Recomendações:**\n1. Manter processo de P1 — criar checklist de verificação mensal.\n2. Implementar revisão semanal de tickets aging >15 dias (preventivo antes de 30d).\n3. Criar dashboard de qualidade com alertas automáticos para desvios de SLA em tempo real.",
+      "health_score": {
+        "value": 93,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "quality_score": 73,
+      "gaps": [
+        "MTTR P1 (72.0h) acima do benchmark ITIL — processo de escalação ineficiente",
+        "Backlog RC (15 tickets) indica gargalo de capacidade ou processo",
+        "8 tickets aging >30d — falha no processo de revisão periódica"
+      ]
+    },
+    "triage": {
+      "agent": "AI_TRIAGE",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Triagem de urgência MÉDIA — Farmatodo. Incidents abertos: 2. Backlog RC: 15 | Cliente: 22. Aging critico (>30d): 8 tickets. Analista luiz.horvat concentra 9 tickets — rebalancear carga. Apps prioritárias: WMS, RMS, XStore.",
+      "reasoning": "**Triagem e Priorização — Farmatodo (2026-04-14):**\n\n**Nível de Urgência Atual: MÉDIA**\n\n**Action Items Imediatos:**\n1. Revisar 2 incidents abertos — priorizar P1s e P2s sem atualização há >4h\n2. 15 tickets RC em análise/desenvolvimento — checar bloqueios com analistas\n3. 22 tickets aguardando cliente — enviar follow-up proativo se >5 dias\n4. 8 tickets com aging >30 dias — escalonar para gestor se sem movimento >7 dias\n5. Analista luiz.horvat com 9 tickets no backlog — verificar distribuição de carga\n\n**Distribuição do Backlog:**\n- RC (nosso backlog): 15 tickets\n- Aguardando cliente: 22 tickets\n- Total incidents abertos: 2\n\n**Aging Analysis:**\n- Tickets com aging >30 dias: 8 (REVISAR URGENTE)\n- SLA P1 atual: 99.8% (OK)\n- MTTR P1: 72.0h (Acima do benchmark)\n\n**Critérios de Escalonamento:**\n- P1 sem atualização >2h: escalar para gerente de operações\n- P2 sem atualização >4h: notificar analista sênior\n- Aging >30d sem movimento >7d: escalar para diretoria de serviços\n\n**Recomendações:**\n1. Revisão daily standup de tickets prioritários.\n2. Rebalancear carga do analista luiz.horvat (9 tickets).\n3. Implementar alertas automáticos de aging no D+15 para ação preventiva.",
+      "health_score": {
+        "value": 93,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "urgency": "MÉDIA",
+      "action_items": [
+        "Revisar 2 incidents abertos — priorizar P1s e P2s sem atualização há >4h",
+        "15 tickets RC em análise/desenvolvimento — checar bloqueios com analistas",
+        "22 tickets aguardando cliente — enviar follow-up proativo se >5 dias",
+        "8 tickets com aging >30 dias — escalonar para gestor se sem movimento >7 dias",
+        "Analista luiz.horvat com 9 tickets no backlog — verificar distribuição de carga"
+      ]
+    }
+  },
+  "GDN": {
+    "ops": {
+      "agent": "AI_OPS",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Saúde operacional de GDN: ATENÇÃO (65/100). SLA P1: 98.8% (DENTRO_DO_TARGET), P2: 97.4%. MTTR P1 mediano: 0h vs benchmark ITIL 4h. Incidents abertos: 47. Backlog RC: 51, Cliente: 37. Aging >30d: 17 tickets. Tendência semanal: queda de 100%. Apps críticas: RMS, Integración (RIB o RFI), SIM. Root causes dominantes: Bug, N/A, Infrastructure.",
+      "reasoning": "Análise completa de 5483 tickets do projeto GDN (referência 2026-04-14).\n\n**SLA Performance:**\n- P1: 98.8% de cumprimento (762/771 tickets) — benchmark ITIL: 99%+\n- P2: 97.4% (823/845 tickets)\n- P3: 97.3% | P4: 100.0%\n\n**MTTR (Incidentes PRD fechados):**\n- P1: 0h mediano | P2: 2592.0h | P3: 2040.0h\n- P1 está 0x acima do benchmark ITIL (4h) (OK)\n\n**Backlog e Aging:**\n- RC (nosso lado): 51 tickets em análise/desenvolvimento\n- Cliente: 37 tickets aguardando resposta do cliente\n- 17 tickets abertos há mais de 30 dias requerem revisão urgente\n\n**Distribuição por Severidade:**\n- Incidents: 3267 total, 47 abertos\n- User Requests: 762 total\n- Problems: 1313 total\n\n**Recomendações:**\n1. Manter SLA P1 — implementar revisão semanal preventiva.\n2. MTTR P1 dentro do benchmark — documentar boas práticas.\n3. Revisar backlog RC com o gerente para identificar bloqueios técnicos.\n4. Apps críticas a monitorar proativamente: RMS, Integración (RIB o RFI), SIM.",
+      "health_score": {
+        "value": 65,
+        "label": "ATENÇÃO",
+        "color": "yellow"
+      },
+      "sla_analysis": {
+        "p1_pct": 98.8,
+        "p2_pct": 97.4,
+        "overall_status": "DENTRO_DO_TARGET"
+      },
+      "alerts": [
+        {
+          "level": "ALTO",
+          "message": "Backlog RC com 51 tickets — risco de SLA futuro",
+          "metric": "BACKLOG_RC"
+        },
+        {
+          "level": "MEDIO",
+          "message": "17 tickets com aging >30 dias",
+          "metric": "AGING"
+        }
+      ]
+    },
+    "predictive": {
+      "agent": "AI_PREDICTIVE",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Análise preditiva de GDN: tendência de incidents queda de 100%. Média últimas 4 semanas: 1.5 incidents/semana, 0.8 URs/semana. Backlog RC atual: 51 — crítico. Previsão próximas 4 semanas: 1-->0 incidents/sem. Root causes recorrentes: Bug, N/A, Infrastructure.",
+      "reasoning": "**Análise Preditiva — GDN (2026-04-14):**\n\n**Volume Histórico (últimas 10 semanas):**\n- Sem 2026-W18: 0 incidents, 1 URs\n- Sem 2026-W23: 2 incidents, 1 URs\n- Sem 2026-W27: 1 incidents, 1 URs\n- Sem 2026-W31: 0 incidents, 0 URs\n- Sem 2026-W32: 2 incidents, 0 URs\n- Sem 2026-W36: 4 incidents, 1 URs\n- Sem 2026-W40: 0 incidents, 2 URs\n- Sem 2026-W49: 0 incidents, 0 URs\n\n**Tendência:** QUEDA DE 100%\n\n**Projeção Próximas 4 Semanas:**\n- Semana +1: ~1 incidents, ~1 user requests\n- Semana +2: ~1 incidents, ~1 user requests\n- Semana +3: ~0 incidents, ~1 user requests\n- Semana +4: ~0 incidents, ~1 user requests\n\n**Fatores de Risco:**\n- Backlog RC: 51 tickets acumulados (ALTO — pode inflar volume futuro)\n- Aging >30d: 17 tickets — indica gargalo de resolução\n- Root causes recorrentes sem resolução definitiva: Bug, N/A, Infrastructure\n\n**Recomendações:**\n1. Implementar problema formal para RCAs recorrentes: Bug.\n2. Manter monitoramento semanal de volume.\n3. Priorizar resolução do backlog RC antes do acúmulo virar débito de SLA.",
+      "health_score": {
+        "value": 65,
+        "label": "ATENÇÃO",
+        "color": "yellow"
+      },
+      "weekly_forecast": [
+        {
+          "week": 1,
+          "incidents": 1,
+          "user_requests": 1
+        },
+        {
+          "week": 2,
+          "incidents": 1,
+          "user_requests": 1
+        },
+        {
+          "week": 3,
+          "incidents": 0,
+          "user_requests": 1
+        },
+        {
+          "week": 4,
+          "incidents": 0,
+          "user_requests": 1
+        }
+      ]
+    },
+    "improvement": {
+      "agent": "AI_IMPROVEMENT",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Maturidade ITIL estimada: Nível 2 (Definido) — GDN. Quick Win 1: Knowledge Base de P1: MTTR P1 já em 0h (dentro do benchmark). Documentar procedi... Quick Win 2: Backlog Sprint: Dedicar 20% da capacidade semanal para resolver os 51 tickets RC... Apps críticas a automatizar: RMS, Integración (RIB o RFI), SIM.",
+      "reasoning": "**Plano de Melhoria Contínua — GDN (2026-04-14):**\n\n**Nível de Maturidade ITIL:** Nível 2 (Definido)\n\n**Quick Wins Identificados:**\n1. Knowledge Base de P1: MTTR P1 já em 0h (dentro do benchmark). Documentar procedimentos bem-sucedidos para onboarding.\n\n2. Backlog Sprint: Dedicar 20% da capacidade semanal para resolver os 51 tickets RC acumulados. Meta: zerar em 3 sprints.\n\n3. Aging Review: 17 tickets com >30 dias — implementar alerta automático no D+15 para escalonamento preventivo.\n\n**Métricas Atuais vs Targets:**\n| Métrica      | Atual   | Target ITIL | Gap   |\n|--------------|---------|-------------|-------|\n| SLA P1       | 98.8%  | 99%+        | 0.2pp |\n| SLA P3       | 97.3% | 95%+      | ok |\n| MTTR P1      | 0h   | <4h         | ok |\n| Backlog RC   | 51 | <10      | +41 |\n| Aging >30d   | 17    | 0           | +17 |\n\n**Roadmap Sugerido (90 dias):**\n- Mês 1: Implementar quick wins de processo (runbooks, RCA formal)\n- Mês 2: Automatizar alertas e categorização\n- Mês 3: Medir impacto e ajustar — revisão de maturidade ITIL",
+      "health_score": {
+        "value": 65,
+        "label": "ATENÇÃO",
+        "color": "yellow"
+      },
+      "quick_wins": [
+        "Knowledge Base de P1: MTTR P1 já em 0h (dentro do benchmark). Documentar procedimentos bem-sucedidos para onboarding.",
+        "Backlog Sprint: Dedicar 20% da capacidade semanal para resolver os 51 tickets RC acumulados. Meta: zerar em 3 sprints.",
+        "Aging Review: 17 tickets com >30 dias — implementar alerta automático no D+15 para escalonamento preventivo."
+      ]
+    },
+    "market": {
+      "agent": "AI_MARKET",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Benchmark de mercado — GDN. SLA P1 98.8% -> top 15% (referência HDI 2024: top quartil >=99%). SLA P2 97.4% -> top 25%. MTTR P1 0h -> top 10% (benchmark ITIL: <4h, excelência: <2h). Posicionamento MSP: intermediário.",
+      "reasoning": "**Análise de Benchmarking — GDN (2026-04-14):**\n\nReferências: HDI Service Desk Practices Report 2024, ITIL 4 Guidelines, Gartner IT Key Metrics 2024\n\n| Métrica   | GDN   | Top 10% | Mediana | Posição |\n|-----------|---------|---------|---------|--------|\n| SLA P1    | 98.8%  | >=99.5% | 97%     | top 15% |\n| SLA P2    | 97.4%  | >=98%   | 93%     | top 25% |\n| MTTR P1   | 0h   | <=2h    | 6h      | top 10% |\n| MTTR P2   | 2592.0h | <=4h | 12h    | — |\n\n**Análise Competitiva:**\n- SLA P1 (98.8%): Definir plano de ação para SLA P1 atingir 99% em 60 dias.\n- MTTR P1 (0h): Dentro do padrão ITIL.\n- Health Score 65/100: Necessita investimento para atingir benchmark de MSPs tier-1.\n\n**Recomendações para Posicionamento:**\n1. Definir plano de ação para SLA P1 atingir 99% em 60 dias.\n2. Implementar relatório mensal de benchmark para evidenciar evolução ao cliente.\n3. Documentar MTTR como benchmark interno para novos contratos.",
+      "health_score": {
+        "value": 65,
+        "label": "ATENÇÃO",
+        "color": "yellow"
+      },
+      "benchmark": {
+        "sla_p1_position": "top 15%",
+        "mttr_p1_position": "top 10%"
+      }
+    },
+    "qa": {
+      "agent": "AI_QA",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Quality Score: 60/100 — GDN. Gaps principais: SLA P1 (98.8%) abaixo do target — risco de penalidade contratual. Backlog RC (51 tickets) indica gargalo de capacidade ou processo. Root causes sem RCA formal: Bug, N/A, Infrastructure. Apps com maior incidência: RMS, Integración (RIB o RFI), SIM.",
+      "reasoning": "**Auditoria de Qualidade e Conformidade — GDN (2026-04-14):**\n\n**Quality Score: 60/100**\n\n**Gaps Identificados:**\n1. SLA P1 (98.8%) abaixo do target — risco de penalidade contratual\n2. Backlog RC (51 tickets) indica gargalo de capacidade ou processo\n3. 17 tickets aging >30d — falha no processo de revisão periódica\n\n**Conformidade ITIL 4:**\n- Incident Management: Conforme\n- Problem Management: Ativo\n- Change Management: 44 CRs registradas\n- Continual Improvement: Backlog RC elevado indica débito técnico\n\n**Root Causes (GDN):**\n- Top causas: Bug, N/A, Infrastructure\n- Implementar problema formal para causas recorrentes.\n\n**Recomendações:**\n1. Manter processo de P1 — criar checklist de verificação mensal.\n2. Implementar revisão semanal de tickets aging >15 dias (preventivo antes de 30d).\n3. Criar dashboard de qualidade com alertas automáticos para desvios de SLA em tempo real.",
+      "health_score": {
+        "value": 65,
+        "label": "ATENÇÃO",
+        "color": "yellow"
+      },
+      "quality_score": 60,
+      "gaps": [
+        "SLA P1 (98.8%) abaixo do target — risco de penalidade contratual",
+        "Backlog RC (51 tickets) indica gargalo de capacidade ou processo",
+        "17 tickets aging >30d — falha no processo de revisão periódica"
+      ]
+    },
+    "triage": {
+      "agent": "AI_TRIAGE",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Triagem de urgência CRÍTICA — GDN. Incidents abertos: 47. Backlog RC: 51 | Cliente: 37. Aging critico (>30d): 17 tickets. Analista gdn.support concentra 26 tickets — rebalancear carga. Apps prioritárias: RMS, Integración (RIB o RFI), SIM.",
+      "reasoning": "**Triagem e Priorização — GDN (2026-04-14):**\n\n**Nível de Urgência Atual: CRÍTICA**\n\n**Action Items Imediatos:**\n1. Revisar 47 incidents abertos — priorizar P1s e P2s sem atualização há >4h\n2. 51 tickets RC em análise/desenvolvimento — checar bloqueios com analistas\n3. 37 tickets aguardando cliente — enviar follow-up proativo se >5 dias\n4. 17 tickets com aging >30 dias — escalonar para gestor se sem movimento >7 dias\n5. Analista gdn.support com 26 tickets no backlog — verificar distribuição de carga\n\n**Distribuição do Backlog:**\n- RC (nosso backlog): 51 tickets\n- Aguardando cliente: 37 tickets\n- Total incidents abertos: 47\n\n**Aging Analysis:**\n- Tickets com aging >30 dias: 17 (REVISAR URGENTE)\n- SLA P1 atual: 98.8% (OK)\n- MTTR P1: 0h (OK)\n\n**Critérios de Escalonamento:**\n- P1 sem atualização >2h: escalar para gerente de operações\n- P2 sem atualização >4h: notificar analista sênior\n- Aging >30d sem movimento >7d: escalar para diretoria de serviços\n\n**Recomendações:**\n1. Reunião de war room imediata para incidents P1/P2 abertos.\n2. Rebalancear carga do analista gdn.support (26 tickets).\n3. Implementar alertas automáticos de aging no D+15 para ação preventiva.",
+      "health_score": {
+        "value": 65,
+        "label": "ATENÇÃO",
+        "color": "yellow"
+      },
+      "urgency": "CRÍTICA",
+      "action_items": [
+        "Revisar 47 incidents abertos — priorizar P1s e P2s sem atualização há >4h",
+        "51 tickets RC em análise/desenvolvimento — checar bloqueios com analistas",
+        "37 tickets aguardando cliente — enviar follow-up proativo se >5 dias",
+        "17 tickets com aging >30 dias — escalonar para gestor se sem movimento >7 dias",
+        "Analista gdn.support com 26 tickets no backlog — verificar distribuição de carga"
+      ]
+    }
+  },
+  "Parfois": {
+    "ops": {
+      "agent": "AI_OPS",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Saúde operacional de Parfois: EXCELENTE (100/100). SLA P1: 100.0% (DENTRO_DO_TARGET), P2: 99.8%. MTTR P1 mediano: 72.0h vs benchmark ITIL 4h. Incidents abertos: 4. Backlog RC: 7, Cliente: 9. Aging >30d: 1 tickets. Tendência semanal: alta de 44%. Apps críticas: RIB, RMS, Infrastructure. Root causes dominantes: Bug, Infrastructure, Process/Performance Volume.",
+      "reasoning": "Análise completa de 5779 tickets do projeto Parfois (referência 2026-04-14).\n\n**SLA Performance:**\n- P1: 100.0% de cumprimento (1042/1042 tickets) — benchmark ITIL: 99%+\n- P2: 99.8% (440/441 tickets)\n- P3: 99.9% | P4: 99.7%\n\n**MTTR (Incidentes PRD fechados):**\n- P1: 72.0h mediano | P2: 168.0h | P3: 0h\n- P1 está 18.0x acima do benchmark ITIL (4h) (ATENCAO)\n\n**Backlog e Aging:**\n- RC (nosso lado): 7 tickets em análise/desenvolvimento\n- Cliente: 9 tickets aguardando resposta do cliente\n- 1 tickets abertos há mais de 30 dias requerem revisão urgente\n\n**Distribuição por Severidade:**\n- Incidents: 3718 total, 4 abertos\n- User Requests: 715 total\n- Problems: 1247 total\n\n**Recomendações:**\n1. Manter SLA P1 — implementar revisão semanal preventiva.\n2. Reduzir MTTR P1 com escalonamento automático após 2h sem resolução.\n3. Manter cadência de backlog grooming semanal.\n4. Apps críticas a monitorar proativamente: RIB, RMS, Infrastructure.",
+      "health_score": {
+        "value": 100,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "sla_analysis": {
+        "p1_pct": 100.0,
+        "p2_pct": 99.8,
+        "overall_status": "DENTRO_DO_TARGET"
+      },
+      "alerts": [
+        {
+          "level": "MEDIO",
+          "message": "MTTR P1 mediano 72.0h (18.0x acima do benchmark ITIL de 4h)",
+          "metric": "MTTR_P1"
+        }
+      ]
+    },
+    "predictive": {
+      "agent": "AI_PREDICTIVE",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Análise preditiva de Parfois: tendência de incidents alta de 44%. Média últimas 4 semanas: 5.5 incidents/semana, 4.5 URs/semana. Backlog RC atual: 7 — controlado. Previsão próximas 4 semanas: 10-->13 incidents/sem. Root causes recorrentes: Bug, Infrastructure, Process/Performance Volume.",
+      "reasoning": "**Análise Preditiva — Parfois (2026-04-14):**\n\n**Volume Histórico (últimas 11 semanas):**\n- Sem 2026-W23: 5 incidents, 7 URs\n- Sem 2026-W27: 6 incidents, 2 URs\n- Sem 2026-W31: 4 incidents, 0 URs\n- Sem 2026-W32: 1 incidents, 1 URs\n- Sem 2026-W36: 5 incidents, 9 URs\n- Sem 2026-W40: 4 incidents, 3 URs\n- Sem 2026-W45: 4 incidents, 2 URs\n- Sem 2026-W49: 9 incidents, 4 URs\n\n**Tendência:** ALTA DE 44%\n\n**Projeção Próximas 4 Semanas:**\n- Semana +1: ~10 incidents, ~6 user requests\n- Semana +2: ~11 incidents, ~7 user requests\n- Semana +3: ~12 incidents, ~7 user requests\n- Semana +4: ~13 incidents, ~8 user requests\n\n**Fatores de Risco:**\n- Backlog RC: 7 tickets acumulados (controlado)\n- Aging >30d: 1 tickets — dentro do normal\n- Root causes recorrentes sem resolução definitiva: Bug, Infrastructure, Process/Performance Volume\n\n**Recomendações:**\n1. Implementar problema formal para RCAs recorrentes: Bug.\n2. Revisar capacidade da equipe — volume projetado pode exceder SLA.\n3. Priorizar resolução do backlog RC antes do acúmulo virar débito de SLA.",
+      "health_score": {
+        "value": 100,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "weekly_forecast": [
+        {
+          "week": 1,
+          "incidents": 10,
+          "user_requests": 6
+        },
+        {
+          "week": 2,
+          "incidents": 11,
+          "user_requests": 7
+        },
+        {
+          "week": 3,
+          "incidents": 12,
+          "user_requests": 7
+        },
+        {
+          "week": 4,
+          "incidents": 13,
+          "user_requests": 8
+        }
+      ]
+    },
+    "improvement": {
+      "agent": "AI_IMPROVEMENT",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Maturidade ITIL estimada: Nível 3 (Gerenciado) — Parfois. Quick Win 1: Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução... Quick Win 2: Automação de Categorização: Implementar regras automáticas para root causes em B... Apps críticas a automatizar: RIB, RMS, Infrastructure.",
+      "reasoning": "**Plano de Melhoria Contínua — Parfois (2026-04-14):**\n\n**Nível de Maturidade ITIL:** Nível 3 (Gerenciado)\n\n**Quick Wins Identificados:**\n1. Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução de 68.0h no MTTR (de 72.0h para ~4h).\n\n2. Automação de Categorização: Implementar regras automáticas para root causes em Bug, Infrastructure, Process/Performance Volume — reduz tempo de triagem em ~30%.\n\n**Métricas Atuais vs Targets:**\n| Métrica      | Atual   | Target ITIL | Gap   |\n|--------------|---------|-------------|-------|\n| SLA P1       | 100.0%  | 99%+        | ok |\n| SLA P3       | 99.9% | 95%+      | ok |\n| MTTR P1      | 72.0h   | <4h         | +68.0h |\n| Backlog RC   | 7 | <10      | ok |\n| Aging >30d   | 1    | 0           | +1 |\n\n**Roadmap Sugerido (90 dias):**\n- Mês 1: Implementar quick wins de processo (runbooks, RCA formal)\n- Mês 2: Automatizar alertas e categorização\n- Mês 3: Medir impacto e ajustar — revisão de maturidade ITIL",
+      "health_score": {
+        "value": 100,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "quick_wins": [
+        "Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução de 68.0h no MTTR (de 72.0h para ~4h).",
+        "Automação de Categorização: Implementar regras automáticas para root causes em Bug, Infrastructure, Process/Performance Volume — reduz tempo de triagem em ~30%."
+      ]
+    },
+    "market": {
+      "agent": "AI_MARKET",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Benchmark de mercado — Parfois. SLA P1 100.0% -> top 5% (referência HDI 2024: top quartil >=99%). SLA P2 99.8% -> top 10%. MTTR P1 72.0h -> abaixo da mediana (benchmark ITIL: <4h, excelência: <2h). Posicionamento MSP: premium.",
+      "reasoning": "**Análise de Benchmarking — Parfois (2026-04-14):**\n\nReferências: HDI Service Desk Practices Report 2024, ITIL 4 Guidelines, Gartner IT Key Metrics 2024\n\n| Métrica   | Parfois   | Top 10% | Mediana | Posição |\n|-----------|---------|---------|---------|--------|\n| SLA P1    | 100.0%  | >=99.5% | 97%     | top 5% |\n| SLA P2    | 99.8%  | >=98%   | 93%     | top 10% |\n| MTTR P1   | 72.0h   | <=2h    | 6h      | abaixo da mediana |\n| MTTR P2   | 168.0h | <=4h | 12h    | — |\n\n**Análise Competitiva:**\n- SLA P1 (100.0%): Usar SLA P1 100.0% como argumento comercial em RFPs.\n- MTTR P1 (72.0h): Acima do benchmark — risco em contratos com SLA MTTR explícito.\n- Health Score 100/100: Posicionamento premium — argumento para upsell de serviços gerenciados.\n\n**Recomendações para Posicionamento:**\n1. Usar SLA P1 100.0% como argumento comercial em RFPs.\n2. Implementar relatório mensal de benchmark para evidenciar evolução ao cliente.\n3. Investigar práticas de top performers para reduzir MTTR P1.",
+      "health_score": {
+        "value": 100,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "benchmark": {
+        "sla_p1_position": "top 5%",
+        "mttr_p1_position": "abaixo da mediana"
+      }
+    },
+    "qa": {
+      "agent": "AI_QA",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Quality Score: 85/100 — Parfois. Gaps principais: MTTR P1 (72.0h) acima do benchmark ITIL — processo de escalação ineficiente. Root causes sem RCA formal: Bug, Infrastructure, Process/Performance Volume. Apps com maior incidência: RIB, RMS, Infrastructure.",
+      "reasoning": "**Auditoria de Qualidade e Conformidade — Parfois (2026-04-14):**\n\n**Quality Score: 85/100**\n\n**Gaps Identificados:**\n1. MTTR P1 (72.0h) acima do benchmark ITIL — processo de escalação ineficiente\n\n**Conformidade ITIL 4:**\n- Incident Management: Não conforme — SLA/MTTR fora dos targets\n- Problem Management: Ativo\n- Change Management: 3 CRs registradas\n- Continual Improvement: Backlog controlado\n\n**Root Causes (Parfois):**\n- Top causas: Bug, Infrastructure, Process/Performance Volume\n- Implementar problema formal para causas recorrentes.\n\n**Recomendações:**\n1. Manter processo de P1 — criar checklist de verificação mensal.\n2. Implementar revisão semanal de tickets aging >15 dias (preventivo antes de 30d).\n3. Criar dashboard de qualidade com alertas automáticos para desvios de SLA em tempo real.",
+      "health_score": {
+        "value": 100,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "quality_score": 85,
+      "gaps": [
+        "MTTR P1 (72.0h) acima do benchmark ITIL — processo de escalação ineficiente"
+      ]
+    },
+    "triage": {
+      "agent": "AI_TRIAGE",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Triagem de urgência MÉDIA — Parfois. Incidents abertos: 4. Backlog RC: 7 | Cliente: 9. Aging critico (>30d): 1 tickets. Carga distribuída adequadamente. Apps prioritárias: RIB, RMS, Infrastructure.",
+      "reasoning": "**Triagem e Priorização — Parfois (2026-04-14):**\n\n**Nível de Urgência Atual: MÉDIA**\n\n**Action Items Imediatos:**\n1. Revisar 4 incidents abertos — priorizar P1s e P2s sem atualização há >4h\n2. 7 tickets RC em análise/desenvolvimento — checar bloqueios com analistas\n3. 9 tickets aguardando cliente — enviar follow-up proativo se >5 dias\n4. 1 tickets com aging >30 dias — escalonar para gestor se sem movimento >7 dias\n\n**Distribuição do Backlog:**\n- RC (nosso backlog): 7 tickets\n- Aguardando cliente: 9 tickets\n- Total incidents abertos: 4\n\n**Aging Analysis:**\n- Tickets com aging >30 dias: 1 (dentro do normal)\n- SLA P1 atual: 100.0% (OK)\n- MTTR P1: 72.0h (Acima do benchmark)\n\n**Critérios de Escalonamento:**\n- P1 sem atualização >2h: escalar para gerente de operações\n- P2 sem atualização >4h: notificar analista sênior\n- Aging >30d sem movimento >7d: escalar para diretoria de serviços\n\n**Recomendações:**\n1. Revisão daily standup de tickets prioritários.\n2. Manter distribuição atual de carga.\n3. Implementar alertas automáticos de aging no D+15 para ação preventiva.",
+      "health_score": {
+        "value": 100,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "urgency": "MÉDIA",
+      "action_items": [
+        "Revisar 4 incidents abertos — priorizar P1s e P2s sem atualização há >4h",
+        "7 tickets RC em análise/desenvolvimento — checar bloqueios com analistas",
+        "9 tickets aguardando cliente — enviar follow-up proativo se >5 dias",
+        "1 tickets com aging >30 dias — escalonar para gestor se sem movimento >7 dias"
+      ]
+    }
+  },
+  "Sonae RDF": {
+    "ops": {
+      "agent": "AI_OPS",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Saúde operacional de Sonae RDF: EXCELENTE (100/100). SLA P1: 100.0% (DENTRO_DO_TARGET), P2: 100.0%. MTTR P1 mediano: 0h vs benchmark ITIL 4h. Incidents abertos: 0. Backlog RC: 2, Cliente: 2. Aging >30d: 0 tickets. Tendência semanal: estável. Apps críticas: RDF, Infrastructure. Root causes dominantes: Infrastructure, Business Process, Process/Performance Volume.",
+      "reasoning": "Análise completa de 1331 tickets do projeto Sonae RDF (referência 2026-04-14).\n\n**SLA Performance:**\n- P1: 100.0% de cumprimento (88/88 tickets) — benchmark ITIL: 99%+\n- P2: 100.0% (152/152 tickets)\n- P3: 100.0% | P4: 100.0%\n\n**MTTR (Incidentes PRD fechados):**\n- P1: 0h mediano | P2: 0h | P3: 0h\n- P1 está 0x acima do benchmark ITIL (4h) (OK)\n\n**Backlog e Aging:**\n- RC (nosso lado): 2 tickets em análise/desenvolvimento\n- Cliente: 2 tickets aguardando resposta do cliente\n- 0 tickets abertos há mais de 30 dias requerem revisão urgente\n\n**Distribuição por Severidade:**\n- Incidents: 361 total, 0 abertos\n- User Requests: 854 total\n- Problems: 93 total\n\n**Recomendações:**\n1. Manter SLA P1 — implementar revisão semanal preventiva.\n2. MTTR P1 dentro do benchmark — documentar boas práticas.\n3. Manter cadência de backlog grooming semanal.\n4. Apps críticas a monitorar proativamente: RDF, Infrastructure.",
+      "health_score": {
+        "value": 100,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "sla_analysis": {
+        "p1_pct": 100.0,
+        "p2_pct": 100.0,
+        "overall_status": "DENTRO_DO_TARGET"
+      },
+      "alerts": [
+        {
+          "level": "BAIXO",
+          "message": "Operação dentro dos parâmetros — manutenção preventiva recomendada",
+          "metric": "GERAL"
+        }
+      ]
+    },
+    "predictive": {
+      "agent": "AI_PREDICTIVE",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Análise preditiva de Sonae RDF: tendência de incidents estável. Média últimas 4 semanas: 1.0 incidents/semana, 0.0 URs/semana. Backlog RC atual: 2 — controlado. Previsão próximas 4 semanas: 0-->0 incidents/sem. Root causes recorrentes: Infrastructure, Business Process, Process/Performance Volume.",
+      "reasoning": "**Análise Preditiva — Sonae RDF (2026-04-14):**\n\n**Volume Histórico (últimas 8 semanas):**\n- Sem 2026-W10: 1 incidents, 0 URs\n- Sem 2026-W14: 2 incidents, 0 URs\n- Sem 2026-W18: 2 incidents, 0 URs\n- Sem 2026-W23: 1 incidents, 0 URs\n- Sem 2026-W27: 1 incidents, 0 URs\n- Sem 2026-W36: 1 incidents, 0 URs\n- Sem 2026-W40: 1 incidents, 0 URs\n- Sem 2026-W45: 1 incidents, 0 URs\n\n**Tendência:** ESTÁVEL\n\n**Projeção Próximas 4 Semanas:**\n- Semana +1: ~0 incidents, ~0 user requests\n- Semana +2: ~0 incidents, ~0 user requests\n- Semana +3: ~0 incidents, ~0 user requests\n- Semana +4: ~0 incidents, ~0 user requests\n\n**Fatores de Risco:**\n- Backlog RC: 2 tickets acumulados (controlado)\n- Aging >30d: 0 tickets — dentro do normal\n- Root causes recorrentes sem resolução definitiva: Infrastructure, Business Process, Process/Performance Volume\n\n**Recomendações:**\n1. Implementar problema formal para RCAs recorrentes: Infrastructure.\n2. Manter monitoramento semanal de volume.\n3. Priorizar resolução do backlog RC antes do acúmulo virar débito de SLA.",
+      "health_score": {
+        "value": 100,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "weekly_forecast": [
+        {
+          "week": 1,
+          "incidents": 0,
+          "user_requests": 0
+        },
+        {
+          "week": 2,
+          "incidents": 0,
+          "user_requests": 0
+        },
+        {
+          "week": 3,
+          "incidents": 0,
+          "user_requests": 0
+        },
+        {
+          "week": 4,
+          "incidents": 0,
+          "user_requests": 0
+        }
+      ]
+    },
+    "improvement": {
+      "agent": "AI_IMPROVEMENT",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Maturidade ITIL estimada: Nível 3 (Gerenciado) — Sonae RDF. Quick Win 1: Knowledge Base de P1: MTTR P1 já em 0h (dentro do benchmark). Documentar procedi... Quick Win 2: Automação de Categorização: Implementar regras automáticas para root causes em I... Apps críticas a automatizar: RDF, Infrastructure.",
+      "reasoning": "**Plano de Melhoria Contínua — Sonae RDF (2026-04-14):**\n\n**Nível de Maturidade ITIL:** Nível 3 (Gerenciado)\n\n**Quick Wins Identificados:**\n1. Knowledge Base de P1: MTTR P1 já em 0h (dentro do benchmark). Documentar procedimentos bem-sucedidos para onboarding.\n\n2. Automação de Categorização: Implementar regras automáticas para root causes em Infrastructure, Business Process, Process/Performance Volume — reduz tempo de triagem em ~30%.\n\n**Métricas Atuais vs Targets:**\n| Métrica      | Atual   | Target ITIL | Gap   |\n|--------------|---------|-------------|-------|\n| SLA P1       | 100.0%  | 99%+        | ok |\n| SLA P3       | 100.0% | 95%+      | ok |\n| MTTR P1      | 0h   | <4h         | ok |\n| Backlog RC   | 2 | <10      | ok |\n| Aging >30d   | 0    | 0           | ok |\n\n**Roadmap Sugerido (90 dias):**\n- Mês 1: Implementar quick wins de processo (runbooks, RCA formal)\n- Mês 2: Automatizar alertas e categorização\n- Mês 3: Medir impacto e ajustar — revisão de maturidade ITIL",
+      "health_score": {
+        "value": 100,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "quick_wins": [
+        "Knowledge Base de P1: MTTR P1 já em 0h (dentro do benchmark). Documentar procedimentos bem-sucedidos para onboarding.",
+        "Automação de Categorização: Implementar regras automáticas para root causes em Infrastructure, Business Process, Process/Performance Volume — reduz tempo de triagem em ~30%."
+      ]
+    },
+    "market": {
+      "agent": "AI_MARKET",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Benchmark de mercado — Sonae RDF. SLA P1 100.0% -> top 5% (referência HDI 2024: top quartil >=99%). SLA P2 100.0% -> top 10%. MTTR P1 0h -> top 10% (benchmark ITIL: <4h, excelência: <2h). Posicionamento MSP: premium.",
+      "reasoning": "**Análise de Benchmarking — Sonae RDF (2026-04-14):**\n\nReferências: HDI Service Desk Practices Report 2024, ITIL 4 Guidelines, Gartner IT Key Metrics 2024\n\n| Métrica   | Sonae RDF   | Top 10% | Mediana | Posição |\n|-----------|---------|---------|---------|--------|\n| SLA P1    | 100.0%  | >=99.5% | 97%     | top 5% |\n| SLA P2    | 100.0%  | >=98%   | 93%     | top 10% |\n| MTTR P1   | 0h   | <=2h    | 6h      | top 10% |\n| MTTR P2   | 0h | <=4h | 12h    | — |\n\n**Análise Competitiva:**\n- SLA P1 (100.0%): Usar SLA P1 100.0% como argumento comercial em RFPs.\n- MTTR P1 (0h): Dentro do padrão ITIL.\n- Health Score 100/100: Posicionamento premium — argumento para upsell de serviços gerenciados.\n\n**Recomendações para Posicionamento:**\n1. Usar SLA P1 100.0% como argumento comercial em RFPs.\n2. Implementar relatório mensal de benchmark para evidenciar evolução ao cliente.\n3. Documentar MTTR como benchmark interno para novos contratos.",
+      "health_score": {
+        "value": 100,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "benchmark": {
+        "sla_p1_position": "top 5%",
+        "mttr_p1_position": "top 10%"
+      }
+    },
+    "qa": {
+      "agent": "AI_QA",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Quality Score: 100/100 — Sonae RDF. Gaps principais: Sem gaps críticos — operação em conformidade com ITIL. Root causes sem RCA formal: Infrastructure, Business Process, Process/Performance Volume. Apps com maior incidência: RDF, Infrastructure.",
+      "reasoning": "**Auditoria de Qualidade e Conformidade — Sonae RDF (2026-04-14):**\n\n**Quality Score: 100/100**\n\n**Gaps Identificados:**\n1. Sem gaps críticos — operação em conformidade com ITIL\n\n**Conformidade ITIL 4:**\n- Incident Management: Conforme\n- Problem Management: Ativo\n- Change Management: 6 CRs registradas\n- Continual Improvement: Backlog controlado\n\n**Root Causes (Sonae RDF):**\n- Top causas: Infrastructure, Business Process, Process/Performance Volume\n- Implementar problema formal para causas recorrentes.\n\n**Recomendações:**\n1. Manter processo de P1 — criar checklist de verificação mensal.\n2. Implementar revisão semanal de tickets aging >15 dias (preventivo antes de 30d).\n3. Criar dashboard de qualidade com alertas automáticos para desvios de SLA em tempo real.",
+      "health_score": {
+        "value": 100,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "quality_score": 100,
+      "gaps": [
+        "Sem gaps críticos — operação em conformidade com ITIL"
+      ]
+    },
+    "triage": {
+      "agent": "AI_TRIAGE",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Triagem de urgência BAIXA — Sonae RDF. Incidents abertos: 0. Backlog RC: 2 | Cliente: 2. Aging critico (>30d): 0 tickets. Carga distribuída adequadamente. Apps prioritárias: RDF, Infrastructure.",
+      "reasoning": "**Triagem e Priorização — Sonae RDF (2026-04-14):**\n\n**Nível de Urgência Atual: BAIXA**\n\n**Action Items Imediatos:**\n1. 2 tickets RC em análise/desenvolvimento — checar bloqueios com analistas\n2. 2 tickets aguardando cliente — enviar follow-up proativo se >5 dias\n\n**Distribuição do Backlog:**\n- RC (nosso backlog): 2 tickets\n- Aguardando cliente: 2 tickets\n- Total incidents abertos: 0\n\n**Aging Analysis:**\n- Tickets com aging >30 dias: 0 (dentro do normal)\n- SLA P1 atual: 100.0% (OK)\n- MTTR P1: 0h (OK)\n\n**Critérios de Escalonamento:**\n- P1 sem atualização >2h: escalar para gerente de operações\n- P2 sem atualização >4h: notificar analista sênior\n- Aging >30d sem movimento >7d: escalar para diretoria de serviços\n\n**Recomendações:**\n1. Revisão daily standup de tickets prioritários.\n2. Manter distribuição atual de carga.\n3. Implementar alertas automáticos de aging no D+15 para ação preventiva.",
+      "health_score": {
+        "value": 100,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "urgency": "BAIXA",
+      "action_items": [
+        "2 tickets RC em análise/desenvolvimento — checar bloqueios com analistas",
+        "2 tickets aguardando cliente — enviar follow-up proativo se >5 dias"
+      ]
+    }
+  },
+  "Tata": {
+    "ops": {
+      "agent": "AI_OPS",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Saúde operacional de Tata: EXCELENTE (93/100). SLA P1: 100.0% (DENTRO_DO_TARGET), P2: 100.0%. MTTR P1 mediano: 24.0h vs benchmark ITIL 4h. Incidents abertos: 0. Backlog RC: 11, Cliente: 9. Aging >30d: 6 tickets. Tendência semanal: alta de 100%. Apps críticas: RMS, ReIM, RPM. Root causes dominantes: Infrastructure, Bug, Problem Analysis.",
+      "reasoning": "Análise completa de 4685 tickets do projeto Tata (referência 2026-04-14).\n\n**SLA Performance:**\n- P1: 100.0% de cumprimento (1427/1427 tickets) — benchmark ITIL: 99%+\n- P2: 100.0% (373/373 tickets)\n- P3: 100.0% | P4: 100.0%\n\n**MTTR (Incidentes PRD fechados):**\n- P1: 24.0h mediano | P2: 168.0h | P3: 0h\n- P1 está 6.0x acima do benchmark ITIL (4h) (ATENCAO)\n\n**Backlog e Aging:**\n- RC (nosso lado): 11 tickets em análise/desenvolvimento\n- Cliente: 9 tickets aguardando resposta do cliente\n- 6 tickets abertos há mais de 30 dias requerem revisão urgente\n\n**Distribuição por Severidade:**\n- Incidents: 2555 total, 0 abertos\n- User Requests: 627 total\n- Problems: 1330 total\n\n**Recomendações:**\n1. Manter SLA P1 — implementar revisão semanal preventiva.\n2. Reduzir MTTR P1 com escalonamento automático após 2h sem resolução.\n3. Manter cadência de backlog grooming semanal.\n4. Apps críticas a monitorar proativamente: RMS, ReIM, RPM.",
+      "health_score": {
+        "value": 93,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "sla_analysis": {
+        "p1_pct": 100.0,
+        "p2_pct": 100.0,
+        "overall_status": "DENTRO_DO_TARGET"
+      },
+      "alerts": [
+        {
+          "level": "MEDIO",
+          "message": "MTTR P1 mediano 24.0h (6.0x acima do benchmark ITIL de 4h)",
+          "metric": "MTTR_P1"
+        }
+      ]
+    },
+    "predictive": {
+      "agent": "AI_PREDICTIVE",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Análise preditiva de Tata: tendência de incidents alta de 100%. Média últimas 4 semanas: 0.8 incidents/semana, 0.5 URs/semana. Backlog RC atual: 11 — controlado. Previsão próximas 4 semanas: 1-->1 incidents/sem. Root causes recorrentes: Infrastructure, Bug, Problem Analysis.",
+      "reasoning": "**Análise Preditiva — Tata (2026-04-14):**\n\n**Volume Histórico (últimas 9 semanas):**\n- Sem 2026-W18: 1 incidents, 0 URs\n- Sem 2026-W23: 1 incidents, 1 URs\n- Sem 2026-W27: 1 incidents, 1 URs\n- Sem 2026-W31: 1 incidents, 0 URs\n- Sem 2026-W32: 0 incidents, 1 URs\n- Sem 2026-W36: 1 incidents, 1 URs\n- Sem 2026-W40: 2 incidents, 0 URs\n- Sem 2026-W49: 0 incidents, 0 URs\n\n**Tendência:** ALTA DE 100%\n\n**Projeção Próximas 4 Semanas:**\n- Semana +1: ~1 incidents, ~0 user requests\n- Semana +2: ~1 incidents, ~0 user requests\n- Semana +3: ~1 incidents, ~0 user requests\n- Semana +4: ~1 incidents, ~0 user requests\n\n**Fatores de Risco:**\n- Backlog RC: 11 tickets acumulados (controlado)\n- Aging >30d: 6 tickets — indica gargalo de resolução\n- Root causes recorrentes sem resolução definitiva: Infrastructure, Bug, Problem Analysis\n\n**Recomendações:**\n1. Implementar problema formal para RCAs recorrentes: Infrastructure.\n2. Revisar capacidade da equipe — volume projetado pode exceder SLA.\n3. Priorizar resolução do backlog RC antes do acúmulo virar débito de SLA.",
+      "health_score": {
+        "value": 93,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "weekly_forecast": [
+        {
+          "week": 1,
+          "incidents": 1,
+          "user_requests": 0
+        },
+        {
+          "week": 2,
+          "incidents": 1,
+          "user_requests": 0
+        },
+        {
+          "week": 3,
+          "incidents": 1,
+          "user_requests": 0
+        },
+        {
+          "week": 4,
+          "incidents": 1,
+          "user_requests": 0
+        }
+      ]
+    },
+    "improvement": {
+      "agent": "AI_IMPROVEMENT",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Maturidade ITIL estimada: Nível 3 (Gerenciado) — Tata. Quick Win 1: Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução... Quick Win 2: Automação de Categorização: Implementar regras automáticas para root causes em I... Apps críticas a automatizar: RMS, ReIM, RPM.",
+      "reasoning": "**Plano de Melhoria Contínua — Tata (2026-04-14):**\n\n**Nível de Maturidade ITIL:** Nível 3 (Gerenciado)\n\n**Quick Wins Identificados:**\n1. Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução de 20.0h no MTTR (de 24.0h para ~4h).\n\n2. Automação de Categorização: Implementar regras automáticas para root causes em Infrastructure, Bug, Problem Analysis — reduz tempo de triagem em ~30%.\n\n3. Aging Review: 6 tickets com >30 dias — implementar alerta automático no D+15 para escalonamento preventivo.\n\n**Métricas Atuais vs Targets:**\n| Métrica      | Atual   | Target ITIL | Gap   |\n|--------------|---------|-------------|-------|\n| SLA P1       | 100.0%  | 99%+        | ok |\n| SLA P3       | 100.0% | 95%+      | ok |\n| MTTR P1      | 24.0h   | <4h         | +20.0h |\n| Backlog RC   | 11 | <10      | +1 |\n| Aging >30d   | 6    | 0           | +6 |\n\n**Roadmap Sugerido (90 dias):**\n- Mês 1: Implementar quick wins de processo (runbooks, RCA formal)\n- Mês 2: Automatizar alertas e categorização\n- Mês 3: Medir impacto e ajustar — revisão de maturidade ITIL",
+      "health_score": {
+        "value": 93,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "quick_wins": [
+        "Runbook de Resolução P1: Criar playbook para top 3 cenários P1. Impacto: redução de 20.0h no MTTR (de 24.0h para ~4h).",
+        "Automação de Categorização: Implementar regras automáticas para root causes em Infrastructure, Bug, Problem Analysis — reduz tempo de triagem em ~30%.",
+        "Aging Review: 6 tickets com >30 dias — implementar alerta automático no D+15 para escalonamento preventivo."
+      ]
+    },
+    "market": {
+      "agent": "AI_MARKET",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Benchmark de mercado — Tata. SLA P1 100.0% -> top 5% (referência HDI 2024: top quartil >=99%). SLA P2 100.0% -> top 10%. MTTR P1 24.0h -> abaixo da mediana (benchmark ITIL: <4h, excelência: <2h). Posicionamento MSP: premium.",
+      "reasoning": "**Análise de Benchmarking — Tata (2026-04-14):**\n\nReferências: HDI Service Desk Practices Report 2024, ITIL 4 Guidelines, Gartner IT Key Metrics 2024\n\n| Métrica   | Tata   | Top 10% | Mediana | Posição |\n|-----------|---------|---------|---------|--------|\n| SLA P1    | 100.0%  | >=99.5% | 97%     | top 5% |\n| SLA P2    | 100.0%  | >=98%   | 93%     | top 10% |\n| MTTR P1   | 24.0h   | <=2h    | 6h      | abaixo da mediana |\n| MTTR P2   | 168.0h | <=4h | 12h    | — |\n\n**Análise Competitiva:**\n- SLA P1 (100.0%): Usar SLA P1 100.0% como argumento comercial em RFPs.\n- MTTR P1 (24.0h): Acima do benchmark — risco em contratos com SLA MTTR explícito.\n- Health Score 93/100: Posicionamento premium — argumento para upsell de serviços gerenciados.\n\n**Recomendações para Posicionamento:**\n1. Usar SLA P1 100.0% como argumento comercial em RFPs.\n2. Implementar relatório mensal de benchmark para evidenciar evolução ao cliente.\n3. Investigar práticas de top performers para reduzir MTTR P1.",
+      "health_score": {
+        "value": 93,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "benchmark": {
+        "sla_p1_position": "top 5%",
+        "mttr_p1_position": "abaixo da mediana"
+      }
+    },
+    "qa": {
+      "agent": "AI_QA",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Quality Score: 73/100 — Tata. Gaps principais: MTTR P1 (24.0h) acima do benchmark ITIL — processo de escalação ineficiente. Backlog RC (11 tickets) indica gargalo de capacidade ou processo. Root causes sem RCA formal: Infrastructure, Bug, Problem Analysis. Apps com maior incidência: RMS, ReIM, RPM.",
+      "reasoning": "**Auditoria de Qualidade e Conformidade — Tata (2026-04-14):**\n\n**Quality Score: 73/100**\n\n**Gaps Identificados:**\n1. MTTR P1 (24.0h) acima do benchmark ITIL — processo de escalação ineficiente\n2. Backlog RC (11 tickets) indica gargalo de capacidade ou processo\n3. 6 tickets aging >30d — falha no processo de revisão periódica\n\n**Conformidade ITIL 4:**\n- Incident Management: Não conforme — SLA/MTTR fora dos targets\n- Problem Management: Ativo\n- Change Management: 47 CRs registradas\n- Continual Improvement: Backlog controlado\n\n**Root Causes (Tata):**\n- Top causas: Infrastructure, Bug, Problem Analysis\n- Implementar problema formal para causas recorrentes.\n\n**Recomendações:**\n1. Manter processo de P1 — criar checklist de verificação mensal.\n2. Implementar revisão semanal de tickets aging >15 dias (preventivo antes de 30d).\n3. Criar dashboard de qualidade com alertas automáticos para desvios de SLA em tempo real.",
+      "health_score": {
+        "value": 93,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "quality_score": 73,
+      "gaps": [
+        "MTTR P1 (24.0h) acima do benchmark ITIL — processo de escalação ineficiente",
+        "Backlog RC (11 tickets) indica gargalo de capacidade ou processo",
+        "6 tickets aging >30d — falha no processo de revisão periódica"
+      ]
+    },
+    "triage": {
+      "agent": "AI_TRIAGE",
+      "timestamp": "2026-04-14 22:45:19",
+      "status": "ok",
+      "executive_summary": "Triagem de urgência MÉDIA — Tata. Incidents abertos: 0. Backlog RC: 11 | Cliente: 9. Aging critico (>30d): 6 tickets. Carga distribuída adequadamente. Apps prioritárias: RMS, ReIM, RPM.",
+      "reasoning": "**Triagem e Priorização — Tata (2026-04-14):**\n\n**Nível de Urgência Atual: MÉDIA**\n\n**Action Items Imediatos:**\n1. 11 tickets RC em análise/desenvolvimento — checar bloqueios com analistas\n2. 9 tickets aguardando cliente — enviar follow-up proativo se >5 dias\n3. 6 tickets com aging >30 dias — escalonar para gestor se sem movimento >7 dias\n\n**Distribuição do Backlog:**\n- RC (nosso backlog): 11 tickets\n- Aguardando cliente: 9 tickets\n- Total incidents abertos: 0\n\n**Aging Analysis:**\n- Tickets com aging >30 dias: 6 (REVISAR URGENTE)\n- SLA P1 atual: 100.0% (OK)\n- MTTR P1: 24.0h (Acima do benchmark)\n\n**Critérios de Escalonamento:**\n- P1 sem atualização >2h: escalar para gerente de operações\n- P2 sem atualização >4h: notificar analista sênior\n- Aging >30d sem movimento >7d: escalar para diretoria de serviços\n\n**Recomendações:**\n1. Revisão daily standup de tickets prioritários.\n2. Manter distribuição atual de carga.\n3. Implementar alertas automáticos de aging no D+15 para ação preventiva.",
+      "health_score": {
+        "value": 93,
+        "label": "EXCELENTE",
+        "color": "green"
+      },
+      "urgency": "MÉDIA",
+      "action_items": [
+        "11 tickets RC em análise/desenvolvimento — checar bloqueios com analistas",
+        "9 tickets aguardando cliente — enviar follow-up proativo se >5 dias",
+        "6 tickets com aging >30 dias — escalonar para gestor se sem movimento >7 dias"
+      ]
+    }
+  }
+}

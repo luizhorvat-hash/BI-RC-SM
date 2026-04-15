@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/luiz.horvat/.claude/projects/c--Dashboard/memory/**)",
+      "Bash(python3 -c ' *)",
+      "Bash(git -C \"c:/Dashboard\" log --oneline -10)",
+      "Bash(python3 scratch/gen_insights.py)",
+      "Bash(pip install *)",
+      "Bash(awk -F: '$2 >= 388 && $2 <= 500 {print}')",
+      "Bash(grep -n \"^<script\\\\|^</div>$\\\\|id=\\\\\"panel-\" \"c:/Dashboard/SM_DASH.html\")",
+      "mcp__plugin_context-mode_context-mode__ctx_execute"
+    ]
+  }
+}

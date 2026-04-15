@@ -1,0 +1,17 @@
+# Dados e Outputs do Dashboard
+input/
+Resultados/
+builds/
+downloads/
+data.js
+
+# Segredos e Configurações Locais
+.env
+api_key.txt
+
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+*.log

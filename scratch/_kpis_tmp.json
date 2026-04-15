@@ -1,0 +1,1664 @@
+{
+  "Todos": {
+    "total_tickets": 25368,
+    "summary": {
+      "incident": {
+        "total": 14289,
+        "open": 71,
+        "closed": 14218,
+        "bk_rc": 53,
+        "bk_cli": 17
+      },
+      "user_request": {
+        "total": 4260,
+        "open": 51,
+        "closed": 4209,
+        "bk_rc": 22,
+        "bk_cli": 28
+      },
+      "problem": {
+        "total": 6056,
+        "open": 78,
+        "closed": 5978,
+        "bk_rc": 22,
+        "bk_cli": 45
+      },
+      "change_request": {
+        "total": 167,
+        "open": 16,
+        "closed": 151,
+        "bk_rc": 6,
+        "bk_cli": 10
+      },
+      "internal": {
+        "total": 593,
+        "open": 7,
+        "closed": 586,
+        "bk_rc": 4,
+        "bk_cli": 3
+      }
+    },
+    "backlog": {
+      "rc": 107,
+      "cli": 103
+    },
+    "sla": {
+      "P1": {
+        "pct": 99.7,
+        "total": 4055,
+        "met": 4041
+      },
+      "P2": {
+        "pct": 98.6,
+        "total": 3018,
+        "met": 2975
+      },
+      "P3": {
+        "pct": 99.2,
+        "total": 4493,
+        "met": 4456
+      },
+      "P4": {
+        "pct": 99.4,
+        "total": 1445,
+        "met": 1436
+      }
+    },
+    "mttr": {
+      "P1": {
+        "median_h": 72.0,
+        "n": 7,
+        "gap_x": 18.0
+      },
+      "P2": {
+        "median_h": 1668.0,
+        "n": 10,
+        "gap_x": 208.5
+      },
+      "P3": {
+        "median_h": 2040.0,
+        "n": 3,
+        "gap_x": 85.0
+      },
+      "P4": {
+        "median_h": 144.0,
+        "n": 3,
+        "gap_x": 3.0
+      }
+    },
+    "health_score": 65,
+    "aging_gt30": 40,
+    "top_apps": [
+      {
+        "app": "RMS",
+        "count": 3291
+      },
+      {
+        "app": "RIB",
+        "count": 2613
+      },
+      {
+        "app": "XStore",
+        "count": 1682
+      },
+      {
+        "app": "Integración (RIB o RFI)",
+        "count": 975
+      },
+      {
+        "app": "SIM",
+        "count": 961
+      }
+    ],
+    "top_rct": [
+      {
+        "rct": "Bug",
+        "count": 3084
+      },
+      {
+        "rct": "Infrastructure",
+        "count": 3023
+      },
+      {
+        "rct": "Problem Analysis",
+        "count": 1582
+      },
+      {
+        "rct": "Business Process",
+        "count": 1069
+      },
+      {
+        "rct": "N/A",
+        "count": 1019
+      }
+    ],
+    "top_analyst": "gdn.support",
+    "top_analyst_count": 26,
+    "historical_weekly_volume": [
+      {
+        "year": 2026,
+        "week": 9,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 10,
+        "incidents": 9,
+        "user_requests": 1,
+        "total": 18
+      },
+      {
+        "year": 2026,
+        "week": 14,
+        "incidents": 11,
+        "user_requests": 6,
+        "total": 20
+      },
+      {
+        "year": 2026,
+        "week": 18,
+        "incidents": 18,
+        "user_requests": 6,
+        "total": 38
+      },
+      {
+        "year": 2026,
+        "week": 19,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 23,
+        "incidents": 13,
+        "user_requests": 12,
+        "total": 33
+      },
+      {
+        "year": 2026,
+        "week": 27,
+        "incidents": 12,
+        "user_requests": 5,
+        "total": 24
+      },
+      {
+        "year": 2026,
+        "week": 31,
+        "incidents": 7,
+        "user_requests": 0,
+        "total": 12
+      },
+      {
+        "year": 2026,
+        "week": 32,
+        "incidents": 4,
+        "user_requests": 3,
+        "total": 8
+      },
+      {
+        "year": 2026,
+        "week": 36,
+        "incidents": 23,
+        "user_requests": 13,
+        "total": 45
+      },
+      {
+        "year": 2026,
+        "week": 40,
+        "incidents": 14,
+        "user_requests": 8,
+        "total": 27
+      },
+      {
+        "year": 2026,
+        "week": 45,
+        "incidents": 15,
+        "user_requests": 4,
+        "total": 27
+      },
+      {
+        "year": 2026,
+        "week": 49,
+        "incidents": 12,
+        "user_requests": 6,
+        "total": 25
+      }
+    ]
+  },
+  "Chanel": {
+    "total_tickets": 335,
+    "summary": {
+      "incident": {
+        "total": 166,
+        "open": 2,
+        "closed": 164,
+        "bk_rc": 1,
+        "bk_cli": 1
+      },
+      "user_request": {
+        "total": 45,
+        "open": 3,
+        "closed": 42,
+        "bk_rc": 2,
+        "bk_cli": 1
+      },
+      "problem": {
+        "total": 110,
+        "open": 7,
+        "closed": 103,
+        "bk_rc": 2,
+        "bk_cli": 3
+      },
+      "change_request": {
+        "total": 7,
+        "open": 0,
+        "closed": 7,
+        "bk_rc": 0,
+        "bk_cli": 0
+      },
+      "internal": {
+        "total": 6,
+        "open": 0,
+        "closed": 6,
+        "bk_rc": 0,
+        "bk_cli": 0
+      }
+    },
+    "backlog": {
+      "rc": 5,
+      "cli": 5
+    },
+    "sla": {
+      "P1": {
+        "pct": 82.6,
+        "total": 23,
+        "met": 19
+      },
+      "P2": {
+        "pct": 97.3,
+        "total": 74,
+        "met": 72
+      },
+      "P3": {
+        "pct": 100.0,
+        "total": 43,
+        "met": 43
+      },
+      "P4": {
+        "pct": 100.0,
+        "total": 10,
+        "met": 10
+      }
+    },
+    "mttr": {
+      "P1": {
+        "median_h": 168.0,
+        "n": 1,
+        "gap_x": 42.0
+      },
+      "P2": {
+        "median_h": 0,
+        "n": 0,
+        "gap_x": 0
+      },
+      "P3": {
+        "median_h": 0,
+        "n": 0,
+        "gap_x": 0
+      },
+      "P4": {
+        "median_h": 144.0,
+        "n": 1,
+        "gap_x": 3.0
+      }
+    },
+    "health_score": 70,
+    "aging_gt30": 2,
+    "top_apps": [
+      {
+        "app": "RCIB",
+        "count": 73
+      },
+      {
+        "app": "Xstore",
+        "count": 48
+      },
+      {
+        "app": "XOffice",
+        "count": 44
+      },
+      {
+        "app": "Internal",
+        "count": 1
+      }
+    ],
+    "top_rct": [
+      {
+        "rct": "N/A",
+        "count": 45
+      },
+      {
+        "rct": "Bug",
+        "count": 26
+      },
+      {
+        "rct": "Business Process",
+        "count": 24
+      },
+      {
+        "rct": "Problem Analysis",
+        "count": 15
+      },
+      {
+        "rct": "Infrastructure",
+        "count": 15
+      }
+    ],
+    "top_analyst": "carla.oliveira",
+    "top_analyst_count": 2,
+    "historical_weekly_volume": [
+      {
+        "year": 2026,
+        "week": 10,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 18,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 4
+      },
+      {
+        "year": 2026,
+        "week": 23,
+        "incidents": 0,
+        "user_requests": 2,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 27,
+        "incidents": 0,
+        "user_requests": 1,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 36,
+        "incidents": 2,
+        "user_requests": 0,
+        "total": 3
+      },
+      {
+        "year": 2026,
+        "week": 40,
+        "incidents": 0,
+        "user_requests": 2,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 45,
+        "incidents": 2,
+        "user_requests": 1,
+        "total": 3
+      },
+      {
+        "year": 2026,
+        "week": 49,
+        "incidents": 1,
+        "user_requests": 1,
+        "total": 3
+      }
+    ]
+  },
+  "Farmacia Arrocha": {
+    "total_tickets": 3134,
+    "summary": {
+      "incident": {
+        "total": 1440,
+        "open": 16,
+        "closed": 1424,
+        "bk_rc": 8,
+        "bk_cli": 8
+      },
+      "user_request": {
+        "total": 848,
+        "open": 7,
+        "closed": 841,
+        "bk_rc": 4,
+        "bk_cli": 2
+      },
+      "problem": {
+        "total": 804,
+        "open": 9,
+        "closed": 795,
+        "bk_rc": 0,
+        "bk_cli": 9
+      },
+      "change_request": {
+        "total": 27,
+        "open": 3,
+        "closed": 24,
+        "bk_rc": 3,
+        "bk_cli": 0
+      },
+      "internal": {
+        "total": 15,
+        "open": 1,
+        "closed": 14,
+        "bk_rc": 1,
+        "bk_cli": 0
+      }
+    },
+    "backlog": {
+      "rc": 16,
+      "cli": 19
+    },
+    "sla": {
+      "P1": {
+        "pct": 100.0,
+        "total": 167,
+        "met": 167
+      },
+      "P2": {
+        "pct": 99.3,
+        "total": 558,
+        "met": 554
+      },
+      "P3": {
+        "pct": 100.0,
+        "total": 435,
+        "met": 435
+      },
+      "P4": {
+        "pct": 100.0,
+        "total": 50,
+        "met": 50
+      }
+    },
+    "mttr": {
+      "P1": {
+        "median_h": 144.0,
+        "n": 1,
+        "gap_x": 36.0
+      },
+      "P2": {
+        "median_h": 0,
+        "n": 0,
+        "gap_x": 0
+      },
+      "P3": {
+        "median_h": 0,
+        "n": 0,
+        "gap_x": 0
+      },
+      "P4": {
+        "median_h": 0,
+        "n": 0,
+        "gap_x": 0
+      }
+    },
+    "health_score": 83,
+    "aging_gt30": 6,
+    "top_apps": [
+      {
+        "app": "XStore",
+        "count": 1309
+      },
+      {
+        "app": "ORCE",
+        "count": 76
+      },
+      {
+        "app": "Infrastructure",
+        "count": 22
+      },
+      {
+        "app": "APP",
+        "count": 13
+      },
+      {
+        "app": "XOffice",
+        "count": 10
+      }
+    ],
+    "top_rct": [
+      {
+        "rct": "Infrastructure",
+        "count": 417
+      },
+      {
+        "rct": "Problem Analysis",
+        "count": 237
+      },
+      {
+        "rct": "N/A",
+        "count": 194
+      },
+      {
+        "rct": "Lack of Knowledge",
+        "count": 121
+      },
+      {
+        "rct": "Business Process",
+        "count": 98
+      }
+    ],
+    "top_analyst": "luiz.horvat",
+    "top_analyst_count": 7,
+    "historical_weekly_volume": [
+      {
+        "year": 2026,
+        "week": 10,
+        "incidents": 0,
+        "user_requests": 0,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 14,
+        "incidents": 1,
+        "user_requests": 1,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 18,
+        "incidents": 2,
+        "user_requests": 0,
+        "total": 5
+      },
+      {
+        "year": 2026,
+        "week": 23,
+        "incidents": 3,
+        "user_requests": 1,
+        "total": 4
+      },
+      {
+        "year": 2026,
+        "week": 27,
+        "incidents": 2,
+        "user_requests": 0,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 31,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 32,
+        "incidents": 1,
+        "user_requests": 1,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 36,
+        "incidents": 8,
+        "user_requests": 1,
+        "total": 9
+      },
+      {
+        "year": 2026,
+        "week": 40,
+        "incidents": 5,
+        "user_requests": 0,
+        "total": 5
+      },
+      {
+        "year": 2026,
+        "week": 45,
+        "incidents": 7,
+        "user_requests": 1,
+        "total": 10
+      },
+      {
+        "year": 2026,
+        "week": 49,
+        "incidents": 1,
+        "user_requests": 1,
+        "total": 4
+      }
+    ]
+  },
+  "Farmatodo": {
+    "total_tickets": 4621,
+    "summary": {
+      "incident": {
+        "total": 2782,
+        "open": 2,
+        "closed": 2780,
+        "bk_rc": 1,
+        "bk_cli": 1
+      },
+      "user_request": {
+        "total": 409,
+        "open": 5,
+        "closed": 404,
+        "bk_rc": 5,
+        "bk_cli": 0
+      },
+      "problem": {
+        "total": 1159,
+        "open": 21,
+        "closed": 1138,
+        "bk_rc": 5,
+        "bk_cli": 14
+      },
+      "change_request": {
+        "total": 33,
+        "open": 8,
+        "closed": 25,
+        "bk_rc": 2,
+        "bk_cli": 6
+      },
+      "internal": {
+        "total": 238,
+        "open": 3,
+        "closed": 235,
+        "bk_rc": 2,
+        "bk_cli": 1
+      }
+    },
+    "backlog": {
+      "rc": 15,
+      "cli": 22
+    },
+    "sla": {
+      "P1": {
+        "pct": 99.8,
+        "total": 537,
+        "met": 536
+      },
+      "P2": {
+        "pct": 97.6,
+        "total": 575,
+        "met": 561
+      },
+      "P3": {
+        "pct": 98.9,
+        "total": 970,
+        "met": 959
+      },
+      "P4": {
+        "pct": 98.9,
+        "total": 657,
+        "met": 650
+      }
+    },
+    "mttr": {
+      "P1": {
+        "median_h": 72.0,
+        "n": 3,
+        "gap_x": 18.0
+      },
+      "P2": {
+        "median_h": 0,
+        "n": 0,
+        "gap_x": 0
+      },
+      "P3": {
+        "median_h": 0,
+        "n": 0,
+        "gap_x": 0
+      },
+      "P4": {
+        "median_h": 0,
+        "n": 0,
+        "gap_x": 0
+      }
+    },
+    "health_score": 93,
+    "aging_gt30": 8,
+    "top_apps": [
+      {
+        "app": "WMS",
+        "count": 822
+      },
+      {
+        "app": "RMS",
+        "count": 480
+      },
+      {
+        "app": "XStore",
+        "count": 373
+      },
+      {
+        "app": "SIM",
+        "count": 348
+      },
+      {
+        "app": "ReSA",
+        "count": 244
+      }
+    ],
+    "top_rct": [
+      {
+        "rct": "Bug",
+        "count": 1042
+      },
+      {
+        "rct": "Infrastructure",
+        "count": 493
+      },
+      {
+        "rct": "Problem Analysis",
+        "count": 334
+      },
+      {
+        "rct": "Process",
+        "count": 276
+      },
+      {
+        "rct": "Not Identified",
+        "count": 151
+      }
+    ],
+    "top_analyst": "luiz.horvat",
+    "top_analyst_count": 9,
+    "historical_weekly_volume": [
+      {
+        "year": 2026,
+        "week": 9,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 10,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 4
+      },
+      {
+        "year": 2026,
+        "week": 14,
+        "incidents": 4,
+        "user_requests": 1,
+        "total": 5
+      },
+      {
+        "year": 2026,
+        "week": 18,
+        "incidents": 0,
+        "user_requests": 0,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 19,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 23,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 27,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 31,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 36,
+        "incidents": 2,
+        "user_requests": 1,
+        "total": 5
+      },
+      {
+        "year": 2026,
+        "week": 40,
+        "incidents": 2,
+        "user_requests": 1,
+        "total": 5
+      },
+      {
+        "year": 2026,
+        "week": 45,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 4
+      },
+      {
+        "year": 2026,
+        "week": 49,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 1
+      }
+    ]
+  },
+  "GDN": {
+    "total_tickets": 5483,
+    "summary": {
+      "incident": {
+        "total": 3267,
+        "open": 47,
+        "closed": 3220,
+        "bk_rc": 42,
+        "bk_cli": 4
+      },
+      "user_request": {
+        "total": 762,
+        "open": 24,
+        "closed": 738,
+        "bk_rc": 7,
+        "bk_cli": 17
+      },
+      "problem": {
+        "total": 1313,
+        "open": 15,
+        "closed": 1298,
+        "bk_rc": 2,
+        "bk_cli": 10
+      },
+      "change_request": {
+        "total": 44,
+        "open": 4,
+        "closed": 40,
+        "bk_rc": 0,
+        "bk_cli": 4
+      },
+      "internal": {
+        "total": 95,
+        "open": 2,
+        "closed": 93,
+        "bk_rc": 0,
+        "bk_cli": 2
+      }
+    },
+    "backlog": {
+      "rc": 51,
+      "cli": 37
+    },
+    "sla": {
+      "P1": {
+        "pct": 98.8,
+        "total": 771,
+        "met": 762
+      },
+      "P2": {
+        "pct": 97.4,
+        "total": 845,
+        "met": 823
+      },
+      "P3": {
+        "pct": 97.3,
+        "total": 924,
+        "met": 899
+      },
+      "P4": {
+        "pct": 100.0,
+        "total": 24,
+        "met": 24
+      }
+    },
+    "mttr": {
+      "P1": {
+        "median_h": 0,
+        "n": 0,
+        "gap_x": 0
+      },
+      "P2": {
+        "median_h": 2592.0,
+        "n": 8,
+        "gap_x": 324.0
+      },
+      "P3": {
+        "median_h": 2040.0,
+        "n": 3,
+        "gap_x": 85.0
+      },
+      "P4": {
+        "median_h": 4008.0,
+        "n": 1,
+        "gap_x": 83.5
+      }
+    },
+    "health_score": 65,
+    "aging_gt30": 17,
+    "top_apps": [
+      {
+        "app": "RMS",
+        "count": 1196
+      },
+      {
+        "app": "Integración (RIB o RFI)",
+        "count": 975
+      },
+      {
+        "app": "SIM",
+        "count": 435
+      },
+      {
+        "app": "ReIM",
+        "count": 268
+      },
+      {
+        "app": "ReSA",
+        "count": 242
+      }
+    ],
+    "top_rct": [
+      {
+        "rct": "Bug",
+        "count": 609
+      },
+      {
+        "rct": "N/A",
+        "count": 546
+      },
+      {
+        "rct": "Infrastructure",
+        "count": 502
+      },
+      {
+        "rct": "Problem Analysis",
+        "count": 310
+      },
+      {
+        "rct": "User Error",
+        "count": 295
+      }
+    ],
+    "top_analyst": "gdn.support",
+    "top_analyst_count": 26,
+    "historical_weekly_volume": [
+      {
+        "year": 2026,
+        "week": 10,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 14,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 18,
+        "incidents": 0,
+        "user_requests": 1,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 23,
+        "incidents": 2,
+        "user_requests": 1,
+        "total": 4
+      },
+      {
+        "year": 2026,
+        "week": 27,
+        "incidents": 1,
+        "user_requests": 1,
+        "total": 3
+      },
+      {
+        "year": 2026,
+        "week": 31,
+        "incidents": 0,
+        "user_requests": 0,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 32,
+        "incidents": 2,
+        "user_requests": 0,
+        "total": 3
+      },
+      {
+        "year": 2026,
+        "week": 36,
+        "incidents": 4,
+        "user_requests": 1,
+        "total": 8
+      },
+      {
+        "year": 2026,
+        "week": 40,
+        "incidents": 0,
+        "user_requests": 2,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 49,
+        "incidents": 0,
+        "user_requests": 0,
+        "total": 2
+      }
+    ]
+  },
+  "Parfois": {
+    "total_tickets": 5779,
+    "summary": {
+      "incident": {
+        "total": 3718,
+        "open": 4,
+        "closed": 3714,
+        "bk_rc": 1,
+        "bk_cli": 3
+      },
+      "user_request": {
+        "total": 715,
+        "open": 6,
+        "closed": 709,
+        "bk_rc": 1,
+        "bk_cli": 5
+      },
+      "problem": {
+        "total": 1247,
+        "open": 8,
+        "closed": 1239,
+        "bk_rc": 5,
+        "bk_cli": 1
+      },
+      "change_request": {
+        "total": 3,
+        "open": 0,
+        "closed": 3,
+        "bk_rc": 0,
+        "bk_cli": 0
+      },
+      "internal": {
+        "total": 96,
+        "open": 0,
+        "closed": 96,
+        "bk_rc": 0,
+        "bk_cli": 0
+      }
+    },
+    "backlog": {
+      "rc": 7,
+      "cli": 9
+    },
+    "sla": {
+      "P1": {
+        "pct": 100.0,
+        "total": 1042,
+        "met": 1042
+      },
+      "P2": {
+        "pct": 99.8,
+        "total": 441,
+        "met": 440
+      },
+      "P3": {
+        "pct": 99.9,
+        "total": 1586,
+        "met": 1585
+      },
+      "P4": {
+        "pct": 99.7,
+        "total": 639,
+        "met": 637
+      }
+    },
+    "mttr": {
+      "P1": {
+        "median_h": 72.0,
+        "n": 1,
+        "gap_x": 18.0
+      },
+      "P2": {
+        "median_h": 168.0,
+        "n": 1,
+        "gap_x": 21.0
+      },
+      "P3": {
+        "median_h": 0,
+        "n": 0,
+        "gap_x": 0
+      },
+      "P4": {
+        "median_h": 144.0,
+        "n": 1,
+        "gap_x": 3.0
+      }
+    },
+    "health_score": 100,
+    "aging_gt30": 1,
+    "top_apps": [
+      {
+        "app": "RIB",
+        "count": 2288
+      },
+      {
+        "app": "RMS",
+        "count": 678
+      },
+      {
+        "app": "Infrastructure",
+        "count": 365
+      },
+      {
+        "app": "RPM",
+        "count": 171
+      },
+      {
+        "app": "Invoicer",
+        "count": 141
+      }
+    ],
+    "top_rct": [
+      {
+        "rct": "Bug",
+        "count": 880
+      },
+      {
+        "rct": "Infrastructure",
+        "count": 595
+      },
+      {
+        "rct": "Process/Performance Volume",
+        "count": 457
+      },
+      {
+        "rct": "Business Process",
+        "count": 351
+      },
+      {
+        "rct": "Problem Analysis",
+        "count": 323
+      }
+    ],
+    "top_analyst": "cesar.pinho",
+    "top_analyst_count": 2,
+    "historical_weekly_volume": [
+      {
+        "year": 2026,
+        "week": 10,
+        "incidents": 5,
+        "user_requests": 1,
+        "total": 8
+      },
+      {
+        "year": 2026,
+        "week": 14,
+        "incidents": 3,
+        "user_requests": 3,
+        "total": 9
+      },
+      {
+        "year": 2026,
+        "week": 18,
+        "incidents": 12,
+        "user_requests": 5,
+        "total": 23
+      },
+      {
+        "year": 2026,
+        "week": 23,
+        "incidents": 5,
+        "user_requests": 7,
+        "total": 17
+      },
+      {
+        "year": 2026,
+        "week": 27,
+        "incidents": 6,
+        "user_requests": 2,
+        "total": 12
+      },
+      {
+        "year": 2026,
+        "week": 31,
+        "incidents": 4,
+        "user_requests": 0,
+        "total": 6
+      },
+      {
+        "year": 2026,
+        "week": 32,
+        "incidents": 1,
+        "user_requests": 1,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 36,
+        "incidents": 5,
+        "user_requests": 9,
+        "total": 17
+      },
+      {
+        "year": 2026,
+        "week": 40,
+        "incidents": 4,
+        "user_requests": 3,
+        "total": 9
+      },
+      {
+        "year": 2026,
+        "week": 45,
+        "incidents": 4,
+        "user_requests": 2,
+        "total": 8
+      },
+      {
+        "year": 2026,
+        "week": 49,
+        "incidents": 9,
+        "user_requests": 4,
+        "total": 14
+      }
+    ]
+  },
+  "Sonae RDF": {
+    "total_tickets": 1331,
+    "summary": {
+      "incident": {
+        "total": 361,
+        "open": 0,
+        "closed": 361,
+        "bk_rc": 0,
+        "bk_cli": 0
+      },
+      "user_request": {
+        "total": 854,
+        "open": 1,
+        "closed": 853,
+        "bk_rc": 1,
+        "bk_cli": 0
+      },
+      "problem": {
+        "total": 93,
+        "open": 2,
+        "closed": 91,
+        "bk_rc": 0,
+        "bk_cli": 2
+      },
+      "change_request": {
+        "total": 6,
+        "open": 0,
+        "closed": 6,
+        "bk_rc": 0,
+        "bk_cli": 0
+      },
+      "internal": {
+        "total": 17,
+        "open": 1,
+        "closed": 16,
+        "bk_rc": 1,
+        "bk_cli": 0
+      }
+    },
+    "backlog": {
+      "rc": 2,
+      "cli": 2
+    },
+    "sla": {
+      "P1": {
+        "pct": 100.0,
+        "total": 88,
+        "met": 88
+      },
+      "P2": {
+        "pct": 100.0,
+        "total": 152,
+        "met": 152
+      },
+      "P3": {
+        "pct": 100.0,
+        "total": 79,
+        "met": 79
+      },
+      "P4": {
+        "pct": 100.0,
+        "total": 37,
+        "met": 37
+      }
+    },
+    "mttr": {
+      "P1": {
+        "median_h": 0,
+        "n": 0,
+        "gap_x": 0
+      },
+      "P2": {
+        "median_h": 0,
+        "n": 0,
+        "gap_x": 0
+      },
+      "P3": {
+        "median_h": 0,
+        "n": 0,
+        "gap_x": 0
+      },
+      "P4": {
+        "median_h": 0,
+        "n": 0,
+        "gap_x": 0
+      }
+    },
+    "health_score": 100,
+    "aging_gt30": 0,
+    "top_apps": [
+      {
+        "app": "RDF",
+        "count": 348
+      },
+      {
+        "app": "Infrastructure",
+        "count": 13
+      }
+    ],
+    "top_rct": [
+      {
+        "rct": "Infrastructure",
+        "count": 136
+      },
+      {
+        "rct": "Business Process",
+        "count": 97
+      },
+      {
+        "rct": "Process/Performance Volume",
+        "count": 51
+      },
+      {
+        "rct": "Legacy Data",
+        "count": 36
+      },
+      {
+        "rct": "User Error",
+        "count": 11
+      }
+    ],
+    "top_analyst": "miguel.faria",
+    "top_analyst_count": 2,
+    "historical_weekly_volume": [
+      {
+        "year": 2026,
+        "week": 10,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 14,
+        "incidents": 2,
+        "user_requests": 0,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 18,
+        "incidents": 2,
+        "user_requests": 0,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 23,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 27,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 36,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 40,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 45,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 2
+      }
+    ]
+  },
+  "Tata": {
+    "total_tickets": 4685,
+    "summary": {
+      "incident": {
+        "total": 2555,
+        "open": 0,
+        "closed": 2555,
+        "bk_rc": 0,
+        "bk_cli": 0
+      },
+      "user_request": {
+        "total": 627,
+        "open": 5,
+        "closed": 622,
+        "bk_rc": 2,
+        "bk_cli": 3
+      },
+      "problem": {
+        "total": 1330,
+        "open": 16,
+        "closed": 1314,
+        "bk_rc": 8,
+        "bk_cli": 6
+      },
+      "change_request": {
+        "total": 47,
+        "open": 1,
+        "closed": 46,
+        "bk_rc": 1,
+        "bk_cli": 0
+      },
+      "internal": {
+        "total": 126,
+        "open": 0,
+        "closed": 126,
+        "bk_rc": 0,
+        "bk_cli": 0
+      }
+    },
+    "backlog": {
+      "rc": 11,
+      "cli": 9
+    },
+    "sla": {
+      "P1": {
+        "pct": 100.0,
+        "total": 1427,
+        "met": 1427
+      },
+      "P2": {
+        "pct": 100.0,
+        "total": 373,
+        "met": 373
+      },
+      "P3": {
+        "pct": 100.0,
+        "total": 456,
+        "met": 456
+      },
+      "P4": {
+        "pct": 100.0,
+        "total": 28,
+        "met": 28
+      }
+    },
+    "mttr": {
+      "P1": {
+        "median_h": 24.0,
+        "n": 1,
+        "gap_x": 6.0
+      },
+      "P2": {
+        "median_h": 168.0,
+        "n": 1,
+        "gap_x": 21.0
+      },
+      "P3": {
+        "median_h": 0,
+        "n": 0,
+        "gap_x": 0
+      },
+      "P4": {
+        "median_h": 0,
+        "n": 0,
+        "gap_x": 0
+      }
+    },
+    "health_score": 93,
+    "aging_gt30": 6,
+    "top_apps": [
+      {
+        "app": "RMS",
+        "count": 937
+      },
+      {
+        "app": "ReIM",
+        "count": 258
+      },
+      {
+        "app": "RPM",
+        "count": 256
+      },
+      {
+        "app": "RIB",
+        "count": 196
+      },
+      {
+        "app": "ReSA",
+        "count": 181
+      }
+    ],
+    "top_rct": [
+      {
+        "rct": "Infrastructure",
+        "count": 865
+      },
+      {
+        "rct": "Bug",
+        "count": 431
+      },
+      {
+        "rct": "Problem Analysis",
+        "count": 353
+      },
+      {
+        "rct": "Process/Performance Volume",
+        "count": 190
+      },
+      {
+        "rct": "Legacy Data",
+        "count": 149
+      }
+    ],
+    "top_analyst": "fabio.vallim",
+    "top_analyst_count": 5,
+    "historical_weekly_volume": [
+      {
+        "year": 2026,
+        "week": 14,
+        "incidents": 0,
+        "user_requests": 1,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 18,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 23,
+        "incidents": 1,
+        "user_requests": 1,
+        "total": 3
+      },
+      {
+        "year": 2026,
+        "week": 27,
+        "incidents": 1,
+        "user_requests": 1,
+        "total": 3
+      },
+      {
+        "year": 2026,
+        "week": 31,
+        "incidents": 1,
+        "user_requests": 0,
+        "total": 3
+      },
+      {
+        "year": 2026,
+        "week": 32,
+        "incidents": 0,
+        "user_requests": 1,
+        "total": 1
+      },
+      {
+        "year": 2026,
+        "week": 36,
+        "incidents": 1,
+        "user_requests": 1,
+        "total": 2
+      },
+      {
+        "year": 2026,
+        "week": 40,
+        "incidents": 2,
+        "user_requests": 0,
+        "total": 3
+      },
+      {
+        "year": 2026,
+        "week": 49,
+        "incidents": 0,
+        "user_requests": 0,
+        "total": 1
+      }
+    ]
+  }
+}
