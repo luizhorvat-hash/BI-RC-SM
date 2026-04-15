@@ -84,13 +84,28 @@ def run_agents(selected_agent=None, skip_dashboard=False):
             ai_insights[prj] = {}
         
         def run_single_agent(agent):
+            safe_prj = prj.replace(" ", "_")
+            res_file = smd_config.RESULTS_DIR / f"insight_{agent}_{safe_prj}.json"
+            
+            # CACHE: Se já existe e não é erro, pula
+            if res_file.exists():
+                try:
+                    cached = json.loads(res_file.read_text(encoding="utf-8"))
+                    if cached and cached.get("status") == "ok":
+                        log.info(f"[{prj}] Usando cache para {agent.upper()}")
+                        return agent, cached
+                except:
+                    pass
+
             try:
                 log.info(f"[{prj}] Executando agente {agent.upper()} [Thread]")
+                if agent == "predictive" and "historical_weekly_volume" in ctx:
+                    vol_summary = ", ".join([f"W{v['week_iso']}:{v['incidents']}inc" for v in ctx["historical_weekly_volume"]])
+                    log.info(f"[{prj}] Contexto Preditivo (Vol Histórico): {vol_summary}")
+                
                 res = engine.run_agent(agent, ctx)
                 
                 # Salvar resultado individual para debug/auditoria
-                safe_prj = prj.replace(" ", "_")
-                res_file = smd_config.RESULTS_DIR / f"insight_{agent}_{safe_prj}.json"
                 res_file.write_text(json.dumps(res, indent=2, ensure_ascii=False), encoding="utf-8")
                 return agent, res
             except Exception as e:

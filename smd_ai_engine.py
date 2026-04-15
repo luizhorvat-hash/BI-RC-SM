@@ -88,6 +88,50 @@ class SMDAIEngine:
                     "user_requests": int((g['Severity'] == 'user_request').sum())
                 })
 
+        # Aging, MTTR, Burn Rate, Dormancy
+        open_inc = v[(v['Severity'] == 'incident') & (~v['Status'].isin(CLOSED))].copy()
+        open_inc['Opening_DT'] = pd.to_datetime(open_inc['Opening Date'], errors='coerce')
+        open_inc['Last_Upd_DT'] = pd.to_datetime(open_inc['Last Updated Date'], errors='coerce')
+        
+        aging_30d = int((open_inc['Opening_DT'] < (today - pd.Timedelta(days=30))).sum()) if not open_inc.empty else 0
+        dormant_7d = int((open_inc['Last_Upd_DT'] < (today - pd.Timedelta(days=7))).sum()) if not open_inc.empty else 0
+        
+        median_mttr_days = inc_prd['Days to Close'].astype(float).median() if not inc_prd.empty else 0
+        if pd.isna(median_mttr_days):
+            median_mttr_days = 0
+        median_mttr_h = int(median_mttr_days * 24)
+
+        start_7d = today - pd.Timedelta(days=7)
+        opened_7d = len(v[(v['Severity'] == 'incident') & (pd.to_datetime(v['Opening Date'], errors='coerce') >= start_7d)])
+        closed_7d = len(v[(v['Severity'] == 'incident') & (v['Status'].isin(CLOSED)) & (pd.to_datetime(v['Close Date'], errors='coerce') >= start_7d)])
+        burn_rate = opened_7d - closed_7d
+
+        open_probs = len(v[(v['Severity'] == 'problem') & (~v['Status'].isin(CLOSED))])
+        prob_ratio = open_probs / len(open_inc) if not open_inc.empty else 1.0
+
+        # Algoritmo Determinístico de Health Score
+        hs = 0
+        p1 = sla.get('P1',{}).get('pct',0)
+        p2 = sla.get('P2',{}).get('pct',0)
+        
+        if p1 >= 98: hs += 25
+        elif p1 >= 95: hs += 10
+        if p2 >= 95: hs += 15
+        elif p2 >= 90: hs += 5
+        
+        if dormant_7d == 0: hs += 25
+        elif dormant_7d <= 5: hs += 10
+        
+        if burn_rate <= 0: hs += 20
+        elif burn_rate <= 10: hs += 10
+        
+        if prob_ratio >= 0.02: hs += 15
+        elif prob_ratio > 0: hs += 5
+
+        calc_hs_val = hs
+        calc_hs_col = "green" if hs >= 75 else ("yellow" if hs >= 50 else "red")
+        calc_hs_lbl = "SAUDÁVEL" if hs >= 75 else ("ATENÇÃO" if hs >= 50 else "CRÍTICO")
+
         return {
             'total_tickets': int(len(v)),
             'summary': summary,
@@ -95,8 +139,46 @@ class SMDAIEngine:
             'backlog_rc': int(v['Status'].isin(MY_BK).sum()),
             'backlog_cli': int(v['Status'].isin(CLI_BK).sum()),
             'historical_weekly_volume': weekly_vol,
+            'aging_30d': aging_30d,
+            'dormant_7d': dormant_7d,
+            'burn_rate': burn_rate,
+            'prob_ratio': prob_ratio,
+            'median_mttr_h': median_mttr_h,
+            'calculated_health': {'value': calc_hs_val, 'label': calc_hs_lbl, 'color': calc_hs_col},
             'timestamp': today.strftime('%Y-%m-%d %H:%M:%S')
         }
+
+    def _extract_json(self, text):
+        """Extrai e tenta reparar JSON de textos da IA (Markdown, truncamentos, vírgulas decimais)."""
+        if not text or not isinstance(text, str): return {}
+        
+        # 1. Pré-processamento: Trata vírgulas decimais em números (ex: 0,175 -> 0.175)
+        processed = re.sub(r'(\d+),(\d+)', r'\1.\2', text)
+        
+        # 2. Busca por blocos JSON (prioriza blocos markdown ```json ... ```)
+        blocks = re.findall(r'```json\s*(\{.*?\})\s*```', processed, re.DOTALL)
+        if not blocks:
+            # Tenta encontrar qualquer coisa entre { e }
+            blocks = re.findall(r'(\{.*\})', processed, re.DOTALL)
+            
+        if not blocks: return {}
+        
+        # 3. Tenta parsear cada bloco, do maior para o menor
+        blocks.sort(key=len, reverse=True)
+        for b in blocks:
+            try:
+                return json.loads(b)
+            except json.JSONDecodeError:
+                # 4. Heurística de Reparo para truncamento
+                try:
+                    # Se termina abruptamente, tenta fechar as estruturas básicas
+                    repaired = b.strip()
+                    if not repaired.endswith('}'):
+                        if repaired.count('{') > repaired.count('}'): repaired += '}'
+                    return json.loads(repaired)
+                except:
+                    continue
+        return {}
 
     def generate_prompt(self, key, ctx):
         """Monta o prompt final combinando persona e dados."""
@@ -105,10 +187,13 @@ class SMDAIEngine:
         sl = ctx['sla']
         
         data_str = (
-            f"Dados ITSM: {ctx['total_tickets']} total. "
-            f"Incidents: {s['incident']['open']} abertos. "
-            f"SLA P1: {sl.get('P1',{}).get('pct',0)}%, P2: {sl.get('P2',{}).get('pct',0)}%. "
-            f"Backlog RC: {ctx['backlog_rc']}, Backlog Cliente: {ctx['backlog_cli']}."
+            f"Dados ITSM: {ctx['total_tickets']} total.\n"
+            f"Incidents: {s['incident']['open']} abertos.\n"
+            f"SLA P1: {sl.get('P1',{}).get('pct',0)}%, P2: {sl.get('P2',{}).get('pct',0)}%.\n"
+            f"Tickets Aging >30d: {ctx.get('aging_30d', 0)} | Tickets Ociosos (Dormancy >7d sem atu.): {ctx.get('dormant_7d', 0)}.\n"
+            f"Burn Rate 7d (Abertos-Fechados): {ctx.get('burn_rate', 0)}.\n"
+            f"Proporção Problem/Incident: {ctx.get('prob_ratio', 0):.2f}.\n"
+            f"MTTR Mediano P1 (estimado): {ctx.get('median_mttr_h', 0)}h.\n"
         )
 
         hist_str = ""
@@ -117,17 +202,73 @@ class SMDAIEngine:
             hist_str += json.dumps(ctx['historical_weekly_volume'], indent=2)
 
         questions = {
-            "ops": "Qual o status da saúde operacional e ação prioritária?",
-            "predictive": "PREVISÃO: Com base no VOLUME HISTÓRICO SEMANAL, projete as próximas 4 semanas. Retorne JSON: {\"weekly_forecast\":[{\"week\":1,\"incidents\":10,\"user_requests\":15},...]}",
-            "improvement": "Aponte 2 quick wins para melhorar a operação.",
-
-
-            "market": "Como este SLA se compara com benchmarks de mercado?",
-            "qa": "Quais os principais gaps de qualidade ou conformidade?",
-            "triage": "Quais tickets precisam de revisão urgente por aging?"
+            "improvement": "Quais automações ou Quick Wins você sugere para reduzir o volume recorrente?",
+            "market": "Como nosso MTTR e SLA se comparam aos benchmarks ITIL/HDI fornecidos?",
+            "qa": "Existem inconsistências de preenchimento ou falhas de conformidade no processo?",
+            "triage": "Identifique tickets com aging excessivo ou que precisam de escalonamento urgente."
         }
+
+        prompt = ""
         
-        return f"""PERSONA: {persona}
+        if key == "ops":
+            hs_val = ctx.get('calculated_health', {}).get('value', 0)
+            hs_lbl = ctx.get('calculated_health', {}).get('label', 'CRÍTICO')
+            hs_col = ctx.get('calculated_health', {}).get('color', 'red')
+            
+            prompt = f"""PERSONA: Especialista SÊNIOR em ITSM (AI_Ops_Advisor). Postura: INCISIVA, CRÍTICA.
+
+DADOS:
+{data_str}
+
+REGRAS:
+- Health Score: {hs_val}/100 ({hs_lbl}).
+- Alerta ALTO (Crítico): SLA P1 < 95%, Burn Rate > 15, Dormancy > 20, ou MTTR P1 > 8h.
+- Alerta MÉDIO (Atenção): SLA P1 < 98%, Burn Rate > 5, ou MTTR P1 > 4h.
+
+TAREFA: Retorne JSON puro (sem markdown).
+JSON_DATA:
+{{
+  "health_score": {{ "value": {hs_val}, "color": "{hs_col}", "label": "{hs_lbl}" }},
+  "executive_summary": "<avaliação CRÍTICA e DIRETA em 3 frases citando riscos>",
+  "alerts": [
+    {{ "level": "<ALTO|MEDIO>", "message": "<causa da perda de nota>", "metric": "<valor>" }}
+  ],
+  "recommendations": [
+    {{ "priority": "P1", "area": "<Área>", "action": "<Ação estratégica>" }}
+  ]
+}}"""
+
+        elif key == "predictive":
+            prompt = f"""PERSONA: Sênior Data Scientist especializado em Capacity Planning e ITSM (AI_Predictive_Analyst).
+Postura: Analítica, focada em tendências e riscos de saturação da equipe.
+
+DADOS RECENTES (Últimos 30 dias):
+{data_str}
+{hist_str}
+
+REGRAS DE ANÁLISE:
+- Identificar se o volume de novos tickets está crescendo acima do Burn Rate ({ctx.get('burn_rate', 0)}).
+- Projetar picos com base no histórico semanal fornecido.
+- Avaliar o Prediction Risk baseado na estabilidade dos dados semanais.
+
+TAREFA: Retorne JSON puro (sem markdown).
+JSON_DATA:
+{{
+  "executive_summary": "<análise de fôlego operacional e tendências para 30 dias em 3 frases>",
+  "weekly_forecast": [
+    {{ "week": 1, "incidents": <int>, "user_requests": <int> }},
+    {{ "week": 2, "incidents": <int>, "user_requests": <int> }},
+    {{ "week": 3, "incidents": <int>, "user_requests": <int> }},
+    {{ "week": 4, "incidents": <int>, "user_requests": <int> }}
+  ],
+  "prediction_risk": "<BAIXO|MEDIO|ALTO>",
+  "alerts": [
+    {{ "level": "<ALTO|MEDIO>", "message": "<risco identificado na tendência>", "metric": "<valor projetado>" }}
+  ]
+}}"""
+
+        else:
+            prompt = f"""PERSONA: {persona}
 {data_str}{hist_str}
 
 TAREFA:
@@ -142,18 +283,21 @@ PERGUNTA: {questions.get(key, 'Analise os dados.')}
 RESPOSTA ESPERADA:
 [Sua análise em português aqui]
 
-JSON_DATA: {{"executive_summary": "...", ...}}"""
+JSON_DATA: {{"executive_summary": "...", "alerts": [{{ "level": "INF", "message": "Analise concluida", "metric": "IA" }}]}}"""
 
+        if self.provider == 'ollama':
+            prompt += "\n\nCRITICAL: Return ONLY a valid JSON object. No preamble, no explanation outside JSON."
+            
+        return prompt
 
-
-    def call_ollama(self, prompt, model=smd_config.OLLAMA_MODEL):
+    def call_ollama(self, prompt):
         body = json.dumps({
-            "model": model,
+            "model": smd_config.OLLAMA_MODEL,
             "prompt": prompt,
             "stream": False,
             "options": {
-                "temperature": 0.0,
-                "num_predict": 200,
+                "temperature": 0.1,
+                "num_predict": 1024,
                 "num_ctx": 1500,
                 "top_k": 10
             }
@@ -161,12 +305,11 @@ JSON_DATA: {{"executive_summary": "...", ...}}"""
         
         req = urllib.request.Request(smd_config.OLLAMA_URL, data=body, headers={"Content-Type": "application/json"})
         try:
-            with urllib.request.urlopen(req, timeout=300) as resp:
-
+            with urllib.request.urlopen(req, timeout=45) as resp:
                 data = json.loads(resp.read())
                 return data.get('response', '').strip()
         except Exception as e:
-            return f"Erro Ollama: {e}"
+            return f"Erro Ollama (Timeout/Falha): {e}"
 
     def call_gemini(self, prompt, model=smd_config.GEMINI_MODEL):
         if not smd_config.GEMINI_API_KEY:
@@ -174,7 +317,8 @@ JSON_DATA: {{"executive_summary": "...", ...}}"""
         
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={smd_config.GEMINI_API_KEY}"
         body = json.dumps({
-            "contents": [{"parts": [{"text": prompt}]}]
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.1}
         }).encode('utf-8')
         
         req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
@@ -194,6 +338,7 @@ JSON_DATA: {{"executive_summary": "...", ...}}"""
         body = json.dumps({
             "model": model,
             "max_tokens": 2048,
+            "temperature": 0.1,
             "system": "Você é um especialista sênior em ITSM/ITIL com foco em análise executiva. Responda sempre em português do Brasil. Seja detalhado, direto e orientado a dados. Ao estruturar JSON, use aspas duplas e campos completos.",
             "messages": [{"role": "user", "content": prompt}]
         }).encode('utf-8')
@@ -221,44 +366,54 @@ JSON_DATA: {{"executive_summary": "...", ...}}"""
         """Converte a resposta em texto da IA no formato JSON esperado pelo dashboard."""
         ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
-        # Tentar extrair JSON da resposta se a IA foi prolixa
-        structured_info = {}
-        try:
-            json_match = re.search(r'(\{.*\})', text, re.DOTALL)
-            if json_match:
-                structured_info = json.loads(json_match.group(1))
-        except Exception as e:
-            log.warning(f"Falha ao extrair JSON estruturado para {key}: {e}. Resposta bruta salva em Results/debug_{key}.txt")
+        # Tentar extrair JSON da resposta usando o novo extrator resiliente
+        structured_info = self._extract_json(text)
+        if not structured_info:
+            log.warning(f"Falha ao extrair JSON estruturado para {key}. Resposta bruta salva em Results/debug_{key}.txt")
             (smd_config.RESULTS_DIR / f"debug_{key}.txt").write_text(text, encoding="utf-8")
-            pass
+            structured_info = {}
 
-        # Lógica de Health Score simplificada para a engine
+        # Lógica de Health Score conectada diretamente ao Backend de Negócio
+        calc_hs = ctx.get('calculated_health', {})
+        hs_val = calc_hs.get('value', 30)
+        hs_lbl = calc_hs.get('label', 'CRÍTICO')
+        hs_col = calc_hs.get('color', 'red')
+        
+        # P1 SLA
         p1_pct = ctx['sla'].get('P1',{}).get('pct',0)
-        hs_val = 90 if p1_pct >= 98 else (70 if p1_pct >= 95 else (50 if p1_pct >= 80 else 30))
-        hs_lbl = "EXCELENTE" if hs_val >= 90 else ("BOM" if hs_val >= 70 else ("ATENÇÃO" if hs_val >= 50 else "CRÍTICO"))
-        hs_col = "green" if hs_val >= 70 else ("yellow" if hs_val >= 50 else "red")
 
-        # Template base compatível com o frontend
-        # Se não houver structured_summary, usamos o texto da IA (limpando o JSON se estiver lá)
-        clean_text = re.sub(r'JSON_DATA:?.*?\{.*\}', '', text, flags=re.DOTALL).strip()
-        if not clean_text or len(clean_text) < 10:
-             clean_text = text[:300]
+        # PLANO B: Fallback determinístico se a IA falhou ou deu timeout
+        if not text or "Erro" in text or len(text) < 20:
+             if key == "ops":
+                 clean_text = f"Análise Automática: Saúde do projeto em {hs_val}/100 ({hs_lbl}). SLA P1 atual em {p1_pct}%. Backlog RC: {ctx.get('backlog_rc',0)}. Backlog Cliente: {ctx.get('backlog_cli',0)}."
+             elif key == "predictive":
+                 clean_text = f"Previsão Baseada em Histórico: O projeto apresenta um volume total de {ctx.get('total_tickets',0)} tickets analisados. Tendência atual de burn-rate: {ctx.get('burn_rate',0)} (Abertos-Fechados 7d)."
+             else:
+                 clean_text = f"Resumo operacional baseado nos indicadores: {hs_lbl} ({hs_val}/100). SLA P1: {p1_pct}%. Backlog total detectado."
+        else:
+             # Se houver structured_summary, usamos o texto da IA (limpando o JSON se estiver lá)
+             clean_text = re.sub(r'JSON_DATA:?.*?\{.*\}', '', text, flags=re.DOTALL).strip()
+             if not clean_text or len(clean_text) < 10:
+                  clean_text = text[:300]
 
         result = {
             "agent": f"AI_{key.upper()}",
             "timestamp": ts,
             "status": "ok" if "Erro" not in text else "error",
             "executive_summary": structured_info.get("executive_summary", clean_text),
-            "reasoning": text,
+            "reasoning": text if len(text) > 10 else clean_text,
             "health_score": {"value": hs_val, "label": hs_lbl, "color": hs_col},
-            "alerts": [{"level": "MEDIO", "message": "Analise automatica", "metric": "IA"}]
+            "alerts": structured_info.get("alerts", [{"level": "INF", "message": "Analise automatica (AI Fallback)", "metric": "IA"}])
         }
         
         if key == "ops":
             result["sla_analysis"] = {"p1_pct": p1_pct, "overall_status": "OK" if p1_pct >= 95 else "EM_RISCO"}
         
-        if key == "predictive" and "weekly_forecast" in structured_info:
-            result["weekly_forecast"] = structured_info["weekly_forecast"]
+        if key == "predictive":
+            if "weekly_forecast" in structured_info:
+                result["weekly_forecast"] = structured_info["weekly_forecast"]
+            if "prediction_risk" in structured_info:
+                result["prediction_risk"] = structured_info["prediction_risk"]
         
         return result
 

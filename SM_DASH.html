@@ -436,14 +436,46 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
 
 <script src="libraries/chart.umd.js"></script>
 <script>
-//  DATA LOADING (compact format) 
-var D = window.SMD_DATA_D;
+//  COMPATIBILITY POLYFILLS
+if (!Object.values) Object.values = function(obj) { var vals = []; for (var k in obj) { if (Object.prototype.hasOwnProperty.call(obj, k)) vals.push(obj[k]); } return vals; };
+if (!Object.assign) Object.assign = function(t) { for (var i = 1; i < arguments.length; i++) { var s = arguments[i]; for (var k in s) t[k] = s[k]; } return t; };
+if (!String.prototype.padStart) String.prototype.padStart = function(l, p) { var s = String(this); p = p || ' '; while (s.length < l) s = p + s; return s; };
 
-var _TR = window.SMD_DATA_T;
-var _TF = _TR.fields;
-var _ROWS = _TR.rows;
-var _IDX  = _TR.idx;
+//  COMPATIBILITY POLYFILLS
+if (!Object.keys) Object.keys = function(o) { var res=[]; for(var k in o) if(Object.prototype.hasOwnProperty.call(o,k)) res.push(k); return res; };
+if (!Object.values) Object.values = function(o) { return Object.keys(o).map(function(k){ return o[k]; }); };
+if (!Object.entries) Object.entries = function(o) { return Object.keys(o).map(function(k){ return [k, o[k]]; }); };
+if (!Object.assign) Object.assign = function(t) { for(var i=1; i<arguments.length; i++){ var s=arguments[i]; if(s) for(var k in s) t[k]=s[k]; } return t; };
+if (!String.prototype.padStart) String.prototype.padStart = function(l, p) { var s=String(this); p=p||' '; while(s.length<l) s=p+s; return s; };
+
+//  DATA LOADING (compact format) 
+var D = window.SMD_DATA_D || {monthly:{}, daily:{}, projects:[], ym:{}};
+var _TR = window.SMD_DATA_T || {fields:[], rows:[], idx:{}};
+var _TF = _TR.fields || [];
+var _ROWS = _TR.rows || [];
+var _IDX  = _TR.idx || {};
 var _MEMO = {};
+
+var _DATA_STATUS = {
+  loaded: !!(window.SMD_DATA_D && window.SMD_DATA_T),
+  rows: _ROWS.length,
+  last_update: "Calculando..."
+};
+
+function getLastDataDate() {
+  var maxYO=0, maxMO=0, maxDO=0;
+  var yi = _TF.indexOf('y_o'), mi = _TF.indexOf('m_o'), di = _TF.indexOf('d_o');
+  for (var i=0; i<_ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (r[yi] > maxYO) { maxYO=r[yi]; maxMO=r[mi]; maxDO=r[di]; }
+    else if (r[yi] === maxYO) {
+      if (r[mi] > maxMO) { maxMO=r[mi]; maxDO=r[di]; }
+      else if (r[mi] === maxMO && r[di] > maxDO) { maxDO=r[di]; }
+    }
+  }
+  _DATA_STATUS.last_update = maxDO + '/' + maxMO + '/' + maxYO;
+  return {y:maxYO, m:maxMO, d:maxDO};
+}
 
 function getTix(key) {
   var k = String(key);
@@ -1764,27 +1796,51 @@ function buildStaffKPI(sev, id) {
 
 //  REFRESH (lazy + debounced) 
 function doRefresh() {
-  refreshCFG(); // atualiza CFG para o projeto selecionado
-  SEVS.forEach(function(sev) {
-    var isActive = (activeSev === sev && !activeView);
-    if (isActive || _builtPanels[sev]) {
-      buildBar(sev, 'bar-'+sev);
-      buildLine(sev, 'ln-'+sev);
-      buildBacklog(sev, 'bk-'+sev);
-      buildRC(sev, 'rc-'+sev);
-      try { buildAssigned(sev, 'ass-'+sev); } catch(e) { console.warn('buildAssigned error:',e.message); }
-      if (sev === 'incident') { buildSLAMini('sla-mini-incident'); buildIncKPIs(); buildOncallDetail(false); }
-      if (['incident','user_request','problem'].indexOf(sev)>=0) { 
-        buildTimesheetKPI(sev,'ts-'+sev); 
-        buildStaffKPI(sev,'ts-staff-chart-'+sev); 
+  try {
+    refreshCFG(); 
+    SEVS.forEach(function(sev) {
+      try {
+        var isActive = (activeSev === sev && !activeView);
+        if (isActive || _builtPanels[sev]) {
+          buildBar(sev, 'bar-'+sev);
+          buildLine(sev, 'ln-'+sev);
+          buildBacklog(sev, 'bk-'+sev);
+          buildRC(sev, 'rc-'+sev);
+          try { buildAssigned && buildAssigned(sev, 'ass-'+sev); } catch(e) { console.warn('buildAssigned error:',e.message); }
+          if (sev === 'incident') { 
+            try { buildSLAMini('sla-mini-incident'); } catch(e) {}
+            try { buildIncKPIs(); } catch(e) {}
+            try { buildOncallDetail(false); } catch(e) {}
+          }
+          if (['incident','user_request','problem'].indexOf(sev)>=0) { 
+            try { buildTimesheetKPI(sev,'ts-'+sev); } catch(e) {}
+            try { buildStaffKPI(sev,'ts-staff-chart-'+sev); } catch(e) {}
+          }
+          _builtPanels[sev] = true;
+        }
+      } catch (err) {
+        console.error('Erro na aba ' + sev + ':', err);
       }
-      _builtPanels[sev] = true;
-    }
-  });
-  if (activeView === 'hoje')       buildHoje();
-  if (activeView === 'ai')         { buildAICards(); buildAIPanel(); }
-  if (activeView === 'timesheet')  buildTimesheet();
-  buildKPI(); buildRange(); try { buildAttention(); } catch(e) { console.warn('buildAttention:',e.message); } updateBadge();
+    });
+
+    if (activeView === 'hoje')       try { buildHoje(); } catch(e) { console.error(e); }
+    if (activeView === 'ai')         try { buildAICards(); buildAIPanel(); } catch(e) { console.error(e); }
+    if (activeView === 'timesheet')  try { buildTimesheet(); } catch(e) { console.error(e); }
+    
+    try { buildKPI(); } catch(e) {}
+    try { buildRange(); } catch(e) {}
+    try { buildAttention(); } catch(e) {}
+    try { updateBadge(); } catch(e) {}
+    
+    // Update Diagnostic Bar
+    var st = document.getElementById('diag-status'); if(st) st.textContent = 'Status: Pronto';
+    var rows = document.getElementById('diag-rows'); if(rows) rows.textContent = 'Tickets: ' + _ROWS.length;
+    var dt = document.getElementById('diag-date'); if(dt) dt.textContent = 'Último dado: ' + _DATA_STATUS.last_update;
+
+  } catch (globalErr) {
+    console.error('Erro Critico no Refresh:', globalErr);
+    var st = document.getElementById('diag-status'); if(st) { st.textContent = 'Status: ERRO'; st.style.color = '#f87171'; }
+  }
 }
 
 function refreshAll() {
@@ -1886,22 +1942,22 @@ function renderMonths() {
 function initProjects() {
   var sel = document.getElementById('prj-sel');
   var projects = (D.projects || []).slice().sort();
-  // Add "Todos os Projetos" as first option
+  // Se selProject atual nao existe na lista (ex: mudou CSV), reseta
+  if (selProject && projects.indexOf(selProject) === -1) selProject = null;
+
   sel.innerHTML = '<option value="">Todos os Projetos</option>' +
     projects.map(function(p){
-      return '<option value="'+p+'">'+p+'</option>';
+      return '<option value="'+p+'" '+(selProject===p?'selected':'')+'>'+p+'</option>';
     }).join('');
-  selProject = null;  // start with all projects
-  sel.value = '';
-  document.getElementById('chip-prj').textContent = 'Todos';
+
   sel.onchange = function() {
     selProject = sel.value || null;
-    selYear = null; selMonth = null;
     _builtPanels = {}; _mwCache = {};
-    refreshCFG(); // atualiza CFG para o novo projeto
+    refreshCFG(); 
     renderYears(); renderMonths(); refreshAll();
-    if (activeView === 'config') buildConfig(); // re-renderiza config se estiver aberta
-    document.getElementById('chip-prj').textContent = selProject || 'Todos';
+    if (activeView === 'config') buildConfig(); 
+    var chip = document.getElementById('chip-prj');
+    if (chip) chip.textContent = selProject || 'Todos';
   };
 }
 
@@ -2360,22 +2416,23 @@ SEVS.forEach(function(sev) {
 initProjects();
 renderYears();
 renderMonths();
-// ── Auto-selecionar ano e mês corrente ───────────────────────
+// ── Auto-selecionar ano e mês corrente ou último disponível ──
 (function() {
+  var last = getLastDataDate();
   var _now  = new Date();
   var _curY = String(_now.getFullYear());
-  var _curM = _now.getMonth() + 1;  // 1-12
-  // Só selecionar se o CSV tem dados para o ano/mês corrente
+  var _curM = _now.getMonth() + 1;
+  
+  // Se data atual do PC existe no CSV, usa ela. Senao, usa a ultima data do CSV.
   if (D.ym[_curY] && D.ym[_curY].indexOf(_curM) >= 0) {
-    selYear  = _curY;
-    selMonth = _curM;
-    // Marcar botão do ano
-    var _yBtns = document.querySelectorAll('#yrs .fb');
-    _yBtns.forEach(function(b) {
-      if (b.textContent.trim() === _curY) b.classList.add('sel');
-    });
-    // Re-renderizar meses com o mês corrente marcado
-    renderMonths();
+    selYear  = _curY; selMonth = _curM;
+  } else if (last.y > 0) {
+    selYear  = String(last.y); selMonth = last.m;
+    console.log('[INIT] Fallback para ultima data com dados:', selYear, selMonth);
+  }
+  
+  if (selYear) {
+    renderYears(); renderMonths();
   }
 })();
 // Start on Hoje tab
@@ -4995,6 +5052,14 @@ function buildTimesheet() {
 }
 
 </script>
+
+<!-- RODAPÉ DE DIAGNÓSTICO -->
+<div id="diag-bar" style="position:fixed;bottom:0;left:0;right:0;height:24px;background:#0a1825;border-top:1px solid #1a3a50;display:flex;align-items:center;padding:0 15px;font-size:9px;color:var(--muted);z-index:1000;gap:15px">
+  <div id="diag-status">Status: Carregando...</div>
+  <div id="diag-rows">Tickets: -</div>
+  <div id="diag-date">Último dado: -</div>
+  <div style="margin-left:auto;color:#475569">Dashboard v1.2 Stabilization Mode</div>
+</div>
 
 <!-- HOW TO RUN AGENTS MODAL -->
 <div id="run-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:600;align-items:center;justify-content:center">

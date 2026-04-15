@@ -4,7 +4,7 @@ smd_build.py — Pipeline de atualização do SMD Dashboard
 Arrocha | 2026
 """
 
-import os, sys, json, logging, re, math
+import os, sys, json, logging, re, math, subprocess
 from pathlib import Path
 from datetime import datetime, date
 from collections import defaultdict
@@ -586,12 +586,25 @@ def run_pipeline(skip_agents=False):
     if not ts_path.exists():
         ts_path = smd_config.DOWNLOADS_DIR / "TimesheetsCMSMonthly.xls"
     timesheet_tab = parse_timesheet_tab(ts_path)
+    
+    # Restauração do KPI de Oncall
+    oncall_data = {}
+    try:
+        log.info("Processando dados de On-call...")
+        subprocess.run([sys.executable, str(smd_config.BASE_DIR / "scratch" / "gen_oncall.py")], 
+                       capture_output=True, text=True, check=True)
+        oncall_file = smd_config.BASE_DIR / "scratch" / "_oncall_tmp.json"
+        if oncall_file.exists():
+            oncall_data = json.loads(oncall_file.read_text(encoding="utf-8"))
+    except Exception as oe:
+        log.error(f"Erro ao processar On-call: {oe}")
 
     log.info(f"Salvando data.js...")
     content = [f"var SMD_DATA_D = {json.dumps(D, ensure_ascii=False, separators=(',',':'))};",
                f"var SMD_DATA_T = {json.dumps(T, ensure_ascii=False, separators=(',',':'))};",
                f"var AI_INSIGHTS = {json.dumps(ai_insights, ensure_ascii=False, separators=(',',':'))};",
-               f"var SMD_TIMESHEET = {json.dumps(timesheet_tab, ensure_ascii=False, separators=(',',':'))};"]
+               f"var SMD_TIMESHEET = {json.dumps(timesheet_tab, ensure_ascii=False, separators=(',',':'))};",
+               f"var SMD_ONCALL = {json.dumps(oncall_data, ensure_ascii=False, separators=(',',':'))};"]
     smd_config.DATA_JS.write_text("\n".join(content), encoding="utf-8")
     log.info("Build concluído.")
 
