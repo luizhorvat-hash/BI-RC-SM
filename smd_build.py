@@ -394,17 +394,18 @@ def parse_timesheet(path, tickets_df):
         return {}
 
 # ── PROCESSAMENTO DE TICKETS ──────────────────────────────────────────────────
-def process_tickets_data():
+def process_tickets_data(csv_override=None):
     """Lê o CSV e gera as estruturas D e T robustas."""
-    if not smd_config.TICKETS_CSV.exists():
-        log.error(f"CSV não encontrado: {smd_config.TICKETS_CSV}")
+    csv_path = Path(csv_override) if csv_override else smd_config.TICKETS_CSV
+    if not csv_path.exists():
+        log.error(f"CSV não encontrado: {csv_path}")
         return None, None, None
 
-    log.info(f"Processando tickets de {smd_config.TICKETS_CSV}...")
+    log.info(f"Processando tickets de {csv_path}...")
     try:
-        df = pd.read_csv(smd_config.TICKETS_CSV, sep=';', encoding='utf-8-sig', low_memory=False)
+        df = pd.read_csv(csv_path, sep=';', encoding='utf-8-sig', low_memory=False)
         if len(df.columns) < 5:
-             df = pd.read_csv(smd_config.TICKETS_CSV, sep=',', encoding='utf-8-sig', low_memory=False)
+             df = pd.read_csv(csv_path, sep=',', encoding='utf-8-sig', low_memory=False)
         log.info(f"Colunas detectadas no CSV: {df.columns.tolist()}")
     except Exception as e:
         log.error(f"Falha ao ler CSV: {e}")
@@ -447,7 +448,9 @@ def process_tickets_data():
         return ts.strftime("%Y-%m-%d") if pd.notnull(ts) else ""
 
     SEVS = ["incident","user_request","problem","change_request","internal"]
-    TF   = ["k","eid","pr","sv","st","op","res","cl","ap","en","su","upd","ass","sl","rc","rct","rs","prj","y_o","m_o","d_o","y_c","m_c","d_c","sev"]
+    # pid = parent Problem ID (normalizado, sem zeros à esquerda); md = MD's reais (esforço por ticket).
+    # Adicionados ao FINAL para preservar índices existentes em código que use _TF.indexOf(...).
+    TF   = ["k","eid","pr","sv","st","op","res","cl","ap","en","su","upd","ass","sl","rc","rct","rs","prj","y_o","m_o","d_o","y_c","m_c","d_c","sev","pid","md"]
 
     rows_out = []; idx_out = {}
     monthly  = {sv: {} for sv in SEVS}; daily = {sv: {} for sv in SEVS}; ym = defaultdict(set)
@@ -460,23 +463,42 @@ def process_tickets_data():
         
         sl_ack = pd.to_numeric(r.get("Acknowledge SLA"), errors="coerce")
         sl_res = pd.to_numeric(r.get("Resolution SLA"), errors="coerce")
-        
+
+        # Parent Problem ID — normalizado (CSV mistura "84849" e "0084849" e float 84849.0)
+        pid_raw = r.get("Problem")
+        pid = ""
+        if pd.notna(pid_raw) and str(pid_raw).strip() != "":
+            try:
+                # Remove decimais de float (.0)
+                pid_val = int(float(str(pid_raw).replace(",", ".").strip()))
+                pid = str(pid_val).lstrip("0")
+            except:
+                pid = str(pid_raw).strip().lstrip("0")
+
+        # MDs reais — CSV usa vírgula decimal pt-BR
+        md_raw = r.get("MD's")
+        try:
+            md_val = float(str(md_raw).strip().replace(",", ".")) if pd.notna(md_raw) and str(md_raw).strip() != "" else 0.0
+        except (ValueError, TypeError):
+            md_val = 0.0
+
         row = [
-            tk, str(r.get("External ID", "")), str(r["Priority"]), sv, str(r["Status"]),
-            fmt_date(r["Opening Date"]), fmt_date(r["Date of Resolution"]), fmt_date(r["Close Date"]),
-            str(r.get("Application", "N/A")) if pd.notna(r.get("Application")) else "N/A", str(r.get("Environment", "N/A")).upper(),
-            str(r.get("Summary", ""))[:120], fmt_date(r["Last Updated Date"]),
+            tk, str(r.get("External ID", "")), str(r.get("Priority", "N/A")), sv, str(r.get("Status", "N/A")),
+            fmt_date(r.get("Opening Date")), fmt_date(r.get("Date of Resolution")), fmt_date(r.get("Close Date")),
+            str(r.get("Application", "N/A")), str(r.get("Environment", "N/A")).upper(),
+            str(r.get("Summary", f"Ticket {tk}"))[:120], fmt_date(r.get("Last Updated Date", r.get("Opening Date"))),
             str(r.get("assigned", "")), float(sl_ack) if pd.notna(sl_ack) else None,
-            str(r.get("Root Cause Source", "N/A")) if pd.notna(r.get("Root Cause Source")) else "N/A", 
-            str(r.get("Root Cause Type", "N/A")) if pd.notna(r.get("Root Cause Type")) else "N/A",
-            float(sl_res) if pd.notna(sl_res) else None, str(r["Project Name"]),
-            int(r["Opening Date"].year) if pd.notnull(r["Opening Date"]) else 0,
-            int(r["Opening Date"].month) if pd.notnull(r["Opening Date"]) else 0,
-            int(r["Opening Date"].day) if pd.notnull(r["Opening Date"]) else 0,
-            int(r["Close Date"].year) if pd.notnull(r["Close Date"]) else 0,
-            int(r["Close Date"].month) if pd.notnull(r["Close Date"]) else 0,
-            int(r["Close Date"].day) if pd.notnull(r["Close Date"]) else 0,
-            str(r["Severity"]).lower()
+            str(r.get("Root Cause Source", "N/A")),
+            str(r.get("Root Cause Type", "N/A")),
+            float(sl_res) if pd.notna(sl_res) else None, str(r.get("Project Name", "Desconhecido")),
+            int(r["Opening Date"].year) if pd.notnull(r.get("Opening Date")) else 0,
+            int(r["Opening Date"].month) if pd.notnull(r.get("Opening Date")) else 0,
+            int(r["Opening Date"].day) if pd.notnull(r.get("Opening Date")) else 0,
+            int(r["Close Date"].year) if pd.notnull(r.get("Close Date")) else 0,
+            int(r["Close Date"].month) if pd.notnull(r.get("Close Date")) else 0,
+            int(r["Close Date"].day) if pd.notnull(r.get("Close Date")) else 0,
+            str(r.get("Severity", "internal")).lower(),
+            pid, md_val
         ]
         idx_out[str(tk)] = len(rows_out)
         rows_out.append(row)
@@ -513,9 +535,9 @@ def process_tickets_data():
             if owner:
                 backlog[sv][owner]["total"] += 1
                 backlog[sv][owner]["tickets"].append({
-                    "ticket": tk_id, "status": str(r["Status"]), "days": int(r["Days_BK"]),
-                    "days_upd": int(r["Days_Upd"]), "opened": fmt_date(r["Opening Date"]),
-                    "priority": str(r["Priority"]), "summary": str(r["Summary"])[:60], "project": str(r["Project Name"])
+                    "ticket": tk_id, "status": str(r.get("Status", "N/A")), "days": int(r.get("Days_BK", 0)),
+                    "days_upd": int(r.get("Days_Upd", 0)), "opened": fmt_date(r.get("Opening Date")),
+                    "priority": str(r.get("Priority", "N/A")), "summary": str(r.get("Summary", f"Ticket {tk_id}"))[:60], "project": str(r.get("Project Name", "Desconhecido"))
                 })
         for owner in ["rc","client"]: backlog[sv][owner]["tickets"].sort(key=lambda x: x["days"], reverse=True)
 
@@ -553,9 +575,12 @@ def process_tickets_data():
     for sv in SEVS:
         sub = df[df["Severity"]==sv].copy()
         if len(sub) == 0: continue
-        sub["RCG"] = sub["Root Cause Source"].apply(rc_group)
-        for g, gg in sub.groupby("RCG"):
-            rc_dist[sv][str(g)] = {"count":int(len(gg)), "pct":round(len(gg)/len(sub)*100,1), "ids":gg["Ticket"].dropna().astype(int).tolist()}
+        if "Root Cause Source" in sub.columns:
+            sub["RCG"] = sub["Root Cause Source"].apply(rc_group)
+            for g, gg in sub.groupby("RCG"):
+                rc_dist[sv][str(g)] = {"count":int(len(gg)), "pct":round(len(gg)/len(sub)*100,1), "ids":gg["Ticket"].dropna().astype(int).tolist()}
+        else:
+            rc_dist[sv] = {"N/A": {"count": int(len(sub)), "pct": 100.0, "ids": sub["Ticket"].dropna().astype(int).tolist()}}
 
     summary = {"total_registered": int(len(df)), "total_open": int(df["Is_Open"].sum()), "projects": sorted(df["Project Name"].dropna().unique().tolist())}
     for sv in SEVS:
@@ -591,18 +616,51 @@ def process_tickets_data():
                                    "std": round(float(durations.std()), 1) if len(durations) > 1 else 0, "count": int(len(durations)),
                                    "bench": smd_config.MTTR_BENCHMARK_H.get(pri, 0)}
 
-    D = {"monthly": monthly, "daily": daily, "backlog": backlog, "sla": sla, "rc": rc_dist, "summary": summary, "comp": comp, 
-         "ym": {y:sorted(list(m)) for y,m in ym.items()}, "projects": summary["projects"], "timesheet": timesheet, 
-         "generated_at": today.strftime("%Y-%m-%d %H:%M"), "mttr_stats": mttr_stats}
+    # Problem Management index — pré-computa para o frontend não varrer _ROWS.
+    # Estrutura: D.problems[pid_normalizado] = {ticket, self_md, status, app, priority,
+    # prj, is_open, opening, incidents:[{ticket, md, pri, app, status, prj}, ...]}
+    fi_pid = TF.index("pid"); fi_md = TF.index("md")
+    fi_sv  = TF.index("sv");  fi_st = TF.index("st"); fi_pr = TF.index("pr")
+    fi_ap  = TF.index("ap");  fi_prj = TF.index("prj"); fi_k = TF.index("k")
+    fi_op  = TF.index("op")
+    OPEN_STATUSES_NEG = {"closed", "resolved", "rejected"}
+    problems_idx = {}
+    for row in rows_out:
+        if row[fi_sv] == "problem":
+            pid_self = str(row[fi_k]).lstrip("0") or str(row[fi_k])
+            problems_idx[pid_self] = {
+                "ticket": str(row[fi_k]), "self_md": row[fi_md],
+                "status": row[fi_st], "app": row[fi_ap], "priority": row[fi_pr],
+                "prj": row[fi_prj], "opening": row[fi_op],
+                "is_open": row[fi_st] not in OPEN_STATUSES_NEG,
+                "incidents": []
+            }
+    for row in rows_out:
+        if row[fi_sv] == "incident" and row[fi_pid]:
+            pid = row[fi_pid]
+            if pid in problems_idx:
+                problems_idx[pid]["incidents"].append({
+                    "ticket": str(row[fi_k]), "md": row[fi_md], "pri": row[fi_pr],
+                    "app": row[fi_ap], "status": row[fi_st], "prj": row[fi_prj]
+                })
+    log.info(f"Problem index: {len(problems_idx)} problems, "
+             f"{sum(len(p['incidents']) for p in problems_idx.values())} incidents linkados")
+
+    D = {"monthly": monthly, "daily": daily, "backlog": backlog, "sla": sla, "rc": rc_dist, "summary": summary, "comp": comp,
+         "ym": {y:sorted(list(m)) for y,m in ym.items()}, "projects": summary["projects"], "timesheet": timesheet,
+         "generated_at": today.strftime("%Y-%m-%d %H:%M"), "mttr_stats": mttr_stats,
+         "problems": problems_idx}
     T = {"fields": TF, "rows": rows_out, "idx": idx_out}
     return D, T, df
 
-def run_pipeline(skip_agents=False):
+def run_pipeline(skip_agents=False, csv_override=None):
+    """Executa a pipeline completa: Tickets -> AI -> Timesheet -> data.js"""
     log.info("=" * 60)
     log.info(f"SMD DASHBOARD BUILD — {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
     log.info("=" * 60)
-    D, T, df_raw = process_tickets_data()
-    if D is None: return
+    D, T, df_raw = process_tickets_data(csv_override)
+    if not D or df_raw is None: return
+    
     ai_insights = {}
     if skip_agents and smd_config.DATA_JS.exists():
         try:
@@ -669,5 +727,8 @@ def run_pipeline(skip_agents=False):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--no-agents", action="store_true")
-    run_pipeline(skip_agents=parser.parse_args().no_agents)
+    parser.add_argument("--no-agents", action="store_true", help="Pular execução da IA")
+    parser.add_argument("--csv", type=str, help="Caminho para arquivo CSV customizado (ex: DOcs/Chanel.csv)")
+    args = parser.parse_args()
+    
+    run_pipeline(skip_agents=args.no_agents, csv_override=args.csv)

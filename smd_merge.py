@@ -9,11 +9,11 @@ FUNÇÃO:
   Junta todos em um único Tickets.csv e salva em C:\\Dashboard\\input\\
 
 EXEMPLOS DE NOMES ACEITOS:
+  chanel.csv
+  farmatodo.csv
+  farmacias arrocha.csv
   Incidents_Chanel2026-04-08.csv
-  Incidents_Farmacia Arrocha2026-04-08.csv
   Incidents_Farmatodo2026-04-08.csv
-  Incidents_GDN2026-04-08.csv
-  Incidents_Tata2026-04-08.csv
 
 USO:
   python C:\\Dashboard\\smd_merge.py              # merge + confirma
@@ -42,18 +42,10 @@ OUTPUT_FILE = smd_config.TICKETS_CSV
 BACKUP_DIR  = OUTPUT_DIR / "backups"
 LOG_FILE    = smd_config.BASE_DIR / "smd_merge.log"
 
-# Padrão de nome do arquivo exportado pelo Mantis
-# Aceita: Incidents_Projeto2026-04-08.csv  (com ou sem espaços no projeto)
-FILE_PATTERN = re.compile(
-    r'^Incidents_(.+?)(\d{4}-\d{2}-\d{2})\.csv$',
-    re.IGNORECASE
-)
-
-# Colunas obrigatórias que todo CSV do Mantis deve ter
+# Colunas críticas para o funcionamento básico
 REQUIRED_COLS = [
     'Project Name', 'Ticket', 'Status', 'Severity',
-    'Priority', 'Opening Date', 'Application', 'Root Cause Type',
-    'Resolution SLA', 'Date of Resolution'
+    'Priority', 'Opening Date'
 ]
 
 # Separador e encoding do Mantis
@@ -76,22 +68,43 @@ log = logging.getLogger(__name__)
 
 def find_csv_files(source_dir: Path) -> list[dict]:
     """
-    Varre source_dir e retorna lista de arquivos que batem com FILE_PATTERN.
+    Varre source_dir e retorna lista de arquivos que batem com FILE_PATTERN ou formato simples.
     Retorna: [{'path': Path, 'project': str, 'date': str}, ...]
     """
     if not source_dir.exists():
         log.error(f"Pasta não encontrada: {source_dir}")
         return []
 
+    # Padrões
+    p_with_date = re.compile(r'^Incidents_(.+?)(\d{4}-\d{2}-\d{2})\.csv$', re.IGNORECASE)
+    p_simple    = re.compile(r'^(.+)\.csv$', re.IGNORECASE)
+    
+    today_str = datetime.now().strftime('%Y-%m-%d')
     found = []
+    
     for f in sorted(source_dir.iterdir()):
         if not f.is_file():
             continue
-        m = FILE_PATTERN.match(f.name)
-        if m:
-            project = m.group(1).strip().rstrip('_')
-            date    = m.group(2)
+        
+        # Ignorar arquivos de sistema ou o próprio tickets.csv se estiver na pasta errada
+        if f.name.lower() in ('tickets.csv', 'smd_merge.log'):
+            continue
+
+        # Tentar padrão 1 (com data)
+        m1 = p_with_date.match(f.name)
+        if m1:
+            project = m1.group(1).strip().rstrip('_')
+            date    = m1.group(2)
             found.append({'path': f, 'project': project, 'date': date})
+            continue
+            
+        # Tentar padrão 2 (simples)
+        m2 = p_simple.match(f.name)
+        if m2:
+            project = m2.group(1).strip()
+            # Se for um nome genérico demais, talvez ignorar? 
+            # Mas o usuário pediu especificamente chanel.csv, etc.
+            found.append({'path': f, 'project': project, 'date': today_str})
 
     return found
 
@@ -334,9 +347,9 @@ Exemplos:
   python smd_merge.py --auto && python smd_build.py --no-agents  # merge + build
 
 Padrão de nome aceito:
+  chanel.csv, farmatodo.csv, etc.
   Incidents_<Projeto><AAAA-MM-DD>.csv
   Incidents_GDN2026-04-08.csv
-  Incidents_Farmacia Arrocha2026-04-08.csv
         """
     )
     p.add_argument('--dry-run',  action='store_true', help='Só lista arquivos, não salva')

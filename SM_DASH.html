@@ -1699,6 +1699,9 @@ function panelHTML(sev) {
       '<div class="cb"><div class="cbt" style="margin-bottom:10px">Tickets Assignados</div><div id="ass-'+sev+'"></div></div>' +
     '</div>' +
     (hasRC?'<div class="cb"><div class="cbt" style="margin-bottom:10px">Root Cause</div><div id="rc-'+sev+'"></div></div>':'') +
+    (sev==='problem'
+      ? '<div id="prob-kpi-container" style="margin-bottom:14px"></div>'
+      : '') +
     (sev==='incident'
       ? '<div class="cb" style="padding:8px 4px"><div id="inc-kpi-strip"></div></div>' +
         '<div id="inc-oncall-detail" style="display:none"></div>' +
@@ -1905,6 +1908,9 @@ function doRefresh() {
             try { buildIncKPIs(); } catch(e) {}
             try { buildOncallDetail(false); } catch(e) {}
           }
+          if (sev === 'problem') {
+            try { buildProblemKPIs(); } catch(e) {}
+          }
           if (['incident','user_request','problem'].indexOf(sev)>=0) { 
             try { buildTimesheetKPI(sev,'ts-'+sev); } catch(e) {}
             try { buildStaffKPI(sev,'ts-staff-chart-'+sev); } catch(e) {}
@@ -2056,6 +2062,15 @@ function initProjects() {
   };
 }
 
+
+function buildProblemKPIs() {
+  var el = document.getElementById('prob-kpi-container');
+  if (!el) return;
+  var prj = selProject || 'Todos os Projetos';
+  var curY = selYear ? +selYear : new Date().getFullYear();
+  var curM = selMonth ? +selMonth : new Date().getMonth() + 1;
+  el.innerHTML = _renderProblemSection(prj, curY, curM);
+}
 
 function buildIncKPIs() {
   var inc_all = _ROWS.filter(function(r){
@@ -5681,6 +5696,225 @@ function getClientReopen(prj, y, m) {
   return { rejected: rejected, closed: closed, rate: closed > 0 ? Math.round(rejected / closed * 1000) / 10 : 0 };
 }
 
+// ── PROBLEM MANAGEMENT helpers ──────────────────────────────────
+// Detecta se o CSV de input traz Problem ID e MD's (cache one-shot).
+// Mesmo que TF tenha 'pid'/'md', se o input não trouxer dados, todos vêm vazios/zero.
+var _PM_AVAIL = null;
+function _problemDataAvailable() {
+  if (_PM_AVAIL !== null) return _PM_AVAIL;
+  var fi_pid = _TF.indexOf('pid'), fi_md = _TF.indexOf('md');
+  if (fi_pid < 0 || fi_md < 0) return (_PM_AVAIL = false);
+  for (var i = 0; i < _ROWS.length; i++) {
+    if (_ROWS[i][fi_pid] || (+_ROWS[i][fi_md] || 0) > 0) return (_PM_AVAIL = true);
+  }
+  return (_PM_AVAIL = false);
+}
+
+// Filtra D.problems por projeto/ano/mês (escopo do problem self).
+function _filterProblems(prj) {
+  var idx = D.problems || {};
+  var out = [];
+  Object.keys(idx).forEach(function(pid){
+    var p = idx[pid];
+    if (prj !== 'Todos os Projetos' && p.prj !== prj) return;
+    out.push({pid: pid, p: p});
+  });
+  return out;
+}
+// Filtra incidents do problem por projeto (mesmo critério das outras abas).
+function _filterIncs(incs, prj) {
+  if (prj === 'Todos os Projetos') return incs || [];
+  return (incs || []).filter(function(i){ return i.prj === prj; });
+}
+
+// Cobertura: % incidents com Problem vinculado (no período + projeto)
+function getProblemCoverage(prj, y, m) {
+  if (!_problemDataAvailable()) return { linked: 0, total: 0, pct: 0, available: false };
+  var fi_sv = _TF.indexOf('sv'), fi_pid = _TF.indexOf('pid'),
+      fi_yo = _TF.indexOf('y_o'), fi_mo = _TF.indexOf('m_o'), fi_prj = _TF.indexOf('prj');
+  var total = 0, linked = 0;
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (r[fi_sv] !== 'incident') continue;
+    if (prj !== 'Todos os Projetos' && r[fi_prj] !== prj) continue;
+    if (selYear  && r[fi_yo] !== +selYear)  continue;
+    if (selMonth && r[fi_mo] !== +selMonth) continue;
+    
+    total++;
+    // Somente conta como vinculado se o problem ainda estiver aberto
+    var pid = r[fi_pid];
+    if (pid && D.problems && D.problems[pid] && D.problems[pid].is_open) {
+        linked++;
+    }
+  }
+  return {
+    linked: linked, total: total,
+    pct: total > 0 ? Math.round(linked / total * 1000) / 10 : 0,
+    available: true
+  };
+}
+
+// Effort Ratio: MD_problems / MD_incidents (período + projeto). Benchmark ITIL: 20-30%.
+function getProblemEffortRatio(prj, y, m) {
+  if (!_problemDataAvailable()) return { prob_md: 0, inc_md: 0, ratio: 0, available: false };
+  var fi_sv = _TF.indexOf('sv'), fi_md = _TF.indexOf('md'), fi_st = _TF.indexOf('st'),
+      fi_yo = _TF.indexOf('y_o'), fi_mo = _TF.indexOf('m_o'), fi_prj = _TF.indexOf('prj');
+  var prob_md = 0, inc_md = 0;
+  var EXCL = ['closed', 'resolved', 'rejected'];
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (prj !== 'Todos os Projetos' && r[fi_prj] !== prj) continue;
+    if (selYear  && r[fi_yo] !== +selYear)  continue;
+    if (selMonth && r[fi_mo] !== +selMonth) continue;
+    if (EXCL.indexOf(r[fi_st]) >= 0) continue; // Exclui tickets encerrados/resolvidos/rejeitados
+
+    var v = +r[fi_md] || 0;
+    if (r[fi_sv] === 'problem')  prob_md += v;
+    if (r[fi_sv] === 'incident') inc_md  += v;
+  }
+  return {
+    prob_md: Math.round(prob_md * 100) / 100,
+    inc_md:  Math.round(inc_md  * 100) / 100,
+    ratio:   inc_md > 0 ? Math.round(prob_md / inc_md * 1000) / 10 : 0,
+    available: true
+  };
+}
+
+// TOP N problems por critério ('inc' = #incidents, 'md' = MD total).
+// TOP N problems por critério ('inc' = #incidents, 'md' = MD total) - SOMENTE ABERTOS.
+function getTopProblems(prj, y, m, n, by) {
+  var list = _filterProblems(prj).filter(function(o){ return o.p.is_open; }).map(function(o){
+    var incs = _filterIncs(o.p.incidents, prj);
+    var inc_md = incs.reduce(function(s,i){ return s + (+i.md || 0); }, 0);
+    return {
+      pid: o.pid, ticket: o.p.ticket, app: o.p.app, status: o.p.status,
+      priority: o.p.priority, is_open: o.p.is_open,
+      inc_count: incs.length, inc_md: Math.round(inc_md * 100) / 100,
+      self_md: Math.round((+o.p.self_md || 0) * 100) / 100,
+      total_md: Math.round((((+o.p.self_md || 0) + inc_md)) * 100) / 100,
+      incidents: incs
+    };
+  });
+  list.sort(function(a,b){ return by === 'md' ? (b.total_md - a.total_md) : (b.inc_count - a.inc_count); });
+  return list.slice(0, n || 5);
+}
+
+// Estatísticas agregadas — orfãos, abertos, stale (open > 30d).
+function getProblemStats(prj) {
+  var list = _filterProblems(prj);
+  var orphan = 0, open = 0, stale = 0;
+  var today = new Date();
+  list.forEach(function(o){
+    var incs = _filterIncs(o.p.incidents, prj);
+    if (!incs.length) orphan++;
+    if (o.p.is_open) {
+      open++;
+      if (o.p.opening) {
+        var od = new Date(o.p.opening);
+        if (!isNaN(od) && (today - od) / 86400000 > 30) stale++;
+      }
+    }
+  });
+  return { total: list.length, orphan: orphan, open: open, stale: stale };
+}
+
+// Effort Real (MDs) - Onda 2 do plano Claude.
+function getMDStats(prj, y, m) {
+  if (!_problemDataAvailable()) return { total: 0, avg: 0, zero_pct: 0, available: false };
+  var fi_md = _TF.indexOf('md'), fi_yo = _TF.indexOf('y_o'), fi_mo = _TF.indexOf('m_o'),
+      fi_prj = _TF.indexOf('prj');
+  var total = 0, count = 0, zeros = 0;
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (prj !== 'Todos os Projetos' && r[fi_prj] !== prj) continue;
+    if (selYear  && r[fi_yo] !== +selYear)  continue;
+    if (selMonth && r[fi_mo] !== +selMonth) continue;
+    var v = +r[fi_md] || 0;
+    total += v;
+    count++;
+    if (v === 0) zeros++;
+  }
+  return {
+    total: Math.round(total * 100) / 100,
+    avg: count > 0 ? Math.round(total / count * 100) / 100 : 0,
+    zero_pct: count > 0 ? Math.round(zeros / count * 1000) / 10 : 0,
+    n: count,
+    available: true
+  };
+}
+
+// Renderiza a seção Problem Management (KPIs + tabela TOP 5).
+function _renderProblemSection(prj, y, m) {
+  var cov = getProblemCoverage(prj, y, m);
+  if (!cov.available) {
+    return '<div class="cb" style="margin-bottom:24px;border-color:#92400e">' +
+      '<div class="cbt" style="margin-bottom:8px;color:#fbbf24">&#9888; Problem Management — dados não disponíveis</div>' +
+      '<div style="font-size:10px;color:var(--muted);line-height:1.5">' +
+        'O CSV de tickets atual não traz as colunas <b>Problem</b> e <b>MD\'s</b>.<br>' +
+        'Quando o extrator incluir essas colunas, esta seção exibirá: cobertura PM, ratio de esforço, e os TOP 5 problems por recorrência/MD.' +
+      '</div></div>';
+  }
+  var ratio = getProblemEffortRatio(prj, y, m);
+  var stats = getProblemStats(prj);
+  var topRec = getTopProblems(prj, y, m, 5, 'inc');
+
+  // Cobertura: <50% red, <70% amber, ≥70% green
+  var covCol = cov.pct >= 70 ? '#34d399' : (cov.pct >= 50 ? '#fbbf24' : '#f87171');
+  // Ratio P/I: 20-30% green; <20 amber (sub-investido); >50 red (sobre-investido)
+  var ratCol = (ratio.ratio >= 20 && ratio.ratio <= 30) ? '#34d399'
+             : (ratio.ratio < 20 ? '#fbbf24' : (ratio.ratio > 50 ? '#f87171' : '#fbbf24'));
+  var staleCol = stats.stale > 5 ? '#f87171' : (stats.stale > 2 ? '#fbbf24' : '#34d399');
+
+  var html = '<div style="margin-bottom:24px;background:#0d2438;border:1px solid #1a3a50;border-radius:12px;padding:20px">' +
+    '<div style="font-family:var(--ft);font-size:16px;font-weight:700;color:#e2e8f0;margin-bottom:16px;display:flex;align-items:center;gap:10px">' +
+      '<div style="width:24px;height:24px;background:#a78bfa;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px">&#128270;</div>' +
+      'PROBLEM MANAGEMENT' +
+    '</div>' +
+    '<div class="exec-grid" style="margin-bottom:16px">' +
+      kpiCard('PROBLEM COVERAGE', cov.pct + '%',
+              cov.linked + ' / ' + cov.total + ' incidents linkados', covCol,
+              'Incidents com Problem ID vinculado.\nTarget: ≥70%.\nVermelho < 50%, amarelo 50-70%.') +
+      kpiCard('EFFORT RATIO P/I', ratio.ratio + '%',
+              ratio.prob_md + ' / ' + ratio.inc_md + ' MD', ratCol,
+              'MD problems ÷ MD incidents.\nBenchmark ITIL: 20-30%.\n>50% = sobre-investido em RC.\n<20% = sub-investido.') +
+      kpiCard('PROBLEMS ABERTOS', stats.open,
+              'de ' + stats.total + ' totais (' + stats.orphan + ' órfãos)',
+              stats.open > 10 ? '#fbbf24' : '#34d399',
+              'Problems com status diferente de closed/resolved/rejected.\nÓrfãos = sem incident vinculado (auditar).') +
+      kpiCard('PROBLEMS STALE', stats.stale,
+              'abertos há > 30 dias', staleCol,
+              'Problems abertos com opening > 30 dias.\nVermelho > 5, amarelo > 2.') +
+    '</div>';
+
+  // Tabela TOP recorrentes
+  if (topRec.length && topRec[0].inc_count > 0) {
+    html += '<div class="cbt" style="margin:8px 0 8px 0;font-size:11px">TOP 5 Problems por recorrência (clique no problem para detalhes)</div>' +
+      '<div class="dtbl-wrap"><table class="dtbl">' +
+      '<thead><tr><th>Problem</th><th>App</th><th>Pri</th><th style="text-align:right">#Inc</th>' +
+      '<th style="text-align:right">MD Self</th><th style="text-align:right">MD Inc</th>' +
+      '<th style="text-align:right">MD Total</th><th>Status</th></tr></thead><tbody>' +
+      topRec.map(function(p){
+        if (!p.inc_count) return '';
+        var statusCol = p.is_open ? '#fbbf24' : 'var(--muted)';
+        return '<tr>' +
+          '<td><b>' + p.ticket + '</b></td>' +
+          '<td>' + (p.app || '—') + '</td>' +
+          '<td>' + (p.priority || '—') + '</td>' +
+          '<td style="text-align:right;font-weight:700">' + p.inc_count + '</td>' +
+          '<td style="text-align:right">' + p.self_md.toFixed(2) + '</td>' +
+          '<td style="text-align:right">' + p.inc_md.toFixed(2) + '</td>' +
+          '<td style="text-align:right;font-weight:700;color:#a78bfa">' + p.total_md.toFixed(2) + '</td>' +
+          '<td style="color:' + statusCol + '">' + (p.status || '—') + '</td>' +
+        '</tr>';
+      }).join('') +
+      '</tbody></table></div>';
+  } else {
+    html += '<div style="font-size:10px;color:var(--muted);padding:8px 0">Nenhum incident com Problem vinculado no filtro atual.</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
 function buildCliente() {
   var c = document.getElementById('panel-cliente'); if (!c) return;
   var prj = selProject || 'Todos os Projetos';
@@ -5703,6 +5937,10 @@ function buildCliente() {
   var aging  = getClientAging(prj);
   var reopen = getClientReopen(prj, curY, curM);
   var thr    = kpi.closed - kpi.open;
+  var mds    = getMDStats(prj, curY, curM);
+  var ratio  = getProblemEffortRatio(prj, curY, curM);
+  var ratCol = (ratio.ratio >= 20 && ratio.ratio <= 30) ? '#34d399'
+             : (ratio.ratio < 20 ? '#fbbf24' : (ratio.ratio > 50 ? '#f87171' : '#fbbf24'));
 
   var html = '<div style="padding:16px">' +
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">' +
@@ -5732,12 +5970,26 @@ function buildCliente() {
       kpiCard('TAXA REABERTURA', reopen.rate + '%', reopen.rejected + ' rejected / ' + reopen.closed + ' closed',
               reopen.rate > 5 ? '#f87171' : '#34d399') +
     '</div>' +
+    // Linha 3: Esforço Real (Onda 2 do plano Claude)
+    (mds.available ? 
+    '<div class="exec-grid" style="margin-bottom:24px">' +
+      kpiCard('MDs TOTAIS', mds.total, mds.n + ' tickets com esforço', '#60a5fa',
+              'Soma real de MD\'s apontados no período.\nFonte: Campo MD\'s do CSV.') +
+      kpiCard('ESFORÇO MÉDIO', mds.avg + ' MD', 'por ticket atendido', '#34d399',
+              'MD Total ÷ Total de Tickets.\nIndica a complexidade média de resolução.') +
+      kpiCard('TICKETS SEM MD', mds.zero_pct + '%', 'proxy de fechamento admin', mds.zero_pct > 20 ? '#fbbf24' : '#34d399',
+              'Porcentagem de tickets com 0 MD.\nAlta taxa indica fechamentos administrativos ou falta de apontamento.') +
+      kpiCard('EFFORT RATIO P/I', ratio.ratio + '%', 'Problema vs Incidente', ratCol,
+              'Benchmark ITIL: 20-30%.\nIndica eficiência na análise de causa raiz.') +
+    '</div>' : '');
     // SLA grid migrado da aba INC — clique no card abre o detail modal flutuante
     '<div class="cb" style="margin-bottom:24px">' +
       '<div class="cbt" style="margin-bottom:12px">SLA por Prioridade — clique no card para detalhes</div>' +
       '<div class="sla-grid" id="sla-cards"></div>' +
       '<div style="font-size:9px;color:#2a4a60;margin-top:4px" id="sla-cfg-lbl"></div>' +
-    '</div>';
+    '</div>' +
+    // ── Problem Management ──
+    _renderProblemSection(prj, curY, curM);
 
   var clientSevs = ['incident', 'user_request', 'problem'];
   

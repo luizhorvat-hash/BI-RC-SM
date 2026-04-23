@@ -48,9 +48,15 @@ def main():
     
     # 1. Passo: Merge (Sincronização de novos arquivos de Downloads -> Tickets.csv)
     # Usamos --auto para não pedir confirmação
-    if not run_command([str(MERGE_SCRIPT), "--auto"], "Integração de novos CSVs (Merge)"):
-        print("\nO processo foi interrompido devido a um erro no Merge.")
-        sys.exit(1)
+    merge_status = run_command([str(MERGE_SCRIPT), "--auto"], "Integração de novos CSVs (Merge)")
+    
+    if not merge_status:
+        from smd_config import TICKETS_CSV
+        if TICKETS_CSV.exists():
+            print(f"\n[!] AVISO: Nenhum arquivo novo para merge, mas '{TICKETS_CSV.name}' existe. Prosseguindo com o build...")
+        else:
+            print("\n[X] O processo foi interrompido: nenhum dado novo encontrado e 'tickets.csv' está ausente.")
+            sys.exit(1)
 
     # 2. Passo: Build (Geração do data.js para o Dashboard)
     # Por padrão, pulamos os agentes por velocidade, a menos que --ai seja passado

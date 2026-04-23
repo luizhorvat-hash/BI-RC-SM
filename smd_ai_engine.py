@@ -144,8 +144,6 @@ class SMDAIEngine:
         calc_hs_val = hs
         calc_hs_col = "green" if hs >= 75 else ("yellow" if hs >= 50 else "red")
         calc_hs_lbl = "SAUDÁVEL" if hs >= 75 else ("ATENÇÃO" if hs >= 50 else "CRÍTICO")
-
-        # PREVISÃO MATEMÁTICA PARA AS PRÓXIMAS 4 SEMANAS
         forecast = []
         if len(weekly_vol) > 0:
             last_inc = weekly_vol[-1]['incidents']
@@ -156,6 +154,10 @@ class SMDAIEngine:
                     "incidents": max(0, int(last_inc + (trend_slope * i))),
                     "user_requests": max(0, int(last_req + (trend_slope * 0.5 * i))) # Reqs tendem a seguir mas com menos volatilidade
                 })
+
+        # Top categorias para Improvement/Triage
+        top_apps = v['Application'].value_counts().head(5).to_dict()
+        top_rcs = v['Root Cause Type'].value_counts().head(5).to_dict()
 
         return {
             'total_tickets': int(len(v)),
@@ -173,6 +175,8 @@ class SMDAIEngine:
             'trend_slope': round(trend_slope, 2),
             'trend_label': "CRESCENTE 📈" if trend_slope > 0.5 else ("DECRESCENTE 📉" if trend_slope < -0.5 else "ESTÁVEL 平"),
             'calculated_health': {'value': calc_hs_val, 'label': calc_hs_lbl, 'color': calc_hs_col},
+            'top_apps': top_apps,
+            'top_rcs': top_rcs,
             'timestamp': today.strftime('%Y-%m-%d %H:%M:%S')
         }
 
@@ -181,13 +185,17 @@ class SMDAIEngine:
         if not text or not isinstance(text, str): return {}
         
         # 1. Pré-processamento: Trata vírgulas decimais em números (ex: 0,175 -> 0.175)
+        # mas apenas se estiverem entre dígitos e seguidas de dígitos (evita quebrar vírgulas de separação de campos)
         processed = re.sub(r'(\d+),(\d+)', r'\1.\2', text)
         
-        # 2. Busca por blocos JSON (prioriza blocos markdown ```json ... ```)
-        blocks = re.findall(r'```json\s*(\{.*?\})\s*```', processed, re.DOTALL)
+        # 2. Busca por blocos JSON (prioriza blocos markdown ```json ... ``` ou ``` ... ```)
+        blocks = re.findall(r'```(?:json)?\s*(\{.*?\})\s*```', processed, re.DOTALL)
         if not blocks:
-            # Tenta encontrar qualquer coisa entre { e }
-            blocks = re.findall(r'(\{.*\})', processed, re.DOTALL)
+            # Tenta encontrar o primeiro { e o último } para capturar o objeto
+            start = processed.find('{')
+            end = processed.rfind('}')
+            if start != -1 and end != -1 and end > start:
+                blocks = [processed[start:end+1]]
             
         if not blocks: return {}
         
@@ -195,11 +203,12 @@ class SMDAIEngine:
         blocks.sort(key=len, reverse=True)
         for b in blocks:
             try:
-                return json.loads(b)
+                # Remove possíveis comentários de linha no JSON que algumas IAs insistem em colocar
+                b_clean = re.sub(r'//.*', '', b)
+                return json.loads(b_clean)
             except json.JSONDecodeError:
-                # 4. Heurística de Reparo para truncamento
+                # 4. Heurística de Reparo para truncamento ou aspas faltantes
                 try:
-                    # Se termina abruptamente, tenta fechar as estruturas básicas
                     repaired = b.strip()
                     if not repaired.endswith('}'):
                         if repaired.count('{') > repaired.count('}'): repaired += '}'
@@ -215,13 +224,14 @@ class SMDAIEngine:
         sl = ctx['sla']
         
         data_str = (
-            f"Dados ITSM: {ctx['total_tickets']} total.\n"
+            f"Data: {ctx['timestamp']}\n"
+            f"Tickets: {ctx['total_tickets']} total.\n"
             f"Incidents: {s['incident']['open']} abertos.\n"
             f"SLA P1: {sl.get('P1',{}).get('pct',0)}%, P2: {sl.get('P2',{}).get('pct',0)}%.\n"
-            f"Tickets Aging >30d: {ctx.get('aging_30d', 0)} | Tickets Ociosos (Dormancy >7d sem atu.): {ctx.get('dormant_7d', 0)}.\n"
-            f"Burn Rate 7d (Abertos-Fechados): {ctx.get('burn_rate', 0)}.\n"
-            f"Proporção Problem/Incident: {ctx.get('prob_ratio', 0):.2f}.\n"
-            f"MTTR Mediano P1 (estimado): {ctx.get('median_mttr_h', 0)}h.\n"
+            f"Aging >30d: {ctx.get('aging_30d', 0)} | Dormancy >7d: {ctx.get('dormant_7d', 0)}.\n"
+            f"Burn Rate: {ctx.get('burn_rate', 0)} | Prob Ratio: {ctx.get('prob_ratio', 0):.2f}.\n"
+            f"Top Apps: {ctx.get('top_apps', {})}\n"
+            f"Top Root Causes: {ctx.get('top_rcs', {})}\n"
         )
 
         hist_str = ""
@@ -479,12 +489,16 @@ JSON_DATA: {{"executive_summary": "...", "alerts": [{{ "level": "INF", "message"
             # Tenta Ollama primeiro
             text = self.call_ollama_custom(prompt, timeout=tm)
             
-            # FALLBACK AUTOMÁTICO PARA CLOUD (Se configurado e falhar localmente no Preditivo)
-            if key == "predictive" and ("Erro" in text or "Timeout" in text):
-                log.warning(f"Ollama falhou para Preditivo. Tentando Fallback via Nuvem (Anthropic)...")
+            # FALLBACK AUTOMÁTICO PARA CLOUD (Se configurado e falhar localmente)
+            if "Erro" in text or "Timeout" in text or len(text) < 10:
+                log.warning(f"Ollama falhou para {key}. Tentando Fallback via Nuvem...")
                 if smd_config.ANTHROPIC_API_KEY:
+                    log.info("Usando Fallback: Anthropic (Claude)")
                     text = self.call_anthropic(prompt)
                 elif smd_config.GEMINI_API_KEY:
+                    log.info("Usando Fallback: Gemini")
                     text = self.call_gemini(prompt)
+                else:
+                    log.error("Nenhuma chave de nuvem disponível para Fallback.")
             
         return self.get_structured_result(key, text, ctx)
