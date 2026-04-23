@@ -236,6 +236,17 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
 .ar-status{display:inline-block;padding:2px 6px;border-radius:4px;font-size:8px;font-weight:600;background:#0d2438;color:#94a3b8}
 
 
+/* ── EXECUTIVE CARDS ─────────────────────────────────────── */
+.exec-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 12px 20px; }
+.exec-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; display: flex; flex-direction: column; gap: 4px; transition: border-color .15s; }
+.exec-card:hover { border-color: #2a5070; }
+.exec-lbl { font-family: var(--ft); font-size: 8px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.exec-val { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1.2; }
+.exec-sub { font-size: 9px; color: var(--dim); }
+.exec-val.good { color: #34d399; }
+.exec-val.warn { color: #fbbf24; }
+.exec-val.crit { color: #f87171; }
+
 /* ── Print / Export ──────────────────────────────────────────── */
 #export-fab {
   position:fixed; bottom:22px; right:22px; z-index:900;
@@ -255,6 +266,12 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
   .cb { border:1px solid #ccc !important; background:#fff !important; }
   .cbt { color:#FF6B00 !important; }
 }
+  .exec-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .exec-card { background:linear-gradient(145deg, #1a3a50, #0d2438); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:18px; box-shadow:0 8px 32px rgba(0,0,0,0.2); }
+  .exec-label { font-family:var(--ft); font-size:10px; font-weight:700; letter-spacing:0.1em; color:var(--muted); text-transform:uppercase; margin-bottom:8px; }
+  .exec-val { font-size:26px; font-weight:700; color:#fff; }
+  .exec-sub { font-size:11px; color:var(--muted); margin-top:4px; }
+  .exec-good { color:#34d399; } .exec-warn { color:#fbbf24; } .exec-crit { color:#f87171; }
 </style>
 </head>
 <body>
@@ -298,7 +315,9 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
   <div class="ntab t-cfg"  data-view="config">&#9881; Config</div>
   <div class="ntab t-ai" data-view="ai">&#129302; AI Insights</div>
   <div class="ntab t-cmp" data-view="comp">&#128200; Comparativo</div>
+  <div class="ntab t-cli" data-view="cliente">&#128200; Cliente</div>
   <div class="ntab t-ts"  data-view="timesheet">&#128336; Timesheet</div>
+  <div class="ntab t-sim" data-view="simulador">&#128202; Simulador</div>
 </div>
 
 <div id="panel-hoje" class="panel active"></div>
@@ -307,6 +326,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
 <div id="panel-problem"       class="panel"></div>
 <div id="panel-change_request"class="panel"></div>
 <div id="panel-internal"      class="panel"></div>
+<div id="panel-cliente"       class="panel"></div>
 
 
 <div id="panel-ai" class="panel">
@@ -366,14 +386,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
 </div>
 
 
-<div id="panel-sla" class="panel" style="display:none!important">
-  <div class="cb">
-    <div class="cbt" style="margin-bottom:12px">SLA - Incidents em PRD | Filtrado por Projeto/Ano/Mes | Clique para detalhes</div>
-    <div class="sla-grid" id="sla-cards"></div>
-    <div style="font-size:9px;color:#2a4a60;margin-top:4px" id="sla-cfg-lbl"></div>
-  </div>
-  
-</div>
+<!-- panel-sla removido: SLA migrado para a aba Cliente (rendered inside panel-cliente) -->
 <!-- SLA Detail Modal -->
 <div class="cb" id="sla-detail" style="display:none">
     <div class="cbt" id="sla-det-title" style="margin-bottom:10px"></div>
@@ -419,6 +432,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
 </div>
 
 <div id="panel-timesheet" class="panel"></div>
+<div id="panel-simulador" class="panel"></div>
 
 <div class="mbg" id="modal">
   <div class="modal">
@@ -534,7 +548,18 @@ function getDayCounts(sev, monthKey) {
 // ── Configuração padrão (base para novos projetos) ──────────────
 var CFG_DEFAULT = {
   sla: {P1:{min:360,target:98},P2:{min:720,target:95},P3:{min:1920,target:95},P4:{min:2880,target:95}},
-  ranges: [{min:0,max:10,effort_mds:10.92},{min:11,max:20,effort_mds:16.75},{min:21,max:30,effort_mds:22.58},{min:0,max:0,effort_mds:0},{min:0,max:0,effort_mds:0},{min:0,max:0,effort_mds:0},{min:0,max:0,effort_mds:0},{min:0,max:0,effort_mds:0}],
+  ranges: [
+    {min:0,max:10,effort_mds:0.70},
+    {min:11,max:20,effort_mds:1.40},
+    {min:21,max:30,effort_mds:2.10},
+    {min:31,max:40,effort_mds:2.80},
+    {min:41,max:50,effort_mds:3.50},
+    {min:51,max:60,effort_mds:4.20},
+    {min:61,max:70,effort_mds:4.90},
+    {min:71,max:80,effort_mds:5.60},
+    {min:81,max:90,effort_mds:6.30},
+    {min:91,max:100,effort_mds:7.00}
+  ],
   no_upd: 7,
   kpi_alerts: [
     {id:'backlog_rc_max',   label:'Backlog RC total',       metric:'backlog_rc',   op:'>',  value:50,  enabled:true},
@@ -598,6 +623,71 @@ var charts = {};
 var _ocDetailOpen = false;
 
 // Status que contam como assigned/cli para metricas
+var ASS_ST = {acknowledged:1,assigned_for_analysis:1,assigned_for_dev:1,assigned_for_testing:1,waiting_for_prioritization:1,pending_required_fields:1};
+var CLI_ST = {waiting_client_feedback:1,waiting_client_prd_inst:1,waiting_client_tests:1,waiting_client_tst_inst:1,waiting_oracle_feedback:1};
+
+function buildExecHeader() {
+  var header = document.getElementById('exec-header');
+  if (!header) return;
+
+  var tY = selYear  ? +selYear  : new Date().getFullYear();
+  var tM = selMonth ? +selMonth : (new Date().getMonth() + 1);
+  var tKey = tY + '-' + String(tM).padStart(2,'0');
+
+  var totalPlanned = 0;
+  var totalConsumed = 0;
+  var activeClients = 0;
+
+  var projects = selProject ? [selProject] : D.projects;
+
+  projects.forEach(function(prj) {
+    // 1. Contar tickets do projeto no mês para achar a faixa
+    var counted = 0;
+    ['incident','user_request'].forEach(function(sev) {
+      var entry = (D.monthly[sev] || {})[tKey];
+      if (!entry) return;
+      (entry.o_ids || []).forEach(function(tid) {
+        var t = getTix(tid);
+        if (t && t.prj === prj && t.st !== 'rejected') counted++;
+      });
+    });
+
+    if (counted > 0) {
+      activeClients++;
+      // Achar planejado (MDs da faixa)
+      var cfg = _loadProjectCFG(prj);
+      var ranges = cfg.ranges.filter(function(r){ return r.max > 0; });
+      var effort = 0;
+      for (var i = 0; i < ranges.length; i++) {
+        if (counted >= ranges[i].min && counted <= ranges[i].max) { effort = ranges[i].effort_mds; break; }
+      }
+      if (effort === 0 && ranges.length) {
+        // Regra automática 0.07 se acima da última faixa
+        if (counted > ranges[ranges.length-1].max) {
+          effort = (Math.ceil(counted / 10) * 10) * 0.07;
+        } else {
+          effort = ranges[0].effort_mds;
+        }
+      }
+      totalPlanned += effort;
+    }
+
+    // 2. Somar consumo real (Timesheet)
+    var tsPrj = (typeof SMD_TIMESHEET !== 'undefined' ? SMD_TIMESHEET[prj] : null);
+    if (tsPrj && tsPrj[tY] && tsPrj[tY][String(tM).padStart(2,'0')]) {
+      totalConsumed += tsPrj[tY][String(tM).padStart(2,'0')].total_days || 0;
+    }
+  });
+
+  var efficiency = totalPlanned > 0 ? (totalConsumed / totalPlanned * 100) : 0;
+  var effClass = efficiency > 100 ? 'crit' : efficiency > 80 ? 'warn' : 'good';
+
+  header.innerHTML = 
+    '<div class="exec-card"><div class="exec-lbl">Total Planned MDs</div><div class="exec-val">' + totalPlanned.toFixed(2) + '</div><div class="exec-sub">Baseado nos ranges de tickets</div></div>' +
+    '<div class="exec-card"><div class="exec-lbl">Total Consumed MDs</div><div class="exec-val">' + totalConsumed.toFixed(2) + '</div><div class="exec-sub">Extraído do Timesheet (eTEA)</div></div>' +
+    '<div class="exec-card"><div class="exec-lbl">Active Clients</div><div class="exec-val">' + activeClients + '</div><div class="exec-sub">Com volume no período</div></div>' +
+    '<div class="exec-card"><div class="exec-lbl">Efficiency (%)</div><div class="exec-val ' + effClass + '">' + efficiency.toFixed(1) + '%</div><div class="exec-sub">Consumo vs. Planejado</div></div>';
+}
 var ASSIGNED_STATUS = {
   'assigned_for_analysis':1,
   'acknowledged':1,
@@ -1341,12 +1431,12 @@ function buildKPI() {
     { lbl: 'Abertos ' + periodLabel,
       val: abVar !== null ? (abVar > 0 ? '+' : '') + abVar + '%' : (isHoje ? abCur : 'N/D'),
       col: isHoje ? '#60a5fa' : varColor(abVar, true),
-      sub: isHoje ? 'total hoje' : (pLabel + ': ' + abPrev + ' ' + varBadge(abVar, true)),
+      sub: isHoje ? 'total hoje' : (pLabel + ': ' + abPrev + ' ' + varBadge(abPrev, true)),
       tip: 'Tickets abertos no período filtrado\n(status em aberto: assigned, waiting, etc).\nVariação % em relação ao mês anterior.\nVerde = redução. Vermelho = aumento.' },
     { lbl: 'Fechados ' + periodLabel,
       val: clVar !== null ? (clVar > 0 ? '+' : '') + clVar + '%' : (isHoje ? clCur : 'N/D'),
       col: isHoje ? '#a78bfa' : varColor(clVar, false),
-      sub: isHoje ? 'total hoje' : (pLabel + ': ' + clPrev + ' ' + varBadge(clVar, false)),
+      sub: isHoje ? 'total hoje' : (pLabel + ': ' + clPrev + ' ' + varBadge(clPrev, false)),
       tip: 'Tickets fechados/resolved no período filtrado.\nVariação % em relação ao mês anterior.\nVerde = aumento de fechamentos.\nVermelho = queda nos fechamentos.' }
   ];
 
@@ -1619,6 +1709,9 @@ function panelHTML(sev) {
         '<div class="r2">' +
           '<div class="cb"><div class="cbt" style="margin-bottom:10px">Top 5 Aplicações</div><div id="inc-apps"></div></div>' +
           '<div class="cb"><div class="cbt" style="margin-bottom:10px">Root Cause Type (Top 6)</div><div id="inc-rct"></div></div>' +
+        '</div>' +
+        '<div class="r2">' +
+          '<div class="cb"><div class="cbt" style="margin-bottom:10px">Evolução do Backlog (Linha do Tempo)</div><div id="inc-bk-hist"></div></div>' +
         '</div>'
       : '') +
     (['incident','user_request','problem'].indexOf(sev)>=0
@@ -1826,6 +1919,8 @@ function doRefresh() {
     if (activeView === 'hoje')       try { buildHoje(); } catch(e) { console.error(e); }
     if (activeView === 'ai')         try { buildAICards(); buildAIPanel(); } catch(e) { console.error(e); }
     if (activeView === 'timesheet')  try { buildTimesheet(); } catch(e) { console.error(e); }
+    if (activeView === 'simulador')  try { buildSimulador(); } catch(e) { console.error(e); }
+    if (activeView === 'cliente')    try { buildCliente(); } catch(e) { console.error(e); }
     
     try { buildKPI(); } catch(e) {}
     try { buildRange(); } catch(e) {}
@@ -2382,7 +2477,22 @@ document.getElementById('nav').addEventListener('click', function(e) {
     if (t.dataset.view === 'comp')       buildComparativo();
     if (t.dataset.view === 'hoje')       buildHoje();
     if (t.dataset.view === 'timesheet')  buildTimesheet();
+    if (t.dataset.view === 'simulador')  buildSimulador();
+    if (t.dataset.view === 'cliente')    buildCliente();
   }
+  
+  // Controle de visibilidade da aba Simulador
+  var simTab = document.querySelector('.t-sim');
+  if (simTab) {
+    var hasSim = SIM_BENCHMARKS[selProject];
+    simTab.style.display = hasSim ? 'block' : 'none';
+    // Se a aba simulador estiver ativa mas o projeto mudar para um sem sim, volta para 'hoje'
+    if (!hasSim && simTab.classList.contains('active')) {
+      var hojeTab = document.querySelector('.t-hoje');
+      if (hojeTab) hojeTab.click();
+    }
+  }
+
   buildKPI(); buildRange();
 });
 
@@ -4019,6 +4129,43 @@ function buildSLAMini(cid) {
 // ═══════════════════════════════════════════════════════════
 // IMPROVEMENT 4: Range Progress fixed — only show when filters set
 // ═══════════════════════════════════════════════════════════
+function buildExecHeader(plannedMD, consumedMD) {
+  var header = document.getElementById('exec-header');
+  if (!header) return;
+
+  var efficiency = plannedMD > 0 ? Math.round((consumedMD / plannedMD) * 100) : 0;
+  var effClass = efficiency > 100 ? 'exec-crit' : efficiency > 85 ? 'exec-warn' : 'exec-good';
+  
+  // Count active projects
+  var activePrjs = (D.projects || []).filter(function(p) {
+    var s = (window.SMD_DATA_T && window.SMD_DATA_T.idx) ? true : false; // Simplificado
+    return true; // Todos que existem no data.js
+  }).length;
+
+  header.innerHTML = '<div class="exec-grid">' +
+    '<div class="exec-card">' +
+      '<div class="exec-label">MDs Planejados</div>' +
+      '<div class="exec-val">' + plannedMD.toFixed(1) + '</div>' +
+      '<div class="exec-sub">Baseado no volume atual</div>' +
+    '</div>' +
+    '<div class="exec-card">' +
+      '<div class="exec-label">MDs Consumidos</div>' +
+      '<div class="exec-val">' + consumedMD.toFixed(1) + '</div>' +
+      '<div class="exec-sub">Dados do Timesheet</div>' +
+    '</div>' +
+    '<div class="exec-card">' +
+      '<div class="exec-label">Clientes Ativos</div>' +
+      '<div class="exec-val">' + activePrjs + '</div>' +
+      '<div class="exec-sub">Projetos em monitoramento</div>' +
+    '</div>' +
+    '<div class="exec-card">' +
+      '<div class="exec-label">Eficiência</div>' +
+      '<div class="exec-val ' + effClass + '">' + (plannedMD > 0 ? efficiency + '%' : '-') + '</div>' +
+      '<div class="exec-sub">Consumo vs Planejado</div>' +
+    '</div>' +
+  '</div>';
+}
+
 function buildRange() {
   var rbar = document.querySelector('.rbar');
   if (!selProject && !selMonth) {
@@ -4026,66 +4173,72 @@ function buildRange() {
     document.getElementById('rfill').style.width = '0%';
     document.getElementById('rinfo').textContent = 'Selecione um Projeto e/ou Mes para calcular';
     document.getElementById('rpct').textContent = '-';
+    // No projeto selecionado, mostramos o consolidado no exec header
+    buildExecHeader(0, 0);
     return;
   }
   if (rbar) rbar.style.opacity = '1';
 
-  // ── Mês alvo: selecionado OU mês corrente ──────────────────────
   var _now  = new Date();
   var tY = selYear  ? +selYear  : _now.getFullYear();
   var tM = selMonth ? +selMonth : (_now.getMonth() + 1);
-  var tKey = tY + '-' + String(tM).padStart(2,'0');  // ex: '2026-04'
+  var tKey = tY + '-' + String(tM).padStart(2,'0');
 
-  // ── Contar tickets abertos NO MÊS ALVO ────────────────────────
-  // Regra: severity=incident|user_request, status≠rejected, do projeto selecionado
-  var counted = {};
+  var counted = 0;
   ['incident','user_request'].forEach(function(sev) {
     var entry = (D.monthly[sev] || {})[tKey];
     if (!entry) return;
-    var ids = filterByProject(entry.o_ids || []);  // filtra selProject
+    var ids = filterByProject(entry.o_ids || []);
     ids.forEach(function(tid) {
-      if (counted[tid]) return;  // dedup
       var t = getTix(tid);
-      if (!t) return;
-      if (t.st === 'rejected') return;  // excluir rejected
-      counted[tid] = 1;
+      if (t && t.st !== 'rejected') counted++;
     });
   });
-  var total = Object.keys(counted).length;
 
-  // ── Encontrar faixa correspondente ────────────────────────────
+  // Consumo Real
+  var consumed = 0;
+  var prjList = selProject ? [selProject] : (D.projects || []);
+  
+  prjList.forEach(function(p) {
+    var tsPrj = (typeof SMD_TIMESHEET !== 'undefined' ? SMD_TIMESHEET[p] : null);
+    if (tsPrj && tsPrj[tY] && tsPrj[tY][String(tM).padStart(2,'0')]) {
+      consumed += tsPrj[tY][String(tM).padStart(2,'0')].total_days || 0;
+    }
+  });
+
+  // Faixa e Planejado
   var ranges = CFG.ranges.filter(function(r){ return r.max > 0; });
   var cur = null;
   for (var i = 0; i < ranges.length; i++) {
-    if (total >= ranges[i].min && total <= ranges[i].max) { cur = ranges[i]; break; }
+    if (counted >= ranges[i].min && counted <= ranges[i].max) { cur = ranges[i]; break; }
   }
-  var overMax = ranges.length > 0 && total > ranges[ranges.length-1].max;
-  if (!cur && ranges.length) cur = overMax ? ranges[ranges.length-1] : ranges[0];
+  if (!cur && ranges.length) {
+    if (counted > ranges[ranges.length-1].max) {
+       cur = {min: ranges[ranges.length-1].max + 1, max: Math.ceil(counted/10)*10, effort_mds: (Math.ceil(counted/10)*10)*0.07 };
+    } else {
+       cur = ranges[0];
+    }
+  }
   if (!cur) cur = {min:0, max:0, effort_mds:0};
 
-  // ── Percentual dentro da faixa ────────────────────────────────
-  var pct = 0;
-  if (total === 0) {
-    pct = 0;
-  } else if (cur.max > cur.min) {
-    pct = Math.max(0, Math.min(100, Math.round((total - cur.min) / (cur.max - cur.min) * 100)));
-  } else if (cur.max > 0) {
-    pct = 100;
+  var planned = cur.effort_mds;
+  var pct = planned > 0 ? Math.round((consumed / planned) * 100) : 0;
+  var barCol = pct < 80 ? '#34d399' : pct <= 100 ? '#fbbf24' : '#f87171';
+  
+  var fill = document.getElementById('rfill');
+  if (fill) { 
+    fill.style.width = Math.min(100, pct) + '%'; 
+    fill.style.background = barCol; 
   }
 
-  // ── Cor dinâmica ──────────────────────────────────────────────
-  var barCol = pct < 50 ? '#34d399' : pct < 80 ? '#fbbf24' : '#f87171';
-  var fill = document.getElementById('rfill');
-  if (fill) { fill.style.width = pct + '%'; fill.style.background = barCol; }
-
-  // ── Texto ─────────────────────────────────────────────────────
   var MPTlocal = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   var mesLabel = MPTlocal[tM] + '/' + tY;
-  var info = cur.max > 0
-    ? (mesLabel + ' | Faixa: ' + cur.min + '–' + cur.max + ' tix | Effort: ' + cur.effort_mds + ' Mds | ' + total + ' tickets' + (overMax ? ' ⚠ acima da faixa máxima' : ''))
-    : (mesLabel + ': ' + total + ' tickets — configure faixas na aba Config');
-  document.getElementById('rinfo').textContent = info;
+  
+  document.getElementById('rinfo').textContent = mesLabel + ' | Faixa: ' + cur.min + '–' + cur.max + ' tix | Consumo: ' + consumed.toFixed(2) + ' / ' + planned.toFixed(2) + ' MDs | ' + counted + ' tickets';
   document.getElementById('rpct').textContent = pct + '%';
+  
+  // Atualizar também o header executivo
+  buildExecHeader(planned, consumed);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -4887,12 +5040,8 @@ function getTSAgg() {
 function buildTimesheet() {
   var c = document.getElementById('panel-timesheet'); if (!c) return;
   var agg = getTSAgg();
-  var prjLabel = selProject || 'Todos os Projetos';
-  var hasData = agg.total_h > 0;
-
   var orange = '#fb923c', blue = '#60a5fa', green = '#34d399', purple = '#a78bfa', dim = '#64748b';
 
-  // ── KPI PILLS ────────────────────────────────────────────────
   function kpiBadge(icon, label, val, color, tip) {
     var tipAttrs = tip ? ' class="tip" data-tip="'+tip+'"' : '';
     return '<div'+tipAttrs+' style="display:flex;flex-direction:column;align-items:center;padding:12px 18px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.07);min-width:110px">' +
@@ -4902,24 +5051,104 @@ function buildTimesheet() {
     '</div>';
   }
 
-  var utilPct = 0;
-  if (agg.headcount > 0 && agg.total_days > 0) {
-    // Estimativa: headcount * 5dias/semana * semanas no período (total_days / headcount)
-    var theor = agg.headcount * (agg.total_days / agg.headcount) * 8;
-    utilPct = theor > 0 ? Math.min(100, Math.round(agg.total_h / theor * 100)) : 0;
-  }
+  // ── CÁLCULO DE MDs (EXECUTIVE KPIs) ─────────────────────────
+  var _now  = new Date();
+  var tY = selYear  ? +selYear  : _now.getFullYear();
+  var tM = selMonth ? +selMonth : (_now.getMonth() + 1);
+  var tKey = tY + '-' + String(tM).padStart(2,'0');
 
-  var kpiRow = '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px">' +
-    kpiBadge('&#9200;', 'TOTAL HORAS', agg.total_h.toFixed(1) + 'h', orange,
-      'Soma de todas as horas lançadas\nno período e projeto selecionados.\nFonte: TimesheetsCMSMonthly.xls\nFiltros: projeto, ano, mês.') +
-    kpiBadge('&#128197;', 'DIAS FATURÁVEIS', agg.total_days.toFixed(1), blue,
-      'Total de horas ÷ 8.\nEstimativa de dias-homem faturáveis\nno período filtrado.') +
-    kpiBadge('&#128101;', 'HEADCOUNT ATIVO', agg.headcount, green,
-      'Número de colaboradores distintos\ncom horas lançadas no período.\nBaseado no campo Staff do timesheet.') +
-    kpiBadge('&#9196;', 'MÉDIA H/PESSOA', agg.avg_h_per_staff + 'h', purple,
-      'Total de horas ÷ headcount ativo.\nMédia de horas lançadas por\ncada colaborador no período.') +
-    kpiBadge('&#127764;', 'OVERTIME (SAB/DOM)', agg.overtime_h.toFixed(1) + 'h', agg.overtime_h > 20 ? '#f87171' : dim,
-      'Horas lançadas em sábado e domingo.\nVermelho se > 20h no período.\nFonte: colunas Sat/Sun do timesheet.') +
+  var counted = 0;
+  var sevCount = {}; // Severidade real (incident, problem, etc)
+  var priCount = {P1:0, P2:0, P3:0, P4:0}; // Prioridade real (P1-P4)
+  var catData  = {}; 
+
+  ['incident','user_request','problem','change_request','internal'].forEach(function(sevType) {
+    var entry = (D.monthly[sevType] || {})[tKey];
+    if (!entry) return;
+    var ids = filterByProject(entry.o_ids || []);
+    ids.forEach(function(tid) {
+      var t = getTix(tid);
+      if (t && t.st !== 'rejected') {
+        counted++;
+        
+        // 1. Severidade
+        var sVal = (t.sev || t.sv || 'unknown').toUpperCase();
+        sevCount[sVal] = (sevCount[sVal] || 0) + 1;
+        
+        // 2. Prioridade (P1-P4)
+        var pVal = (t.pr || 'P4').toUpperCase();
+        if (priCount[pVal] !== undefined) priCount[pVal]++;
+        
+        // 3. Complexidade (Categoria)
+        var cat = t.ap || 'N/A'; // Usando Application como categoria/módulo principal
+        if (!catData[cat]) catData[cat] = { tix: 0, mttrSum: 0, closed: 0 };
+        catData[cat].tix++;
+        if (t.st === 'closed' && t.op && t.cl) {
+          var d1 = new Date(t.op), d2 = new Date(t.cl);
+          var diff = (d2 - d1) / (1000 * 3600); // hrs
+          if (diff >= 0) { catData[cat].mttrSum += diff; catData[cat].closed++; }
+        }
+      }
+    });
+  });
+
+  var consumedMD = 0;
+  var prjList = selProject ? [selProject] : (D.projects || []);
+  prjList.forEach(function(p) {
+    var tsPrj = (typeof SMD_TIMESHEET !== 'undefined' ? SMD_TIMESHEET[p] : null);
+    if (tsPrj && tsPrj[tY] && tsPrj[tY][String(tM).padStart(2,'0')]) {
+      consumedMD += tsPrj[tY][String(tM).padStart(2,'0')].total_days || 0;
+    }
+  });
+
+  var ranges = CFG.ranges.filter(function(r){ return r.max > 0; });
+  var curR = null;
+  for (var i = 0; i < ranges.length; i++) {
+    if (counted >= ranges[i].min && counted <= ranges[i].max) { curR = ranges[i]; break; }
+  }
+  if (!curR && ranges.length) {
+    if (counted > ranges[ranges.length-1].max) {
+       curR = {min: ranges[ranges.length-1].max + 1, max: Math.ceil(counted/10)*10, effort_mds: (Math.ceil(counted/10)*10)*0.07 };
+    } else { curR = ranges[0]; }
+  }
+  if (!curR) curR = {min:0, max:0, effort_mds:0};
+
+  var plannedMD = curR.effort_mds;
+  var efficiency = plannedMD > 0 ? Math.round((consumedMD / plannedMD) * 100) : 0;
+  var effCol = efficiency > 100 ? '#f87171' : efficiency > 85 ? '#fbbf24' : '#34d399';
+  
+  // Novos Cálculos
+  var deltaMD = plannedMD - consumedMD;
+  var deltaCol = deltaMD >= 0 ? '#34d399' : '#f87171';
+  var mdPerTicketReal = counted > 0 ? (consumedMD / counted) : 0;
+  var mdPerTicketPlan = plannedMD > 0 ? (plannedMD / counted) : 0;
+  
+  // Forecast (apenas se for o mês atual)
+  var forecastMD = consumedMD;
+  var isCurrentMonth = (tY === _now.getFullYear() && tM === (_now.getMonth() + 1));
+  if (isCurrentMonth) {
+    var day = _now.getDate();
+    var totalDays = new Date(tY, tM, 0).getDate();
+    forecastMD = (consumedMD / day) * totalDays;
+  }
+  var foreCol = forecastMD > plannedMD ? '#f87171' : '#34d399';
+
+  var activePrjs = (D.projects || []).length;
+
+  var kpiRow = '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px">' +
+    // Executive KPIs
+    kpiBadge('&#128197;', 'MDs PLANEJADOS', plannedMD.toFixed(1), '#60a5fa', 'Range contratual para ' + counted + ' tickets') +
+    kpiBadge('&#9201;', 'MDs CONSUMIDOS', consumedMD.toFixed(1), '#a78bfa', 'Dias faturáveis extraídos do Timesheet') +
+    kpiBadge('&#128202;', 'DELTA (SALDO)', deltaMD.toFixed(1), deltaCol, 'Sobras ou Déficit de MDs em relação ao planejado') +
+    kpiBadge('&#127919;', 'EFICIÊNCIA', (plannedMD > 0 ? efficiency + '%' : '-'), effCol, 'Razão entre Consumo Real e Planejado') +
+    
+    // Separator
+    '<div style="width:1px;background:rgba(255,255,255,0.1);margin:5px 5px"></div>' +
+
+    kpiBadge('&#128200;', 'FORECAST MÊS', forecastMD.toFixed(1), foreCol, isCurrentMonth ? 'Projeção de fechamento baseada no ritmo atual' : 'Consumo final do período') +
+    kpiBadge('&#127915;', 'MD / TICKET', mdPerTicketReal.toFixed(2), green, 'Esforço médio real por ticket (Planejado: ' + mdPerTicketPlan.toFixed(2) + ')') +
+    kpiBadge('&#128101;', 'HEADCOUNT', agg.headcount, purple, 'Colaboradores distintos no período') +
+    kpiBadge('&#127764;', 'OVERTIME', agg.overtime_h.toFixed(1) + 'h', agg.overtime_h > 20 ? '#f87171' : dim, 'Horas em fins de semana') +
   '</div>';
 
   // ── TOP STAFF ────────────────────────────────────────────────
@@ -4994,20 +5223,53 @@ function buildTimesheet() {
     '</div>';
   }
 
+  var hasData = agg.total_h > 0;
+  var prjLabel = selProject || 'Todos os Projetos';
+
   // ── LAYOUT COMPLETO ────────────────────────────────────────────
   if (!hasData) {
-    c.innerHTML = '<div style="padding:40px;text-align:center;color:var(--dim)">' +
-      '<div style="font-size:40px;margin-bottom:12px">&#128336;</div>' +
-      '<div style="font-size:13px;margin-bottom:6px">Sem dados de timesheet para o filtro selecionado</div>' +
-      '<div style="font-size:11px;color:var(--dim)">Selecione um projeto com dados de timesheet ou ajuste o período</div>' +
+    c.innerHTML = '<div style="padding:12px 4px 4px">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">' +
+        '<span style="font-size:16px">&#128336;</span>' +
+        '<div>' +
+          '<div style="font-size:13px;font-weight:700;color:' + orange + '">TIMESHEET</div>' +
+          '<div style="font-size:10px;color:var(--muted)">' + prjLabel + ' (Sem dados de consumo)</div>' +
+        '</div>' +
+      '</div>' +
+      kpiRow + 
+      '<div style="padding:40px;text-align:center;color:var(--dim)">' +
+        '<div style="font-size:40px;margin-bottom:12px">&#128336;</div>' +
+        '<div style="font-size:13px;margin-bottom:6px">Sem dados de timesheet para o filtro selecionado</div>' +
+        '<div style="font-size:11px;color:var(--dim)">Os MDs Planejados acima são baseados apenas no volume de tickets.</div>' +
+      '</div>' +
     '</div>';
     return;
   }
 
+  // Cores Atividade
+  var actColors = { INCIDENT: '#f87171', USER_REQUEST: '#60a5fa', PROBLEM: '#a78bfa', CHANGE_REQUEST: '#34d399', INTERNAL: '#94a3b8' };
+
+  // 4. Ranking de Complexidade (MTTR vs MD)
+  var complexityRows = Object.keys(catData).map(function(k) {
+    var d = catData[k];
+    var share = counted > 0 ? (d.tix / counted) : 0;
+    var mds = consumedMD * share;
+    var avgMTTR = d.closed > 0 ? (d.mttrSum / d.closed) : 0;
+    return { name: k, tix: d.tix, md: mds, mttr: avgMTTR };
+  }).sort(function(a,b) { return b.md - a.md; }).slice(0, 5).map(function(r) {
+    var mttrColor = r.mttr > 48 ? '#f87171' : (r.mttr > 24 ? '#fb923c' : '#34d399');
+    return '<tr>' +
+      '<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + r.name + '</td>' +
+      '<td style="text-align:center">' + r.tix + '</td>' +
+      '<td style="text-align:right;font-weight:700;color:var(--text)">' + r.md.toFixed(1) + '</td>' +
+      '<td style="text-align:right;font-weight:700;color:' + mttrColor + '">' + r.mttr.toFixed(0) + 'h</td>' +
+    '</tr>';
+  }).join('');
+
   c.innerHTML =
     '<div style="padding:12px 4px 4px">' +
-      // Header
-      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">' +
+      // Header da Aba
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">' +
         '<span style="font-size:16px">&#128336;</span>' +
         '<div>' +
           '<div style="font-size:13px;font-weight:700;color:' + orange + '">TIMESHEET</div>' +
@@ -5019,8 +5281,38 @@ function buildTimesheet() {
       '</div>' +
       // KPI pills
       kpiRow +
-      // Grid 2x2
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+      // Grid Superior (3 colunas)
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">' +
+        // Esforço por Severidade (MDs)
+        '<div class="cb" style="padding:14px">' +
+          '<div class="cbt" style="margin-bottom:12px;color:#f87171">&#9888; Esforço por Severidade (MDs)</div>' +
+          (function() {
+            var sevList = Object.keys(sevCount).sort();
+            var colors = {
+              CRITICAL: '#ef4444', CRASH: '#f87171', BLOCK: '#a78bfa', 
+              MAJOR: '#fb923c', MINOR: '#60a5fa', TWEAK: '#34d399', 
+              TEXT: '#94a3b8', TRIVIAL: '#cbd5e1', FEATURE: '#3b82f6',
+              UNKNOWN: '#4b5563', INCIDENT: '#f97316', USER_REQUEST: '#3b82f6',
+              INTERNAL: '#94a3b8'
+            };
+            if (!sevList.length) return '<div style="color:var(--dim);font-size:11px">Sem tickets no período</div>';
+            return sevList.map(function(p) {
+              var count = sevCount[p] || 0;
+              var share = counted > 0 ? (count / counted) : 0;
+              var mds = consumedMD * share;
+              var pct = Math.round(share * 100);
+              var col = colors[p] || '#64748b';
+              return '<div style="margin-bottom:10px">' +
+                '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">' +
+                  '<span>' + p + ' <small style="color:var(--dim)">(' + count + ' tix)</small></span>' +
+                  '<span style="font-weight:700;color:'+col+'">' + mds.toFixed(2) + ' MD</span>' +
+                '</div>' +
+                '<div style="background:rgba(255,255,255,0.06);border-radius:3px;height:5px">' +
+                  '<div style="width:' + pct + '%;height:100%;background:' + col + ';border-radius:3px;transition:.3s"></div>' +
+                '</div></div>';
+            }).join('');
+          })() +
+        '</div>' +
         // Top Staff
         '<div class="cb" style="padding:14px">' +
           '<div class="cbt" style="margin-bottom:12px;color:' + orange + '">&#128101; Top Colaboradores</div>' +
@@ -5031,6 +5323,45 @@ function buildTimesheet() {
           '<div class="cbt" style="margin-bottom:12px;color:' + blue + '">&#128203; Distribuição por Tarefa</div>' +
           (taskRows || '<div style="color:var(--dim);font-size:11px">Sem dados</div>') +
         '</div>' +
+      '</div>' +
+      
+      // Grid Inferior (2 colunas)
+      '<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:12px">' +
+        // Esforço por Prioridade (MDs)
+        '<div class="cb" style="padding:14px">' +
+          '<div class="cbt" style="margin-bottom:12px;color:' + purple + '">&#9874; Esforço por Prioridade</div>' +
+          (function() {
+            var priList = ['P1','P2','P3','P4'];
+            var pCols = {P1:'#f87171', P2:'#fb923c', P3:'#fbbf24', P4:'#60a5fa'};
+            return priList.map(function(p) {
+              var count = priCount[p] || 0;
+              var share = counted > 0 ? (count / counted) : 0;
+              var mds = consumedMD * share;
+              var pct = Math.round(share * 100);
+              var col = pCols[p];
+              return '<div style="margin-bottom:10px">' +
+                '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">' +
+                  '<span>' + p + '</span>' +
+                  '<span style="font-weight:700;color:'+col+'">' + mds.toFixed(2) + ' MD</span>' +
+                '</div>' +
+                '<div style="background:rgba(255,255,255,0.06);border-radius:3px;height:5px">' +
+                  '<div style="width:' + pct + '%;height:100%;background:' + col + ';border-radius:3px;transition:.3s"></div>' +
+                '</div></div>';
+            }).join('');
+          })() +
+        '</div>' +
+        // Matriz de Complexidade (MTTR vs MD)
+        '<div class="cb" style="padding:14px">' +
+          '<div class="cbt" style="margin-bottom:12px;color:' + green + '">&#128200; Matriz de Complexidade (MTTR vs MD)</div>' +
+          '<table class="tbl">' +
+            '<thead><tr><th>Aplicação/Módulo</th><th style="text-align:center">Tix</th><th style="text-align:right">MD</th><th style="text-align:right">MTTR</th></tr></thead>' +
+            '<tbody>' + (complexityRows || '<tr><td colspan="4" style="text-align:center;color:var(--dim)">Sem dados</td></tr>') + '</tbody>' +
+          '</table>' +
+        '</div>' +
+      '</div>' +
+
+      // Grid Final (Subsidiary & Sub-projects)
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">' +
         // Subsidiary
         '<div class="cb" style="padding:14px">' +
           '<div class="cbt" style="margin-bottom:12px;color:' + green + '">&#127757; Por Subsidiary</div>' +
@@ -5051,7 +5382,649 @@ function buildTimesheet() {
     '</div>';
 }
 
+// ── SIMULADOR ENGINE (SALES VS REAL) ───────────────────────────
+var SIM_BENCHMARKS = {
+  'Farmacia Arrocha': {
+    ranges: [
+      { min: 0, max: 10, mds: 8.49,  budget_cost: 8693.10 },  // Range 1 SOW
+      { min: 11, max: 20, mds: 16.99, budget_cost: 10071.35 }, // Range 2 SOW
+      { min: 21, max: 30, mds: 23.00, budget_cost: 12483.31 }, // Range 3 SOW (Calibrado)
+      { min: 31, max: 40, mds: 33.97, budget_cost: 15584.43 }, // Range 4 SOW
+      { min: 41, max: 50, mds: 42.47, budget_cost: 18226.10 }  // Range 5 SOW
+    ],
+    weights: { P1: 0.26, P2: 0.27, P3: 0.45, P4: 0.02 },
+    default_rate: 22.00 // Taxa calibrada para refletir Custo Real (Personnel Costs) do P&L
+  }
+};
+
+// Mapeamento opcional de custos por pessoa (Exemplos)
+var STAFF_RATES = {
+  'Analista Exemplo L1': 123.31,
+  'Analista Exemplo L2': 146.50
+};
+
+function buildSimulador() {
+  var c = document.getElementById('panel-simulador'); if (!c) return;
+  var prj = selProject || 'Farmacia Arrocha';
+  var bench = SIM_BENCHMARKS[prj];
+
+  if (!bench) {
+    c.innerHTML = '<div style="padding:40px;text-align:center;color:var(--dim)">' +
+      '<div style="font-size:40px;margin-bottom:12px">&#128202;</div>' +
+      '<div style="font-size:13px">Simulador não disponível para este projeto</div></div>';
+    return;
+  }
+
+  var _now = new Date();
+  var tY = selYear || _now.getFullYear();
+  var tM = selMonth || (_now.getMonth() + 1);
+  var tKey = tY + '-' + String(tM).padStart(2,'0');
+
+  // 1. Dados Operacionais
+  var counted = 0;
+  var realPri = {P1:0, P2:0, P3:0, P4:0};
+  ['incident','user_request','problem','change_request','internal'].forEach(function(s){
+    var e = (D.monthly[s]||{})[tKey];
+    if(!e) return;
+    filterByProject(e.o_ids||[]).forEach(function(tid){
+      var t = getTix(tid); if(!t || t.st === 'rejected') return;
+      counted++;
+      var p = (t.pr||'P4').toUpperCase(); if(realPri[p]!==undefined) realPri[p]++;
+    });
+  });
+
+  // 2. Dados de Timesheet e Custos
+  var consumedMD = 0;
+  var totalCost = 0;
+  var staffCosts = [];
+  
+  var tsPrj = (typeof SMD_TIMESHEET !== 'undefined' ? SMD_TIMESHEET[prj] : null);
+  if (tsPrj && tsPrj[tY] && tsPrj[tY][String(tM).padStart(2,'0')]) {
+    var b = tsPrj[tY][String(tM).padStart(2,'0')];
+    consumedMD = b.total_days || 0;
+    
+    // Calcular custo por pessoa
+    (b.top_staff || []).forEach(function(s) {
+      var rate = STAFF_RATES[s.name] || bench.default_rate;
+      var cost = s.h * rate;
+      totalCost += cost;
+      staffCosts.push({ name: s.name, h: s.h, cost: cost, rate: rate });
+    });
+  }
+
+  // 3. Cálculo de Faixas e Margens
+  var curTier = bench.ranges.find(r => counted >= r.min && counted <= r.max) || bench.ranges[0];
+  var soldMD = curTier.mds;
+  var budgetCost = curTier.budget_cost;
+  
+  var deltaMD = soldMD - consumedMD;
+  var deltaCost = budgetCost - totalCost;
+  var profitPct = budgetCost > 0 ? (deltaCost / budgetCost * 100) : 0;
+  
+  // 4. BI Strat Pack Calculations
+  var costPerTicket = counted > 0 ? (totalCost / counted) : 0;
+  var nextTier = bench.ranges.find(r => r.min > curTier.max);
+  var upsellRemaining = nextTier ? (nextTier.min - counted) : 0;
+  
+  // RUN vs IMPROVE (Simulado pelos tipos de ticket)
+  var runCost = 0, improveCost = 0;
+  var tixTypes = { run: 0, improve: 0 };
+  ['incident','user_request','problem','change_request','internal'].forEach(function(s){
+    var e = (D.monthly[s]||{})[tKey]; if(!e) return;
+    filterByProject(e.o_ids||[]).forEach(function(tid){
+      var t = getTix(tid); if(!t || t.st === 'rejected') return;
+      if (['incident','user_request'].includes(s)) tixTypes.run++;
+      else tixTypes.improve++;
+    });
+  });
+  // Rate proporcional (simplificado)
+  runCost = (tixTypes.run / (tixTypes.run + tixTypes.improve || 1)) * totalCost;
+  improveCost = totalCost - runCost;
+
+  // Forecast Financeiro (proporção linear do mês)
+  var isCurrentMonth = (tY === _now.getFullYear() && tM === (_now.getMonth() + 1));
+  var forecastProfitPct = profitPct; // Default para meses passados
+  
+  if (isCurrentMonth) {
+    var dayNow = _now.getDate();
+    var totalDays = new Date(tY, tM, 0).getDate();
+    var forecastCost = (totalCost / (dayNow || 1)) * totalDays;
+    var forecastProfit = budgetCost - forecastCost;
+    forecastProfitPct = (forecastProfit / (budgetCost || 1)) * 100;
+  }
+
+  var statusCol = profitPct >= 15 ? '#34d399' : (profitPct >= 0 ? '#fbbf24' : '#f87171');
+
+  function sBadge(label, val, sub, color, tip) {
+    var tipAttrs = tip ? ' class="tip" data-tip="'+tip+'"' : '';
+    return '<div'+tipAttrs+' class="exec-card" style="border-left:3px solid '+color+'; cursor:help">' +
+      '<div class="exec-lbl">' + label + ' <span style="font-size:10px;opacity:0.5">&#9432;</span></div>' +
+      '<div class="exec-val" style="color:'+color+'">'+val+'</div>' +
+      '<div class="exec-sub">'+sub+'</div></div>';
+  }
+
+  c.innerHTML = '<div style="padding:12px 4px 4px">' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px"><span style="font-size:16px">&#128181;</span><div><div style="font-size:13px;font-weight:700;color:#fb923c">SIMULADOR FINANCEIRO (P&L)</div><div style="font-size:10px;color:var(--muted)">' + prj + ' · Gestão Executiva e BI de Valor</div></div></div>' +
+    
+    '<div class="exec-grid" style="margin:0 0 12px 0">' +
+      sBadge('FATURAMENTO', 'USD ' + budgetCost.toLocaleString(), 'Range: ' + curTier.min + '-' + curTier.max + ' tix', '#60a5fa', 
+        'REGRA: Valor fixo conforme faixa de tickets abertos no mês.\nFONTE: SOW Arrocha_v3.pdf (Pág 41).\nCAMPOS: Monthly Service Fee (USD).') +
+      sBadge('CUSTO PESSOAL', 'USD ' + totalCost.toLocaleString(), 'Burn Rate Real (Timesheet)', '#a78bfa',
+        'REGRA: Total de horas apontadas no mês × Taxa Real Calibrada.\nFONTE: SMD_TIMESHEET (Horas) + P&L Fev/26 (Custo).\nCAMPOS: Real Personnel Costs.') +
+      sBadge('LUCRO REAL', 'USD ' + deltaCost.toLocaleString(), 'Margem Bruta (EBIT)', statusCol,
+        'REGRA: Faturamento Contratual (-) Custo de Pessoal.\nFONTE: Cálculo derivado (Revenue - Burn).\nREF: Margem operacional direta do projeto.') +
+      sBadge('RENTABILIDADE', profitPct.toFixed(1) + '%', 'Calibrado pelo P&L', statusCol,
+        'REGRA: Porcentagem de lucro sobre a receita total.\nTARGET: ~78% conforme histórico saudável do projeto Arrocha.') +
+    '</div>' +
+
+    '<div class="exec-grid" style="margin:0 0 20px 0">' +
+      sBadge('CUSTO / TICKET', '$ ' + costPerTicket.toFixed(2), 'Eficiência da Operação', '#94a3b8',
+        'REGRA: Custo Pessoal ÷ Total de Tickets (Mantis).\nOBJETIVO: Medir o custo unitário de suporte.\nFONTE: Cruzamento Financeiro + ITSM.') +
+      sBadge('UPSELL TRIGGER', upsellRemaining + ' Tickets', 'Para o próximo Tier', (upsellRemaining < 3 ? '#f87171' : '#fbbf24'),
+        'REGRA: Tickets que faltam para atingir o limite da faixa atual.\nALERTA: Se < 3 tickets, indica oportunidade de faturar tier superior.') +
+      sBadge('FORECAST LUCRO', forecastProfitPct.toFixed(1) + '%', 'Projeção fim do mês', '#34d399',
+        'REGRA: Projeção linear do burn rate atual até o dia 30.\nNOTA: Em meses passados, exibe o resultado real consolidado.') +
+      sBadge('INVESTIMENTO', improveCost.toFixed(0) + ' USD', 'Gasto em Problem/Changes', '#fb923c',
+        'REGRA: Custo das horas focadas em Estabilidade e Melhoria.\nFONTE: Tickets do tipo Problem e Change Request.') +
+    '</div>' +
+
+    '<div style="display:grid;grid-template-columns:1.2fr 1fr;gap:12px">' +
+      // Lado Esquerdo: Detalhamento por Analista
+      '<div class="cb" style="padding:16px">' +
+        '<div class="cbt" style="margin-bottom:14px;color:#a78bfa">&#128100; Custo Real por Analista (Timesheet)</div>' +
+        '<table class="tbl">' +
+          '<thead><tr><th>Colaborador</th><th style="text-align:center">Horas</th><th style="text-align:center">Taxa Real</th><th style="text-align:right">Custo</th></tr></thead>' +
+          '<tbody>' +
+            staffCosts.sort((a,b)=>b.cost-a.cost).map(function(s){
+              return '<tr><td><b>'+s.name+'</b></td><td style="text-align:center">'+s.h.toFixed(1)+'h</td><td style="text-align:center;color:var(--dim)">$ '+s.rate.toFixed(0)+'</td><td style="text-align:right;font-weight:700">$ '+s.cost.toLocaleString()+'</td></tr>';
+            }).join('') +
+            (staffCosts.length === 0 ? '<tr><td colspan="4" style="text-align:center;color:var(--dim)">Sem dados de timesheet</td></tr>' : '') +
+          '</tbody>' +
+        '</table>' +
+      '</div>' +
+
+      // Lado Direito: Aderência e Gatilhos
+      '<div style="display:flex;flex-direction:column;gap:12px">' +
+        '<div class="cb" style="padding:16px"><div class="cbt" style="margin-bottom:14px;color:#34d399">&#127919; Aderência de Vendas (Severidade)</div><table class="tbl"><thead><tr><th>Sev</th><th>Vendido</th><th>Real</th><th>Desvio</th></tr></thead><tbody>' +
+        ['P1','P2','P3','P4'].map(function(p){
+          var soldPct = (bench.weights[p] || 0) * 100;
+          var realPct = counted > 0 ? (realPri[p] / counted * 100) : 0;
+          var diff = realPct - soldPct;
+          return '<tr><td><b>'+p+'</b></td><td>'+soldPct.toFixed(0)+'%</td><td>'+realPct.toFixed(0)+'%</td><td style="color:'+(diff>5?'#f87171':(diff<-5?'#34d399':'var(--text)'))+'">'+(diff>0?'+':'')+diff.toFixed(1)+'%</td></tr>';
+        }).join('') +
+        '</tbody></table></div>' +
+        
+        '<div class="cb" style="padding:16px" class="tip" data-tip="RUN: Incidentes e User Requests (Manutenção)\nIMPROVE: Problems e Change Requests (Evolução)\nFONTE: Classificação por Tipo de Ticket.">' +
+          '<div class="cbt" style="margin-bottom:12px;color:#60a5fa">&#9881; Distribuição Financeira (RUN vs IMPROVE) <span style="font-size:10px;opacity:0.5">&#9432;</span></div>' +
+          '<div style="display:flex;gap:4px;height:24px;border-radius:6px;overflow:hidden;margin-bottom:8px">' +
+            '<div style="width:'+(runCost/totalCost*100)+'%;background:#60a5fa;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700">RUN</div>' +
+            '<div style="width:'+(improveCost/totalCost*100)+'%;background:#fb923c;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700">IMPROVE</div>' +
+          '</div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)">' +
+            '<span>Manutenção: $ '+runCost.toFixed(0)+'</span>' +
+            '<span>Evolução: $ '+improveCost.toFixed(0)+'</span>' +
+          '</div>' +
+        '</div>' +
+      '</div></div>';
+}
+
+//  CLIENTE — EXECUTIVO
+// Universo de severidades visíveis na aba Cliente — mesmo conjunto das abas Inc/UR/PRB.
+// IMPORTANTE: SEVS global inclui change_request/internal; manter aqui só os 3
+// sevs renderizados nas abas individuais para que os totais batam.
+var CLIENT_SEVS = ['incident', 'user_request', 'problem'];
+
+// Replica os filtros aplicados em buildBacklog (selProject + y_o/m_o do ticket)
+// para que o BACKLOG da aba Cliente bata com a soma das abas individuais.
+function _bkPassesFilter(tx, prj, y, m) {
+  if (!tx) return true;
+  if (prj !== 'Todos os Projetos' && tx.prj !== prj) return false;
+  if (selYear  && tx.y_o !== +selYear)  return false;
+  if (selMonth && tx.m_o !== +selMonth) return false;
+  return true;
+}
+
+// Helpers para KPIs executivos da aba Cliente (MTTR, Stale, Aging, Reopen, Δ MoM)
+function getPrevMonthKPIs(prj, y, m) {
+  var pm = m - 1, py = y;
+  if (pm === 0) { pm = 12; py = y - 1; }
+  return getKPIsForPeriod(prj, py, pm);
+}
+function _fmtDelta(cur, prev) {
+  if (prev === 0) return cur > 0 ? '+novo' : '0%';
+  var d = Math.round((cur - prev) / prev * 1000) / 10;
+  return (d >= 0 ? '+' : '') + d + '%';
+}
+function _deltaCol(cur, prev, invert) {
+  if (cur === prev) return 'var(--dim)';
+  var up = cur > prev;
+  if (invert) up = !up;
+  return up ? '#34d399' : '#f87171';
+}
+function getClientMTTR(prj, y, m) {
+  var fi_pr = _TF.indexOf('pr'), fi_sv = _TF.indexOf('sv'),
+      fi_yc = _TF.indexOf('y_c'), fi_mc = _TF.indexOf('m_c'), fi_dc = _TF.indexOf('d_c'),
+      fi_yo = _TF.indexOf('y_o'), fi_mo = _TF.indexOf('m_o'), fi_do = _TF.indexOf('d_o'),
+      fi_st = _TF.indexOf('st'), fi_prj = _TF.indexOf('prj');
+  var hours = [];
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (r[fi_sv] !== 'incident') continue;
+    if (r[fi_yc] !== y || r[fi_mc] !== m) continue;
+    if (prj !== 'Todos os Projetos' && r[fi_prj] !== prj) continue;
+    var pr = r[fi_pr];
+    if (pr !== 'P1' && pr !== 'P2') continue;
+    var st = r[fi_st];
+    if (st !== 'closed' && st !== 'resolved') continue;
+    var od = new Date(r[fi_yo], r[fi_mo]-1, r[fi_do]);
+    var cd = new Date(r[fi_yc], r[fi_mc]-1, r[fi_dc]);
+    var h = (cd - od) / 3600000;
+    if (h >= 0) hours.push(h);
+  }
+  if (!hours.length) return { median_h: 0, n: 0 };
+  hours.sort(function(a,b){return a-b;});
+  var mid = Math.floor(hours.length / 2);
+  var med = hours.length % 2 ? hours[mid] : (hours[mid-1] + hours[mid]) / 2;
+  return { median_h: Math.round(med * 10) / 10, n: hours.length };
+}
+function getClientStale(prj) {
+  // Usa o mesmo cálculo de buildBacklog: t.days_upd > CFG.no_upd, restrito a CLIENT_SEVS
+  // e respeitando filtros selProject/selYear/selMonth.
+  var stale = 0, total = 0;
+  CLIENT_SEVS.forEach(function(sev) {
+    var b = D.backlog[sev]; if (!b) return;
+    [b.rc, b.client].forEach(function(grp) {
+      var f = grp.tickets.filter(function(t){
+        return _bkPassesFilter(getTix(t.ticket), prj, null, null);
+      });
+      total += f.length;
+      stale += f.filter(function(t){ return t.days_upd > CFG.no_upd; }).length;
+    });
+  });
+  var pct = total > 0 ? Math.round(stale / total * 1000) / 10 : 0;
+  return { stale: stale, total: total, pct: pct };
+}
+function getClientAging(prj) {
+  // Aging do backlog atual — restrito a CLIENT_SEVS para casar com as abas individuais.
+  var fi_yo = _TF.indexOf('y_o'), fi_mo = _TF.indexOf('m_o'), fi_do = _TF.indexOf('d_o'),
+      fi_st = _TF.indexOf('st'), fi_prj = _TF.indexOf('prj'), fi_sv = _TF.indexOf('sv');
+  var today = new Date();
+  var sum = 0, n = 0;
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (CLIENT_SEVS.indexOf(r[fi_sv]) < 0) continue;
+    var st = r[fi_st];
+    if (st === 'closed' || st === 'resolved' || st === 'rejected') continue;
+    if (prj !== 'Todos os Projetos' && r[fi_prj] !== prj) continue;
+    if (selYear  && r[fi_yo] !== +selYear)  continue;
+    if (selMonth && r[fi_mo] !== +selMonth) continue;
+    var od = new Date(r[fi_yo], r[fi_mo]-1, r[fi_do]);
+    var d = Math.floor((today - od) / 86400000);
+    if (d >= 0) { sum += d; n++; }
+  }
+  return { avg: n > 0 ? Math.round(sum / n) : 0, n: n };
+}
+function getClientReopen(prj, y, m) {
+  // Reopen rate — restrito a CLIENT_SEVS para casar com as abas individuais.
+  var fi_st = _TF.indexOf('st'), fi_yc = _TF.indexOf('y_c'), fi_mc = _TF.indexOf('m_c'),
+      fi_yo = _TF.indexOf('y_o'), fi_mo = _TF.indexOf('m_o'),
+      fi_prj = _TF.indexOf('prj'), fi_sv = _TF.indexOf('sv');
+  var rejected = 0, closed = 0;
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (CLIENT_SEVS.indexOf(r[fi_sv]) < 0) continue;
+    if (prj !== 'Todos os Projetos' && r[fi_prj] !== prj) continue;
+    var st = r[fi_st];
+    if (st === 'rejected' && r[fi_yo] === y && r[fi_mo] === m) rejected++;
+    if ((st === 'closed' || st === 'resolved') && r[fi_yc] === y && r[fi_mc] === m) closed++;
+  }
+  return { rejected: rejected, closed: closed, rate: closed > 0 ? Math.round(rejected / closed * 1000) / 10 : 0 };
+}
+
+function buildCliente() {
+  var c = document.getElementById('panel-cliente'); if (!c) return;
+  var prj = selProject || 'Todos os Projetos';
+  var curY = selYear ? +selYear : new Date().getFullYear();
+  var curM = selMonth ? +selMonth : new Date().getMonth() + 1;
+
+  // KPIs período + período anterior (Δ MoM)
+  var kpi = getKPIsForPeriod(prj, curY, curM);
+  var prevK = getPrevMonthKPIs(prj, curY, curM);
+  var sla = getSLAFiltered();
+
+  // SLA P1+P2 ponderado (corrige bug do label antigo)
+  var slaMet = 0, slaTot = 0;
+  ['P1','P2'].forEach(function(p){ if (sla[p]) { slaMet += sla[p].met; slaTot += sla[p].total; } });
+  var slaP12 = slaTot > 0 ? Math.round(slaMet / slaTot * 1000) / 10 : 0;
+  var slaTgt = Math.round((CFG.sla.P1.target + CFG.sla.P2.target) / 2 * 10) / 10;
+
+  var mttr   = getClientMTTR(prj, curY, curM);
+  var stale  = getClientStale(prj);
+  var aging  = getClientAging(prj);
+  var reopen = getClientReopen(prj, curY, curM);
+  var thr    = kpi.closed - kpi.open;
+
+  var html = '<div style="padding:16px">' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">' +
+      '<div>' +
+        '<div style="font-family:var(--ft);font-size:14px;font-weight:700;color:#FF6B00;letter-spacing:.05em">VISÃO EXECUTIVA — ' + prj.toUpperCase() + '</div>' +
+        '<div style="font-size:10px;color:var(--muted)">Relatório consolidado de performance e tendência | ' + MPT[curM] + '/' + curY + '</div>' +
+      '</div>' +
+      '<div style="text-align:right">' +
+        '<div style="font-size:9px;color:var(--dim)">SLA P1+P2 (Target ' + slaTgt + '%)</div>' +
+        '<div style="font-size:16px;font-weight:700;color:' + (slaP12 >= slaTgt ? '#34d399' : '#f87171') + '">' + slaP12 + '%</div>' +
+      '</div>' +
+    '</div>' +
+    // Linha 1: Volumetria com Δ MoM
+    '<div class="exec-grid" style="margin-bottom:12px">' +
+      kpiCard('TOTAL ABERTOS',  kpi.open,    _fmtDelta(kpi.open, prevK.open) + ' MoM',     '#FF6B00') +
+      kpiCard('TOTAL FECHADOS', kpi.closed,  _fmtDelta(kpi.closed, prevK.closed) + ' MoM', '#CF0A2C') +
+      kpiCard('THROUGHPUT LÍQUIDO', (thr >= 0 ? '+' : '') + thr, 'Fechados − Abertos', thr >= 0 ? '#34d399' : '#f87171') +
+      kpiCard('BACKLOG ATUAL',  kpi.backlog, 'Tickets pendentes', '#fbbf24') +
+    '</div>' +
+    // Linha 2: Qualidade & Saúde
+    '<div class="exec-grid" style="margin-bottom:24px">' +
+      kpiCard('MTTR P1+P2', mttr.median_h ? mttr.median_h + 'h' : '—', 'Mediana ' + mttr.n + ' incidents', '#a78bfa') +
+      kpiCard('BACKLOG STALE', stale.pct + '%', stale.stale + ' / ' + stale.total + ' sem update',
+              stale.pct > 30 ? '#f87171' : (stale.pct > 15 ? '#fbbf24' : '#34d399')) +
+      kpiCard('AGING MÉDIO', aging.avg + 'd', aging.n + ' tickets abertos',
+              aging.avg > 30 ? '#f87171' : (aging.avg > 14 ? '#fbbf24' : '#34d399')) +
+      kpiCard('TAXA REABERTURA', reopen.rate + '%', reopen.rejected + ' rejected / ' + reopen.closed + ' closed',
+              reopen.rate > 5 ? '#f87171' : '#34d399') +
+    '</div>' +
+    // SLA grid migrado da aba INC — clique no card abre o detail modal flutuante
+    '<div class="cb" style="margin-bottom:24px">' +
+      '<div class="cbt" style="margin-bottom:12px">SLA por Prioridade — clique no card para detalhes</div>' +
+      '<div class="sla-grid" id="sla-cards"></div>' +
+      '<div style="font-size:9px;color:#2a4a60;margin-top:4px" id="sla-cfg-lbl"></div>' +
+    '</div>';
+
+  var clientSevs = ['incident', 'user_request', 'problem'];
+  
+  clientSevs.forEach(function(sev) {
+    var sevName = sev.toUpperCase().replace('_', ' ');
+    html += '<div style="margin-bottom:30px;background:#0d2438;border:1px solid #1a3a50;border-radius:12px;padding:20px">' +
+      '<div style="font-family:var(--ft);font-size:16px;font-weight:700;color:#e2e8f0;margin-bottom:20px;display:flex;align-items:center;gap:10px">' +
+        '<div style="width:24px;height:24px;background:var(--open);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px">&#128200;</div>' + sevName + 
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1.5fr 1fr;gap:20px">' +
+        '<div class="cb" style="grid-row:span 2;margin:0;height:100%">' +
+          '<div class="cbt" style="margin-bottom:15px;color:#a78bfa">' + sevName + ' Opened x Closed</div>' +
+          '<div style="position:relative;width:100%;height:350px"><canvas id="chart-opcl-' + sev + '"></canvas></div>' +
+        '</div>' +
+        '<div class="cb" style="margin:0;height:100%">' +
+          '<div class="cbt" style="margin-bottom:15px">' + sevName + ' Registrados</div>' +
+          '<div style="position:relative;width:100%;height:150px"><canvas id="chart-prio-' + sev + '"></canvas></div>' +
+        '</div>' +
+        '<div class="cb" style="margin:0;height:100%">' +
+          '<div class="cbt" style="margin-bottom:15px">Backlog ' + sevName + '</div>' +
+          '<div style="position:relative;width:100%;height:150px"><canvas id="chart-bk-' + sev + '"></canvas></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  });
+
+  html += '</div>';
+  c.innerHTML = html;
+
+  // Popula o grid SLA migrado para esta aba
+  try { buildSLA(); } catch(e) { console.error('[buildCliente] buildSLA falhou', e); }
+
+  clientSevs.forEach(function(sev) {
+    var history = getClientSevHistory(prj, curY, curM, 6, sev);
+    renderClientOpClChart(sev, history);
+    
+    var prioData = getClientPrioCounts(prj, curY, curM, sev);
+    renderClientPrioChart(sev, prioData);
+    
+    var rcCount = 0, cliCount = 0, rcIds = [], cliIds = [];
+    var b = D.backlog[sev];
+    if (b) {
+      if (prj === 'Todos os Projetos') {
+        rcCount = b.rc.total; cliCount = b.client.total;
+        rcIds = b.rc.tickets.map(t => t.ticket);
+        cliIds = b.client.tickets.map(t => t.ticket);
+      } else {
+        var t_rc = b.rc.tickets.filter(t => { var tx = getTix(t.ticket); return tx && tx.prj === prj; });
+        var t_cli = b.client.tickets.filter(t => { var tx = getTix(t.ticket); return tx && tx.prj === prj; });
+        rcCount = t_rc.length; cliCount = t_cli.length;
+        rcIds = t_rc.map(t => t.ticket);
+        cliIds = t_cli.map(t => t.ticket);
+      }
+    }
+    renderClientBkChart(sev, rcCount, cliCount, rcIds, cliIds);
+  });
+}
+
+function getKPIsForPeriod(prj, y, m) {
+  var key = y + '-' + String(m).padStart(2, '0');
+  var open = 0, closed = 0, backlog = 0;
+
+  // Abertos/Fechados no mês — restritos aos sevs visíveis na aba (mesma base das abas Inc/UR/PRB)
+  CLIENT_SEVS.forEach(function(sev) {
+    var entry = (D.monthly[sev] || {})[key];
+    if (entry) {
+      var oids = entry.o_ids || [];
+      var cids = entry.c_ids || [];
+      if (prj === 'Todos os Projetos') {
+        open += oids.length;
+        closed += cids.length;
+      } else {
+        open += oids.filter(id => { var t = getTix(id); return t && t.prj === prj; }).length;
+        closed += cids.filter(id => { var t = getTix(id); return t && t.prj === prj; }).length;
+      }
+    }
+  });
+
+  // Backlog atual — replica EXATAMENTE buildBacklog (mesmos sevs, mesmos filtros)
+  // para garantir que BACKLOG ATUAL = soma do que as 3 abas mostram.
+  CLIENT_SEVS.forEach(function(sev) {
+    var b = D.backlog[sev]; if (!b) return;
+    [b.rc, b.client].forEach(function(group) {
+      backlog += group.tickets.filter(function(t){
+        return _bkPassesFilter(getTix(t.ticket), prj, y, m);
+      }).length;
+    });
+  });
+
+  return { open: open, closed: closed, backlog: backlog };
+}
+
+function getClientSevHistory(prj, endY, endM, months, targetSev) {
+  var data = [];
+  var curY = endY, curM = endM;
+  for (var i = 0; i < months; i++) {
+    var key = curY + '-' + String(curM).padStart(2, '0');
+    var open = 0, closed = 0;
+    var o_ids_all = [], c_ids_all = [];
+    var entry = (D.monthly[targetSev] || {})[key];
+    if (entry) {
+      var oids = entry.o_ids || [];
+      var cids = entry.c_ids || [];
+      if (prj === 'Todos os Projetos') {
+        open += oids.length; closed += cids.length;
+        o_ids_all = oids; c_ids_all = cids;
+      } else {
+        var f_o = oids.filter(id => { var t = getTix(id); return t && t.prj === prj; });
+        var f_c = cids.filter(id => { var t = getTix(id); return t && t.prj === prj; });
+        open += f_o.length; closed += f_c.length;
+        o_ids_all = f_o; c_ids_all = f_c;
+      }
+    }
+    data.unshift({ label: MPT[curM] + '/' + String(curY).slice(2), open: open, closed: closed, y: curY, m: curM, o_ids: o_ids_all, c_ids: c_ids_all });
+    curM--;
+    if (curM === 0) { curM = 12; curY--; }
+  }
+  return data;
+}
+
+function getClientPrioCounts(prj, y, m, sev) {
+  var pr_idx = _TF.indexOf('pr'), sv_idx = _TF.indexOf('sev'), yo_idx = _TF.indexOf('y_o'), mo_idx = _TF.indexOf('m_o');
+  var counts = { P1: 0, P2: 0, P3: 0, P4: 0 };
+  var ids = { P1: [], P2: [], P3: [], P4: [] };
+  
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (r[sv_idx] === sev && r[yo_idx] === y && r[mo_idx] === m) {
+      var p = r[pr_idx] || 'P4';
+      if (!counts.hasOwnProperty(p)) p = 'P4';
+      var tid = r[_TF.indexOf('k')];
+      
+      if (prj !== 'Todos os Projetos') {
+        var tprj = r[_TF.indexOf('prj')];
+        if (tprj !== prj) continue;
+      }
+      
+      counts[p]++;
+      ids[p].push(tid);
+    }
+  }
+  return { counts: counts, ids: ids };
+}
+
+function renderClientOpClChart(sev, history) {
+  var ctx = document.getElementById('chart-opcl-' + sev); if (!ctx) return;
+  if (charts['opcl-' + sev]) charts['opcl-' + sev].destroy();
+  
+  charts['opcl-' + sev] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: history.map(d => d.label),
+      datasets: [
+        {
+          label: 'Abertos',
+          data: history.map(d => d.open),
+          backgroundColor: '#FF6B0099',
+          hoverBackgroundColor: '#FF6B00',
+          borderRadius: 4
+        },
+        {
+          label: 'Fechados',
+          data: history.map(d => d.closed),
+          backgroundColor: '#CF0A2C99',
+          hoverBackgroundColor: '#CF0A2C',
+          borderRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'top', align: 'start', labels: { usePointStyle: true, boxWidth: 6, color: '#94a3b8', font: { size: 10 } } },
+        tooltip: {
+          backgroundColor: '#0B1F2C', borderColor: '#1a3a50', borderWidth: 1,
+          titleColor: '#94a3b8', bodyColor: '#e2e8f0', padding: 10,
+          callbacks: {
+            title: function(i) { return i[0].label; },
+            label: function(c) { return ' ' + c.dataset.label + ': ' + c.parsed.y; }
+          }
+        }
+      },
+      scales: {
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } }
+      }
+    }
+  });
+
+  ctx.ondblclick = function(e) {
+    var points = charts['opcl-' + sev].getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+    if (points.length > 0) {
+      var idx = points[0].index;
+      var datasetIdx = points[0].datasetIndex;
+      var monthData = history[idx];
+      if (datasetIdx === 0) {
+        openModal('Fechados em ' + monthData.label, '', sev, monthData.c_ids, 'closed');
+      } else {
+        openModal('Abertos em ' + monthData.label, '', sev, monthData.o_ids, 'open');
+      }
+    }
+  };
+}
+
+function renderClientPrioChart(sev, prioData) {
+  var ctx = document.getElementById('chart-prio-' + sev); if (!ctx) return;
+  if (charts['prio-' + sev]) charts['prio-' + sev].destroy();
+  
+  charts['prio-' + sev] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['P1', 'P2', 'P3', 'P4'],
+      datasets: [{
+        label: 'Registrados',
+        data: [prioData.counts.P1, prioData.counts.P2, prioData.counts.P3, prioData.counts.P4],
+        backgroundColor: ['#CF0A2C', '#FF6B00', '#00A9E0', '#34D399'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0B1F2C', borderColor: '#1a3a50', borderWidth: 1,
+          titleColor: '#94a3b8', bodyColor: '#e2e8f0', padding: 10
+        }
+      },
+      scales: {
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { stepSize: 1, color: '#64748b', font: { size: 10 } } },
+        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } }
+      }
+    }
+  });
+
+  ctx.ondblclick = function(e) {
+    var points = charts['prio-' + sev].getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+    if (points.length > 0) {
+      var pLabel = charts['prio-' + sev].data.labels[points[0].index];
+      openModal('Registrados ' + pLabel, '', sev, prioData.ids[pLabel], 'open');
+    }
+  };
+}
+
+function renderClientBkChart(sev, rcCount, cliCount, rcIds, cliIds) {
+  var ctx = document.getElementById('chart-bk-' + sev); if (!ctx) return;
+  if (charts['bk-' + sev]) charts['bk-' + sev].destroy();
+  
+  charts['bk-' + sev] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Backlog RC', 'Backlog Cliente'],
+      datasets: [{
+        label: 'Tickets',
+        data: [rcCount, cliCount],
+        backgroundColor: ['#FF6B00', '#64748b'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0B1F2C', borderColor: '#1a3a50', borderWidth: 1,
+          titleColor: '#94a3b8', bodyColor: '#e2e8f0', padding: 10
+        }
+      },
+      scales: {
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { stepSize: 1, color: '#64748b', font: { size: 10 } } },
+        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } }
+      }
+    }
+  });
+
+  ctx.ondblclick = function(e) {
+    var points = charts['bk-' + sev].getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+    if (points.length > 0) {
+      var idx = points[0].index;
+      if (idx === 0) openModal('Backlog RC', '', sev, rcIds, 'open');
+      else openModal('Backlog Cliente', '', sev, cliIds, 'open');
+    }
+  };
+}
+
 </script>
+
 
 <!-- RODAPÉ DE DIAGNÓSTICO -->
 <div id="diag-bar" style="position:fixed;bottom:0;left:0;right:0;height:24px;background:#0a1825;border-top:1px solid #1a3a50;display:flex;align-items:center;padding:0 15px;font-size:9px;color:var(--muted);z-index:1000;gap:15px">

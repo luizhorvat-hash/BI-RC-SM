@@ -15,3 +15,10 @@ __pycache__/
 
 # Logs
 *.log
+ 
+# IDE e Sistema
+.claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

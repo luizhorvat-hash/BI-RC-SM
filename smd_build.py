@@ -95,54 +95,40 @@ TIMESHEET_PROJECT_MAP = {
     "Tata Tia (MX) TIA CMS 2021": "Tata",
 }
 
+# ── UTILITÁRIOS DE TIMESHEET ──────────────────────────────────────────────────
+def get_ts_path():
+    """Busca o arquivo de timesheet (.xlsx ou .xls) nos locais padrão."""
+    for ext in [".xlsx", ".xls"]:
+        p = smd_config.INPUT_DIR / f"TimesheetsCMSMonthly{ext}"
+        if p.exists(): return p
+        p = smd_config.DOWNLOADS_DIR / f"TimesheetsCMSMonthly{ext}"
+        if p.exists(): return p
+    return None
+
 def parse_timesheet_tab(path):
     """
     Lê o timesheet e agrega por projeto-dashboard / ano / mês.
-    Retorna estrutura:
-      { "Todos": { "2025": { "01": { total_h, headcount, top_staff, top_tasks, ... } } }, "Parfois": ... }
+    Suporta .xls (XML 2003) e .xlsx (Pandas).
     """
-    if not path.exists():
-        log.warning(f"Timesheet não encontrado: {path}")
+    if not path or not path.exists():
+        log.warning(f"Timesheet não encontrado.")
         return {}
 
-    log.info(f"Gerando dados da aba Timesheet de {path}...")
+    log.info(f"Gerando dados da aba Timesheet de {path.name}...")
+    import pandas as pd
     from collections import defaultdict
 
     # acumuladores: [prj][year][month] → dicts
     acc = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {
         "total_h": 0.0, "total_days": 0.0, "overtime_h": 0.0,
-        "staff": defaultdict(float),   # staff_name → horas
-        "tasks": defaultdict(float),   # task_name  → horas
-        "subs":  defaultdict(float),   # subsidiary → horas
-        "sub_projects": defaultdict(float),  # ts_project_name → horas
-        "weekly": defaultdict(float),  # "YYYY-WNN" → horas
+        "staff": defaultdict(float),
+        "tasks": defaultdict(float),
+        "subs":  defaultdict(float),
+        "sub_projects": defaultdict(float),
+        "weekly": defaultdict(float),
     })))
 
-    ns_tag = '{urn:schemas-microsoft-com:office:spreadsheet}'
-    context = ET.iterparse(str(path), events=('end',))
-
-    for event, elem in context:
-        if elem.tag != f'{ns_tag}Row':
-            continue
-        cells_raw = elem.findall(f'{ns_tag}Cell')
-        if not cells_raw:
-            elem.clear(); continue
-
-        row_data = {}
-        cur_idx = 1
-        for cell in cells_raw:
-            idx_attr = cell.get(f'{ns_tag}Index')
-            if idx_attr: cur_idx = int(idx_attr)
-            d = cell.find(f'{ns_tag}Data')
-            row_data[cur_idx] = d.text if d is not None else None
-            cur_idx += 1 + int(cell.get(f'{ns_tag}MergeAcross', 0))
-
-        elem.clear()
-
-        # Colunas do header (1-indexed):
-        # 1=ProjectID 2=Project 3=TaskID 4=Task 5=StaffID 6=Staff(name)
-        # 7=Week(ISO) 8=Mon 9=Tue 10=Wed 11=Thu 12=Fri 13=Sat 14=Sun
-        # 15=Status 16=Comments 17=WeekHours 18=WeekDays 19=Subsidiary
+    def process_row(row_data, acc):
         prj_ts = row_data.get(2, "") or ""
         task   = row_data.get(4, "") or ""
         staff  = row_data.get(7, "") or ""
@@ -152,27 +138,37 @@ def parse_timesheet_tab(path):
         try:
             wk_h  = float(row_data.get(22) or 0)
             wk_d  = float(row_data.get(23) or 0)
-            sat_h = float(row_data.get(16) or 0)
-            sun_h = float(row_data.get(18) or 0)
+            sat_h = float(row_data.get(14) or 0)
+            sun_h = float(row_data.get(16) or 0)
+            
+            if math.isnan(wk_h): wk_h = 0
+            if math.isnan(wk_d): wk_d = 0
+            if math.isnan(sat_h): sat_h = 0
+            if math.isnan(sun_h): sun_h = 0
         except (ValueError, TypeError):
-            continue
+            return
 
         if wk_h <= 0 or not prj_ts or not staff:
-            continue
+            return
 
-        # Mapear para projeto do dashboard
         dash_prj = TIMESHEET_PROJECT_MAP.get(prj_ts)
         if not dash_prj:
-            continue
+            return
 
-        # Período
         try:
-            dt = datetime.fromisoformat(week_s[:10])
+            if isinstance(week_s, str):
+                dt = datetime.fromisoformat(week_s[:10])
+            else:
+                dt = week_s
+            
+            if pd.isnull(dt) or not isinstance(dt, (datetime, date)):
+                return
+                
             year  = str(dt.year)
             month = f"{dt.month:02d}"
             week_key = f"{dt.year}-W{dt.isocalendar()[1]:02d}"
         except Exception:
-            continue
+            return
 
         for prj in [dash_prj, "Todos"]:
             b = acc[prj][year][month]
@@ -184,6 +180,49 @@ def parse_timesheet_tab(path):
             b["subs"][sub]      += wk_h
             b["sub_projects"][prj_ts] += wk_h
             b["weekly"][week_key]     += wk_h
+
+    # --- LEITURA DOS DADOS ---
+    if path.suffix.lower() == ".xlsx":
+        try:
+            df_ts = pd.read_excel(path, header=None)
+            for i, row in df_ts.iterrows():
+                row_dict = {idx+1: val for idx, val in enumerate(row)}
+                process_row(row_dict, acc)
+        except Exception as e:
+            log.error(f"Erro ao ler XLSX via Pandas: {e}")
+            return {}
+    else:
+        # Tenta ler como XML Spreadsheet 2003
+        try:
+            ns_tag = '{urn:schemas-microsoft-com:office:spreadsheet}'
+            ns = {'ss': 'urn:schemas-microsoft-com:office:spreadsheet'}
+            context = ET.iterparse(str(path), events=('end',))
+            for event, elem in context:
+                if elem.tag == f'{ns_tag}Row':
+                    cells_raw = elem.findall(f'{ns_tag}Cell', ns)
+                    if not cells_raw:
+                        elem.clear(); continue
+                    row_data = {}
+                    cur_idx = 1
+                    for cell in cells_raw:
+                        idx_attr = cell.get(f'{ns_tag}Index')
+                        if idx_attr: cur_idx = int(idx_attr)
+                        d = cell.find(f'{ns_tag}Data', ns)
+                        row_data[cur_idx] = d.text if d is not None else None
+                        cur_idx += 1 + int(cell.get(f'{ns_tag}MergeAcross', 0))
+                    elem.clear()
+                    process_row(row_data, acc)
+        except Exception as e:
+            log.warning(f"Parser XML falhou ({e}), tentando via Pandas/Openpyxl...")
+            try:
+                df = pd.read_excel(path, header=None)
+                for _, row in df.iterrows():
+                    row_data = {i+1: val for i, val in enumerate(row)}
+                    process_row(row_data, acc)
+            except Exception as e2:
+                log.error(f"Falha total ao ler Timesheet: {e2}")
+                return {}
+
 
     # Converter defaultdicts para dicts serializáveis
     result = {}
@@ -230,6 +269,7 @@ def parse_timesheet(path, tickets_df):
         return {}
 
     log.info(f"Processando timesheet estrito (ID-based) de {path}...")
+    import pandas as pd
     try:
         # Mapa de tickets {id: {sv, pr, prj}}
         ticket_map = {}
@@ -246,89 +286,111 @@ def parse_timesheet(path, tickets_df):
         ns = {'ss': 'urn:schemas-microsoft-com:office:spreadsheet'}
         stats = {"match_ticket": 0, "ignored": 0}
 
-        context = ET.iterparse(str(path), events=('end',))
-        
-        for event, elem in context:
-            if elem.tag == '{urn:schemas-microsoft-com:office:spreadsheet}Row':
-                cells_raw = elem.findall('{urn:schemas-microsoft-com:office:spreadsheet}Cell', ns)
-                if not cells_raw:
-                    elem.clear(); continue
+        def process_ts_row(row_data):
+            nonlocal stats
+            try:
+                hc = row_data.get(22)
+                dc = row_data.get(23)
+                hours = float(hc) if hc and not pd.isnull(hc) else 0
+                days  = float(dc) if dc and not pd.isnull(dc) else 0
                 
-                row_data = {}
-                current_idx = 1
-                for cell in cells_raw:
-                    idx_attr = cell.get('{urn:schemas-microsoft-com:office:spreadsheet}Index')
-                    if idx_attr: current_idx = int(idx_attr)
-                    data_elem = cell.find('{urn:schemas-microsoft-com:office:spreadsheet}Data', ns)
-                    row_data[current_idx] = data_elem.text if data_elem is not None else None
-                    current_idx += 1 + int(cell.get('{urn:schemas-microsoft-com:office:spreadsheet}MergeAcross', 0))
+                if math.isnan(hours): hours = 0
+                if math.isnan(days): days = 0
                 
-                # Col 22: Hours, Col 23: Days
-                try:
-                    hc = row_data.get(22)
-                    dc = row_data.get(23)
-                    hours = float(hc) if hc else 0
-                    days  = float(dc) if dc else 0
-                    
-                    if hours <= 0 and days <= 0:
-                        elem.clear(); continue
-                    
-                    staff_name = row_data.get(7, "Unknown")
-                    prj_xls    = row_data.get(2, "Internal")
-                    desc_col   = str(row_data.get(4, ""))
-                    ref_col    = str(row_data.get(20, ""))
-                    week_iso   = row_data.get(8, "")
-                    
-                    # 1. Match Ticket ID (Regra Estrita)
-                    search_text = f"{desc_col} {ref_col}"
-                    ids_found = re.findall(r'(\d{4,7})', search_text)
-                    
-                    t_meta = None
-                    tid_match = None
-                    if ids_found:
-                        for tid in ids_found:
-                            if tid in ticket_map:
-                                t_meta = ticket_map[tid]
-                                tid_match = tid
-                                break
-                    
-                    if not t_meta:
-                        stats["ignored"] += 1
-                        elem.clear(); continue
+                if hours <= 0 and days <= 0: return
 
-                    # 2. Determinar Período (Ano-Mes)
-                    try: 
+                staff_name = row_data.get(7, "Unknown")
+                desc_col   = str(row_data.get(4, ""))
+                ref_col    = str(row_data.get(20, ""))
+                week_iso   = str(row_data.get(8, ""))
+                
+                # 1. Match Ticket ID (Regra Estrita)
+                tid_col    = str(row_data.get(3, ""))
+                search_text = f"{tid_col} {desc_col} {ref_col}"
+                ids_found = re.findall(r'(\d{4,7})', search_text)
+                
+                t_meta = None
+                tid_match = None
+                if ids_found:
+                    for tid in ids_found:
+                        if tid in ticket_map:
+                            t_meta = ticket_map[tid]
+                            tid_match = tid
+                            break
+                
+                if not t_meta:
+                    stats["ignored"] += 1
+                    return
+
+                # 2. Determinar Período (Ano-Mes)
+                try: 
+                    # Trata tanto string ISO quanto objeto datetime do pandas
+                    if isinstance(week_iso, str):
                         dt = datetime.fromisoformat(week_iso[:19])
-                        mk = f"{dt.year}-{dt.month:02d}"
-                    except: 
-                        mk = datetime.now().strftime("%Y-%m")
+                    else:
+                        dt = week_iso
+                    mk = f"{dt.year}-{dt.month:02d}"
+                except: 
+                    mk = datetime.now().strftime("%Y-%m")
 
-                    # 3. Agrupar
-                    if tid_match not in ts_final:
-                        ts_final[tid_match] = {
-                            'prj': t_meta['prj'],
-                            'sv': t_meta['sv'],
-                            'periods': {} # { "Y-M": { "h": X, "d": Y, "staff": { name: h } } }
-                        }
-                    
-                    entry = ts_final[tid_match]
-                    if mk not in entry['periods']:
-                        entry['periods'][mk] = {'h': 0, 'd': 0, 'staff': {}}
-                    
-                    p = entry['periods'][mk]
-                    p['h'] += hours
-                    p['d'] += days
-                    p['staff'][staff_name] = p['staff'].get(staff_name, 0) + hours
-                    stats["match_ticket"] += 1
-
-                except (ValueError, TypeError): pass 
+                # 3. Agrupar
+                if tid_match not in ts_final:
+                    ts_final[tid_match] = {
+                        'prj': t_meta['prj'],
+                        'sv': t_meta['sv'],
+                        'periods': {}
+                    }
                 
-                elem.clear() 
+                entry = ts_final[tid_match]
+                if mk not in entry['periods']:
+                    entry['periods'][mk] = {'h': 0, 'd': 0, 'staff': {}}
+                
+                p = entry['periods'][mk]
+                p['h'] += hours
+                p['d'] += days
+                p['staff'][staff_name] = p['staff'].get(staff_name, 0) + hours
+                stats["match_ticket"] += 1
+            except: pass
 
-        log.info(f"Timesheet concluído: {len(ts_final)} tickets vinculados. Status: {stats}")
+        # --- LEITURA DOS DADOS ---
+        if path.suffix.lower() == ".xlsx":
+            try:
+                df_ts = pd.read_excel(path, header=None)
+                for _, row in df_ts.iterrows():
+                    process_ts_row({idx+1: val for idx, val in enumerate(row)})
+                log.info(f"Timesheet XLSX concluído: {len(ts_final)} tickets vinculados. Status: {stats}")
+            except Exception as e:
+                log.error(f"Erro ao ler XLSX: {e}")
+                return {}
+        else:
+            # Tenta ler como XML
+            try:
+                context = ET.iterparse(str(path), events=('end',))
+                for event, elem in context:
+                    if elem.tag == '{urn:schemas-microsoft-com:office:spreadsheet}Row':
+                        cells_raw = elem.findall('{urn:schemas-microsoft-com:office:spreadsheet}Cell', ns)
+                        if not cells_raw:
+                            elem.clear(); continue
+                        
+                        row_data = {}
+                        current_idx = 1
+                        for cell in cells_raw:
+                            idx_attr = cell.get('{urn:schemas-microsoft-com:office:spreadsheet}Index')
+                            if idx_attr: current_idx = int(idx_attr)
+                            data_elem = cell.find('{urn:schemas-microsoft-com:office:spreadsheet}Data', ns)
+                            row_data[current_idx] = data_elem.text if data_elem is not None else None
+                            current_idx += 1 + int(cell.get('{urn:schemas-microsoft-com:office:spreadsheet}MergeAcross', 0))
+                        
+                        process_ts_row(row_data)
+                        elem.clear()
+                log.info(f"Timesheet concluído: {len(ts_final)} tickets vinculados. Status: {stats}")
+            except Exception as e:
+                log.error(f"Erro ao processar timesheet: {e}")
+                return {}
+
         return ts_final
     except Exception as e:
-        log.error(f"Erro ao processar timesheet: {e}")
+        log.error(f"Erro ao processar timesheet granular: {e}")
         return {}
 
 # ── PROCESSAMENTO DE TICKETS ──────────────────────────────────────────────────
@@ -385,7 +447,7 @@ def process_tickets_data():
         return ts.strftime("%Y-%m-%d") if pd.notnull(ts) else ""
 
     SEVS = ["incident","user_request","problem","change_request","internal"]
-    TF   = ["k","eid","pr","sv","st","op","res","cl","ap","en","su","upd","ass","sl","rc","rct","rs","prj","y_o","m_o","d_o","y_c","m_c","d_c"]
+    TF   = ["k","eid","pr","sv","st","op","res","cl","ap","en","su","upd","ass","sl","rc","rct","rs","prj","y_o","m_o","d_o","y_c","m_c","d_c","sev"]
 
     rows_out = []; idx_out = {}
     monthly  = {sv: {} for sv in SEVS}; daily = {sv: {} for sv in SEVS}; ym = defaultdict(set)
@@ -413,7 +475,8 @@ def process_tickets_data():
             int(r["Opening Date"].day) if pd.notnull(r["Opening Date"]) else 0,
             int(r["Close Date"].year) if pd.notnull(r["Close Date"]) else 0,
             int(r["Close Date"].month) if pd.notnull(r["Close Date"]) else 0,
-            int(r["Close Date"].day) if pd.notnull(r["Close Date"]) else 0
+            int(r["Close Date"].day) if pd.notnull(r["Close Date"]) else 0,
+            str(r["Severity"]).lower()
         ]
         idx_out[str(tk)] = len(rows_out)
         rows_out.append(row)
@@ -512,10 +575,7 @@ def process_tickets_data():
             cur, prev = comp[sv][k]["cur"], comp[sv][k]["prev"]
             comp[sv][k]["var"] = round((cur-prev)/prev*100,1) if prev>0 else None
 
-    # Timesheet (ticket-based, para cross-reference)
-    ts_path = smd_config.INPUT_DIR / "TimesheetsCMSMonthly.xls"
-    if not ts_path.exists():
-        ts_path = smd_config.DOWNLOADS_DIR / "TimesheetsCMSMonthly.xls"
+    ts_path = get_ts_path()
     timesheet = parse_timesheet(ts_path, df)
 
     mttr_stats = {}
@@ -582,9 +642,7 @@ def run_pipeline(skip_agents=False):
             log.error(f"Erro geral no motor de IA: {ge}")
     
     # Timesheet por projeto/ano/mês (aba dedicada)
-    ts_path = smd_config.INPUT_DIR / "TimesheetsCMSMonthly.xls"
-    if not ts_path.exists():
-        ts_path = smd_config.DOWNLOADS_DIR / "TimesheetsCMSMonthly.xls"
+    ts_path = get_ts_path()
     timesheet_tab = parse_timesheet_tab(ts_path)
     
     # Restauração do KPI de Oncall
