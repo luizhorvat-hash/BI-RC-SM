@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 # Configurações de Diretório
-BASE_DIR = Path(r"C:/Dashboard")
+BASE_DIR = Path(__file__).parent.absolute()
 INPUT_DIR = BASE_DIR / "input"
 RESULTS_DIR = BASE_DIR / "Resultados"
 BUILDS_DIR = BASE_DIR / "builds"

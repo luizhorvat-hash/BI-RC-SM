@@ -111,8 +111,11 @@ def run_agents(selected_agent=None, skip_dashboard=False):
             except Exception as e:
                 log.error(f"Falha no agente {agent} ({prj}): {e}")
                 return agent, None
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        # Ajuste dinâmico de performance: 
+        # Ollama (Local) = Sequencial (1) para não sobrecarregar GPU/CPU.
+        # Gemini/Anthropic (Cloud) = Paralelo (3) para velocidade máxima.
+        workers = 1 if smd_config.DEFAULT_AI_PROVIDER == "ollama" else 3
+        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
             future_to_agent = {executor.submit(run_single_agent, a): a for a in agents_to_run}
             for future in concurrent.futures.as_completed(future_to_agent):
                 agent, res = future.result()

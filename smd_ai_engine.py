@@ -93,8 +93,13 @@ class SMDAIEngine:
         open_inc['Opening_DT'] = pd.to_datetime(open_inc['Opening Date'], errors='coerce')
         open_inc['Last_Upd_DT'] = pd.to_datetime(open_inc['Last Updated Date'], errors='coerce')
         
-        aging_30d = int((open_inc['Opening_DT'] < (today - pd.Timedelta(days=30))).sum()) if not open_inc.empty else 0
-        dormant_7d = int((open_inc['Last_Upd_DT'] < (today - pd.Timedelta(days=7))).sum()) if not open_inc.empty else 0
+        aging_mask = open_inc['Opening_DT'] < (today - pd.Timedelta(days=30)) if not open_inc.empty else pd.Series(dtype=bool)
+        aging_30d = int(aging_mask.sum())
+        aging_tickets = open_inc[aging_mask]['Ticket'].head(3).tolist() if not open_inc.empty else []
+        
+        dormant_mask = open_inc['Last_Upd_DT'] < (today - pd.Timedelta(days=7)) if not open_inc.empty else pd.Series(dtype=bool)
+        dormant_7d = int(dormant_mask.sum())
+        dormant_tickets = open_inc[dormant_mask]['Ticket'].head(3).tolist() if not open_inc.empty else []
         
         median_mttr_days = inc_prd['Days to Close'].astype(float).median() if not inc_prd.empty else 0
         if pd.isna(median_mttr_days):
@@ -155,9 +160,14 @@ class SMDAIEngine:
                     "user_requests": max(0, int(last_req + (trend_slope * 0.5 * i))) # Reqs tendem a seguir mas com menos volatilidade
                 })
 
-        # Top categorias para Improvement/Triage
+        # Top categorias e analistas para Operations/Improvement
         top_apps = v['Application'].value_counts().head(5).to_dict()
         top_rcs = v['Root Cause Type'].value_counts().head(5).to_dict()
+        top_staff = v[v['Status'].isin(MY_BK)]['assigned'].value_counts().head(3).to_dict()
+        
+        # Tickets reais que violaram SLA ou estão em risco
+        breached_tickets = v[(v['Status'].isin(CLOSED)) & (pd.to_numeric(v['Resolution SLA'], errors='coerce') < 0)]['Ticket'].head(3).tolist()
+        backlog_tickets = v[v['Status'].isin(MY_BK)].sort_values('Opening Date')['Ticket'].head(3).tolist()
 
         return {
             'total_tickets': int(len(v)),
@@ -168,7 +178,9 @@ class SMDAIEngine:
             'historical_weekly_volume': weekly_vol,
             'stat_forecast': forecast,
             'aging_30d': aging_30d,
+            'aging_tickets': aging_tickets,
             'dormant_7d': dormant_7d,
+            'dormant_tickets': dormant_tickets,
             'burn_rate': burn_rate,
             'prob_ratio': prob_ratio,
             'median_mttr_h': median_mttr_h,
@@ -177,6 +189,9 @@ class SMDAIEngine:
             'calculated_health': {'value': calc_hs_val, 'label': calc_hs_lbl, 'color': calc_hs_col},
             'top_apps': top_apps,
             'top_rcs': top_rcs,
+            'top_staff': top_staff,
+            'breached_tickets': breached_tickets,
+            'backlog_tickets': backlog_tickets,
             'timestamp': today.strftime('%Y-%m-%d %H:%M:%S')
         }
 
@@ -252,50 +267,109 @@ class SMDAIEngine:
             hs_val = ctx.get('calculated_health', {}).get('value', 0)
             hs_lbl = ctx.get('calculated_health', {}).get('label', 'CRÍTICO')
             hs_col = ctx.get('calculated_health', {}).get('color', 'red')
+            top_staff_str = json.dumps(ctx.get('top_staff', {}), ensure_ascii=False)
             
-            prompt = f"""PERSONA: Especialista SÊNIOR em ITSM (AI_Ops_Advisor). Postura: INCISIVA, CRÍTICA.
+            prompt = f"""PERSONA: Especialista SÊNIOR em Operações ITSM (AI_Ops_Advisor). Postura: INCISIVA, FOCO EM SLA E EFICIÊNCIA.
 
-DADOS:
+DADOS OPERACIONAIS:
 {data_str}
 
-REGRAS:
+SINAIS CRÍTICOS:
 - Health Score: {hs_val}/100 ({hs_lbl}).
-- Alerta ALTO (Crítico): SLA P1 < 95%, Burn Rate > 15, Dormancy > 20, ou MTTR P1 > 8h.
-- Alerta MÉDIO (Atenção): SLA P1 < 98%, Burn Rate > 5, ou MTTR P1 > 4h.
+- Analistas com maior backlog (Top 3): {top_staff_str}
+- Tickets que violaram SLA de Resolução: {ctx.get('breached_tickets', [])}
+- Tickets críticos em backlog (Top 3): {ctx.get('backlog_tickets', [])}
 
-TAREFA: Retorne JSON puro (sem markdown).
+TAREFA: 
+1. Avalie a saúde da operação e identifique os principais "SLA Breakers".
+2. Verifique se o backlog está mal distribuído entre os analistas citados.
+3. Nas 'recommendations', cite NOMES de analistas e IDs de tickets específicos (ex: 'Redistribuir tickets de analista.x', 'Atacar ticket 12345').
+4. Retorne APENAS JSON puro.
+
 JSON_DATA:
 {{
   "health_score": {{ "value": {hs_val}, "color": "{hs_col}", "label": "{hs_lbl}" }},
-  "executive_summary": "<avaliação CRÍTICA e DIRETA em 3 frases citando riscos>",
+  "executive_summary": "<avaliação CRÍTICA em até 3 frases focada em produtividade e SLA>",
   "alerts": [
-    {{ "level": "<ALTO|MEDIO>", "message": "<causa da perda de nota>", "metric": "<valor>" }}
+    {{ "level": "<ALTO|MEDIO>", "message": "<motivo da perda de performance>", "metric": "<valor>" }}
   ],
   "recommendations": [
-    {{ "priority": "P1", "area": "<Área>", "action": "<Ação estratégica>" }}
+    {{ "priority": "<P1|P2>", "area": "<Área>", "action": "<Ação nominal ou técnica específica>" }}
   ]
 }}"""
 
         elif key == "predictive":
             trend_info = f"TENDÊNCIA ESTATÍSTICA: {ctx.get('trend_label')} (Slope: {ctx.get('trend_slope')})"
             forecast_str = json.dumps(ctx.get('stat_forecast', []), indent=2)
+            top_apps_str = json.dumps(ctx.get('top_apps', {}), ensure_ascii=False)
             
-            prompt = f"""PERSONA: Sênior Data Scientist (AI_Predictive_Analyst).
-            
+            prompt = f"""PERSONA: Sênior Data Scientist (AI_Predictive_Analyst). Especialista em ITSM e análise de capacidade.
+
+DADOS HISTÓRICOS E PREVISÃO:
+{data_str}
+
 PREVISÃO ESTATÍSTICA CALCULADA (Próximos 30 dias):
 {forecast_str}
 
-TENDÊNCIA ATUAL: {trend_info}
-CAPACIDADE (Burn Rate): {ctx.get('burn_rate', 0)}
+SINAIS VITAIS DA OPERAÇÃO:
+- Tendência de Volume: {trend_info}
+- Burn Rate (Abertos vs Fechados 7d): {ctx.get('burn_rate', 0)} (Negativo é bom, Positivo indica acúmulo)
+- Tickets em Aging (>30 dias): {ctx.get('aging_30d', 0)} (Ex: {', '.join(str(x) for x in ctx.get('aging_tickets', []))})
+- Tickets Dormentes (>7 dias sem atualização): {ctx.get('dormant_7d', 0)} (Ex: {', '.join(str(x) for x in ctx.get('dormant_tickets', []))})
+- Top Aplicações: {top_apps_str}
 
-TAREFA: Escreva um resumo executivo de no MÁXIMO 2 frases comentando se a equipe vai suportar este volume ou se há risco de saturação.
-Retorne JSON puro.
+TAREFA: 
+1. Analise se a equipe vai suportar o volume projetado considerando o "Burn Rate" atual e o passivo de tickets ("Aging" e "Dormentes").
+2. Avalie se o crescimento está focado em aplicações específicas.
+3. Nas 'recommendations', SEMPRE cite IDs de tickets específicos para investigar se houver dormentes ou aging (ex: 'Investigar ticket 12345').
+4. Escreva um resumo executivo DIRETO E INCISIVO (máx 3 frases).
+5. Retorne APENAS um JSON válido seguindo estritamente a estrutura abaixo.
 
 JSON_DATA:
 {{
-  "executive_summary": "<sua analise em 2 frases>",
+  "executive_summary": "<sua análise executiva em até 3 frases focada em risco de capacidade>",
   "prediction_risk": "<BAIXO|MEDIO|ALTO>",
-  "alerts": [{{ "level": "MEDIO", "message": "Analise baseada em tendencia estatistica", "metric": "{ctx.get('trend_slope')}" }}]
+  "primary_bottleneck": "<O principal gargalo projetado (ex: Acúmulo de Aging, Burn rate alto na App X)>",
+  "alerts": [
+    {{ "level": "<ALTO|MEDIO|BAIXO>", "message": "<alerta específico>", "metric": "<valor>" }}
+  ],
+  "recommendations": [
+    {{ "priority": "<IMEDIATA|CURTO_PRAZO>", "area": "<área afetada>", "action": "<ação preventiva>" }}
+  ]
+}}"""
+
+        elif key == "improvement":
+            top_apps_str = json.dumps(ctx.get('top_apps', {}), ensure_ascii=False)
+            top_rcs_str = json.dumps(ctx.get('top_rcs', {}), ensure_ascii=False)
+            
+            prompt = f"""PERSONA: Consultor Sênior em Melhoria Contínua (ITIL 4 CSI). Postura: ANALÍTICA, ORIENTADA A EFICIÊNCIA.
+
+DADOS REAIS DA OPERAÇÃO:
+- Top Aplicações (Frequência): {top_apps_str}
+- Top Causas Raiz: {top_rcs_str}
+- MTTR Médio: {ctx.get('median_mttr_h', 0)}h
+
+TAREFA: 
+1. Analise as causas raiz e aplicações citadas acima. Identifique o maior ofensor e sugira uma automação TÉCNICA real para ele.
+2. Avalie a maturidade (1 a 5). Se o MTTR for alto, a maturidade é baixa.
+3. Nas 'quick_wins', NUNCA use "App X" ou "gap 1". Use os nomes reais das aplicações listadas nos dados acima.
+4. Se os dados estiverem vazios, sugira melhorias genéricas de processo ITIL, mas cite que os dados estão insuficientes.
+5. Retorne APENAS JSON puro.
+
+JSON_DATA (ESTRUTURA OBRIGATÓRIA):
+{{
+  "maturity_assessment": {{ 
+    "level": <número>, 
+    "label": "<Iniciante|Gerenciado|Definido|Quantitativo|Otimizado>",
+    "gaps": ["descrever gap real observado", "descrever ponto de melhoria"] 
+  }},
+  "executive_summary": "<análise baseada nos nomes das aplicações citadas acima>",
+  "quick_wins": [
+    {{ "target": "<Nome da Aplicação Real>", "action": "<Ação técnica específica>", "impact": "ALTO" }}
+  ],
+  "recommendations": [
+    {{ "priority": "P2", "area": "Processo", "action": "<Melhoria baseada na Causa Raiz real>" }}
+  ]
 }}"""
 
         else:
@@ -456,7 +530,12 @@ JSON_DATA: {{"executive_summary": "...", "alerts": [{{ "level": "INF", "message"
             "executive_summary": structured_info.get("executive_summary", clean_text),
             "reasoning": text if len(text) > 10 else clean_text,
             "health_score": {"value": hs_val, "label": hs_lbl, "color": hs_col},
-            "alerts": structured_info.get("alerts", [{"level": "INF", "message": "Analise automatica (AI Fallback)", "metric": "IA"}])
+            "alerts": structured_info.get("alerts", [{"level": "INF", "message": "Analise automatica (AI Fallback)", "metric": "IA"}]),
+            "primary_bottleneck": structured_info.get("primary_bottleneck", ""),
+            "recommendations": structured_info.get("recommendations", []),
+            "prediction_risk": structured_info.get("prediction_risk", ""),
+            "maturity_assessment": structured_info.get("maturity_assessment", {}),
+            "quick_wins": structured_info.get("quick_wins", [])
         }
         
         if key == "ops":
@@ -477,8 +556,8 @@ JSON_DATA: {{"executive_summary": "...", "alerts": [{{ "level": "INF", "message"
         prompt = self.generate_prompt(key, ctx)
         log.info(f"Executando agente {key} via {self.provider}...")
         
-        # TIMEOUT DINÂMICO
-        tm = 120 if key == "predictive" else 45
+        # TIMEOUT DINÂMICO AUMENTADO (Prompts complexos exigem mais tempo na GPU local/Ollama)
+        tm = 300 if key in ["predictive", "ops", "improvement", "market", "qa", "triage"] else 60
         text = ""
         
         if self.provider == "gemini":

@@ -4,11 +4,12 @@ smd_build.py — Pipeline de atualização do SMD Dashboard
 Arrocha | 2026
 """
 
-import os, sys, json, logging, re, math, subprocess
-from pathlib import Path
-from datetime import datetime, date
-from collections import defaultdict
+import os, sys, json, logging, re, math
+import subprocess
+from datetime import datetime, date, timedelta
 import xml.etree.ElementTree as ET
+from pathlib import Path
+from collections import defaultdict
 import pandas as pd
 import smd_config
 from smd_ai_engine import SMDAIEngine
@@ -97,21 +98,71 @@ TIMESHEET_PROJECT_MAP = {
 
 # ── UTILITÁRIOS DE TIMESHEET ──────────────────────────────────────────────────
 def get_ts_path():
-    """Busca o arquivo de timesheet (.xlsx ou .xls) nos locais padrão."""
-    for ext in [".xlsx", ".xls"]:
-        p = smd_config.INPUT_DIR / f"TimesheetsCMSMonthly{ext}"
-        if p.exists(): return p
-        p = smd_config.DOWNLOADS_DIR / f"TimesheetsCMSMonthly{ext}"
-        if p.exists(): return p
+    """Busca o arquivo de timesheet nos locais padrão."""
+    # Procura por qualquer arquivo que comece com TimesheetsCMSMonthly e termine com xls/xlsx
+    search_dirs = [smd_config.INPUT_DIR, smd_config.DOWNLOADS_DIR]
+    for d in search_dirs:
+        if not d.exists(): continue
+        for p in d.glob("TimesheetsCMSMonthly*"):
+            if p.suffix.lower() in [".xlsx", ".xls"]:
+                return p
     return None
+
+def normalize_name(n):
+    """Normaliza o nome do recurso removendo sufixos e espaços extras."""
+    if not n: return ""
+    n = str(n)
+    # Remove sufixos como _PTN, _BR, etc.
+    n = re.sub(r'_[A-Z]{2,3}$', '', n)
+    return n.strip().lower()
+
+def get_resource_grade_map():
+    """Lê o arquivo Resource Level.xlsx e retorna um mapeamento de nomes para Career Grade."""
+    res_path = smd_config.BASE_DIR / "DOcs" / "Resource Level.xlsx"
+    if not res_path.exists():
+        log.warning(f"Arquivo de Resource Level não encontrado em {res_path}")
+        return {}
+
+    try:
+        import pandas as pd
+        df = pd.read_excel(res_path)
+        mapping = {}
+        for _, r in df.iterrows():
+            full_name = str(r.get("Name", "")).strip().lower()
+            grade = str(r.get("Career Grade", "N/A")).strip()
+            if full_name:
+                mapping[full_name] = grade
+                # Também mapeia pelo primeiro + último nome para maior flexibilidade
+                parts = full_name.split()
+                if len(parts) > 1:
+                    short = f"{parts[0]} {parts[-1]}"
+                    if short not in mapping: mapping[short] = grade
+        # Mapeamentos manuais fornecidos pelo usuário para nomes divergentes no Timesheet
+        manual_fixes = {
+            "helder ferreira": "300",
+            "joao pinto": "203",
+            "bruno madaleno": "300",
+            "nuno pereira": "101",
+            "joao cunha goncalves": "202"
+        }
+        mapping.update(manual_fixes)
+
+        log.info(f"Carregados {len(mapping)} mapeamentos de Career Grade (incluindo variações e correções manuais).")
+        return mapping
+    except Exception as e:
+        log.error(f"Erro ao carregar Resource Level: {e}")
+        return {}
 
 def parse_timesheet_tab(path):
     """
     Lê o timesheet e agrega por projeto-dashboard / ano / mês.
     Suporta .xls (XML 2003) e .xlsx (Pandas).
     """
-    if not path or not path.exists():
-        log.warning(f"Timesheet não encontrado.")
+    if not path:
+        log.warning(f"Timesheet não configurado ou não encontrado.")
+        return {}
+    if not path.exists():
+        log.warning(f"Arquivo de timesheet {path} não existe.")
         return {}
 
     log.info(f"Gerando dados da aba Timesheet de {path.name}...")
@@ -119,6 +170,7 @@ def parse_timesheet_tab(path):
     from collections import defaultdict
 
     # acumuladores: [prj][year][month] → dicts
+    grade_map = get_resource_grade_map()
     acc = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {
         "total_h": 0.0, "total_days": 0.0, "overtime_h": 0.0,
         "staff": defaultdict(float),
@@ -126,20 +178,22 @@ def parse_timesheet_tab(path):
         "subs":  defaultdict(float),
         "sub_projects": defaultdict(float),
         "weekly": defaultdict(float),
+        "grades": defaultdict(float),
+        "staff_detailed": defaultdict(lambda: {"h": 0.0, "d": 0.0, "sub": "", "grade": ""}),
     })))
 
     def process_row(row_data, acc):
-        prj_ts = row_data.get(2, "") or ""
-        task   = row_data.get(4, "") or ""
-        staff  = row_data.get(7, "") or ""
-        week_s = row_data.get(8, "") or ""
-        sub    = row_data.get(24, "") or ""
+        prj_ts = row_data.get(1, "") or ""
+        task   = row_data.get(3, "") or ""
+        staff  = row_data.get(6, "") or ""
+        week_s = row_data.get(7, "") or ""
+        sub    = row_data.get(23, "") or ""
 
         try:
-            wk_h  = float(row_data.get(22) or 0)
-            wk_d  = float(row_data.get(23) or 0)
-            sat_h = float(row_data.get(14) or 0)
-            sun_h = float(row_data.get(16) or 0)
+            wk_h  = float(row_data.get(21) or 0)
+            wk_d  = float(row_data.get(22) or 0)
+            sat_h = float(row_data.get(15) or 0)
+            sun_h = float(row_data.get(17) or 0)
             
             if math.isnan(wk_h): wk_h = 0
             if math.isnan(wk_d): wk_d = 0
@@ -151,9 +205,8 @@ def parse_timesheet_tab(path):
         if wk_h <= 0 or not prj_ts or not staff:
             return
 
-        dash_prj = TIMESHEET_PROJECT_MAP.get(prj_ts)
-        if not dash_prj:
-            return
+        prj_ts_clean = str(prj_ts).strip()
+        dash_prj = TIMESHEET_PROJECT_MAP.get(prj_ts_clean, "Outros")
 
         try:
             if isinstance(week_s, str):
@@ -170,23 +223,70 @@ def parse_timesheet_tab(path):
         except Exception:
             return
 
-        for prj in [dash_prj, "Todos"]:
-            b = acc[prj][year][month]
-            b["total_h"]   += wk_h
-            b["total_days"] += wk_d
-            b["overtime_h"] += sat_h + sun_h
-            b["staff"][staff]   += wk_h
-            b["tasks"][task]    += wk_h
-            b["subs"][sub]      += wk_h
-            b["sub_projects"][prj_ts] += wk_h
-            b["weekly"][week_key]     += wk_h
+        # Busca Career Grade com normalização e fallback para nome curto
+        s_norm = normalize_name(staff)
+        grade = grade_map.get(s_norm)
+        if not grade:
+            parts = s_norm.split()
+            if len(parts) > 1:
+                grade = grade_map.get(f"{parts[0]} {parts[-1]}", "N/A")
+            else:
+                grade = "N/A"
+
+        # Itera sobre os dias da semana (índices específicos devido a colunas vazias no CMS)
+        day_indices = [9, 10, 11, 13, 14, 15, 17] # Seg, Ter, Qua, Qui, Sex, Sab, Dom
+        for idx, i in enumerate(day_indices):
+            h = row_data.get(i, 0)
+            try:
+                h = float(h or 0)
+                if math.isnan(h) or h <= 0: continue
+            except (ValueError, TypeError):
+                continue
+            
+            day_offset = idx
+            day_date = dt + timedelta(days=day_offset)
+            
+            d_year  = str(day_date.year)
+            d_month = f"{day_date.month:02d}"
+            d_week  = f"{day_date.year}-W{day_date.isocalendar()[1]:02d}"
+            
+            # MD proporcional (base 8h)
+            d_md = h / 8.0
+            is_overtime = (i >= 15) # Sábado (15) e Domingo (17)
+
+            for prj in [dash_prj, "Todos"]:
+                b = acc[prj][d_year][d_month]
+                b["total_h"]    += h
+                b["total_days"] += d_md
+                if is_overtime:
+                    b["overtime_h"] += h
+                
+                b["staff"][staff]   += h
+                b["tasks"][task]    += h
+                b["subs"][sub]      += h
+                b["sub_projects"][prj_ts] += h
+                b["weekly"][d_week]       += h
+                b["grades"][grade]        += d_md
+                
+                # Detalhes do colaborador para o novo KPI
+                sd = b["staff_detailed"][staff]
+                sd["h"] += h
+                sd["d"] += d_md
+                if sub: sd["sub"] = sub
+                sd["grade"] = grade
 
     # --- LEITURA DOS DADOS ---
     if path.suffix.lower() == ".xlsx":
         try:
-            df_ts = pd.read_excel(path, header=None)
+            # Tenta localizar a aba de dados brutos 'Report'
+            xl = pd.ExcelFile(path)
+            sheet = 'Report' if 'Report' in xl.sheet_names else xl.sheet_names[0]
+            log.info(f"Lendo aba '{sheet}' de {path.name}")
+            df_ts = pd.read_excel(xl, sheet_name=sheet, header=None)
             for i, row in df_ts.iterrows():
-                row_dict = {idx+1: val for idx, val in enumerate(row)}
+                # No Pandas, row[0] é a primeira coluna. Nosso process_row espera 0-based agora se simplificarmos.
+                # Mas para manter compatibilidade com o XML, vamos mapear idx direto.
+                row_dict = {idx: val for idx, val in enumerate(row)}
                 process_row(row_dict, acc)
         except Exception as e:
             log.error(f"Erro ao ler XLSX via Pandas: {e}")
@@ -245,6 +345,20 @@ def parse_timesheet_tab(path):
                 weekly = [{"week": w, "h": round(h, 1)}
                           for w, h in sorted(b["weekly"].items())]
 
+                by_grade = {g: round(d, 2) for g, d in sorted(b["grades"].items(), key=lambda x: -x[1])}
+
+                # Detalhes por grade para o novo KPI
+                grade_details = {}
+                for name, d in b["staff_detailed"].items():
+                    g = d["grade"]
+                    if g not in grade_details: grade_details[g] = []
+                    grade_details[g].append({
+                        "name": name, "sub": d["sub"], 
+                        "h": round(d["h"], 1), "d": round(d["d"], 2)
+                    })
+                for g in grade_details:
+                    grade_details[g].sort(key=lambda x: -x["d"], reverse=True)
+
                 avg_h = round(b["total_h"] / headcount, 1) if headcount else 0
                 result[prj][yr][mo] = {
                     "total_h":    round(b["total_h"], 1),
@@ -255,6 +369,8 @@ def parse_timesheet_tab(path):
                     "top_staff":  top_staff,
                     "top_tasks":  top_tasks,
                     "by_subsidiary": by_sub,
+                    "by_career_grade": by_grade,
+                    "grade_details": grade_details,
                     "sub_projects": sub_projects,
                     "weekly": weekly,
                 }
@@ -264,6 +380,9 @@ def parse_timesheet_tab(path):
 
 def parse_timesheet(path, tickets_df):
     """Lê o arquivo XLS (XML) de timesheet e gera mapeamento granular D.timesheet."""
+    if not path:
+        log.warning("Caminho de timesheet não fornecido.")
+        return {}
     if not path.exists():
         log.warning(f"Arquivo de timesheet não encontrado: {path}")
         return {}
@@ -279,10 +398,12 @@ def parse_timesheet(path, tickets_df):
             tk_id = str(int(pd.to_numeric(tk_raw, errors='coerce')))
             ticket_map[tk_id] = {
                 'sv': str(r.get('Severity', 'incident')).lower().replace(' ', '_'),
-                'prj': str(r.get('Project Name', 'Other')).strip()
+                'prj': str(r.get('Project Name', 'Other')).strip(),
+                'pr': str(r.get('Priority', 'P4')).strip(),
+                'iv': str(r.get('Invoice', '')).strip()
             }
 
-        ts_final = {} # { tid: { prj, sv, months: { "Y-M": hours }, staff: { name: hours } } }
+        ts_final = {} # { tid: { prj, sv, pr, iv, months: { "Y-M": hours }, staff: { name: hours } } }
         ns = {'ss': 'urn:schemas-microsoft-com:office:spreadsheet'}
         stats = {"match_ticket": 0, "ignored": 0}
 
@@ -324,7 +445,6 @@ def parse_timesheet(path, tickets_df):
 
                 # 2. Determinar Período (Ano-Mes)
                 try: 
-                    # Trata tanto string ISO quanto objeto datetime do pandas
                     if isinstance(week_iso, str):
                         dt = datetime.fromisoformat(week_iso[:19])
                     else:
@@ -338,6 +458,8 @@ def parse_timesheet(path, tickets_df):
                     ts_final[tid_match] = {
                         'prj': t_meta['prj'],
                         'sv': t_meta['sv'],
+                        'pr': t_meta['pr'],
+                        'iv': t_meta['iv'],
                         'periods': {}
                     }
                 
@@ -347,7 +469,7 @@ def parse_timesheet(path, tickets_df):
                 
                 p = entry['periods'][mk]
                 p['h'] += hours
-                p['d'] += days
+                p['d'] += (hours / 8.0) # Força consistência com a regra de 8h/MD
                 p['staff'][staff_name] = p['staff'].get(staff_name, 0) + hours
                 stats["match_ticket"] += 1
             except: pass
@@ -448,9 +570,9 @@ def process_tickets_data(csv_override=None):
         return ts.strftime("%Y-%m-%d") if pd.notnull(ts) else ""
 
     SEVS = ["incident","user_request","problem","change_request","internal"]
-    # pid = parent Problem ID (normalizado, sem zeros à esquerda); md = MD's reais (esforço por ticket).
-    # Adicionados ao FINAL para preservar índices existentes em código que use _TF.indexOf(...).
-    TF   = ["k","eid","pr","sv","st","op","res","cl","ap","en","su","upd","ass","sl","rc","rct","rs","prj","y_o","m_o","d_o","y_c","m_c","d_c","sev","pid","md"]
+    # pid=Problem ID; md=MDs reais; co=Country; ca=Closed Admin; svl=Service Line.
+    # Sempre adicionar AO FINAL para preservar índices existentes em _TF.indexOf().
+    TF   = ["k","eid","pr","sv","st","op","res","cl","ap","en","su","upd","ass","sl","rc","rct","rs","prj","y_o","m_o","d_o","y_c","m_c","d_c","sev","pid","md","co","ca","svl"]
 
     rows_out = []; idx_out = {}
     monthly  = {sv: {} for sv in SEVS}; daily = {sv: {} for sv in SEVS}; ym = defaultdict(set)
@@ -498,7 +620,10 @@ def process_tickets_data(csv_override=None):
             int(r["Close Date"].month) if pd.notnull(r.get("Close Date")) else 0,
             int(r["Close Date"].day) if pd.notnull(r.get("Close Date")) else 0,
             str(r.get("Severity", "internal")).lower(),
-            pid, md_val
+            pid, md_val,
+            (str(r.get("Country")).strip() if pd.notna(r.get("Country")) else ""),
+            (str(r.get("Closed Admin")).strip().upper() if pd.notna(r.get("Closed Admin")) else ""),
+            (str(r.get("Service Line")).strip() if pd.notna(r.get("Service Line")) else "")
         ]
         idx_out[str(tk)] = len(rows_out)
         rows_out.append(row)
@@ -616,6 +741,33 @@ def process_tickets_data(csv_override=None):
                                    "std": round(float(durations.std()), 1) if len(durations) > 1 else 0, "count": int(len(durations)),
                                    "bench": smd_config.MTTR_BENCHMARK_H.get(pri, 0)}
 
+    # --- STAFF PERFORMANCE ---
+    staff_data = {}
+    # Produtividade: Tickets fechados (por quem fechou)
+    closed_mask = df["Is_Closed"] & df["Closed Admin"].notna()
+    for admin, g in df[closed_mask].groupby("Closed Admin"):
+        admin = str(admin).strip().upper()
+        if admin not in staff_data: staff_data[admin] = {"closed": 0, "open": 0, "projects": set(), "sevs": defaultdict(int)}
+        staff_data[admin]["closed"] += len(g)
+        for _, r in g.iterrows():
+            staff_data[admin]["projects"].add(r["Project Name"])
+            staff_data[admin]["sevs"][r["Severity"]] += 1
+            
+    # Carga: Tickets abertos (por quem está atribuído)
+    open_mask = df["Is_Open"] & df["assigned"].notna()
+    for assigned, g in df[open_mask].groupby("assigned"):
+        assigned = str(assigned).strip().upper()
+        if assigned not in staff_data: staff_data[assigned] = {"closed": 0, "open": 0, "projects": set(), "sevs": defaultdict(int)}
+        staff_data[assigned]["open"] += len(g)
+        for _, r in g.iterrows():
+            staff_data[assigned]["projects"].add(r["Project Name"])
+            staff_data[assigned]["sevs"][r["Severity"]] += 1
+            
+    # Converter sets para listas para JSON
+    for s in staff_data:
+        staff_data[s]["projects"] = sorted(list(staff_data[s]["projects"]))
+        staff_data[s]["sevs"] = dict(staff_data[s]["sevs"])
+
     # Problem Management index — pré-computa para o frontend não varrer _ROWS.
     # Estrutura: D.problems[pid_normalizado] = {ticket, self_md, status, app, priority,
     # prj, is_open, opening, incidents:[{ticket, md, pri, app, status, prj}, ...]}
@@ -649,9 +801,28 @@ def process_tickets_data(csv_override=None):
     D = {"monthly": monthly, "daily": daily, "backlog": backlog, "sla": sla, "rc": rc_dist, "summary": summary, "comp": comp,
          "ym": {y:sorted(list(m)) for y,m in ym.items()}, "projects": summary["projects"], "timesheet": timesheet,
          "generated_at": today.strftime("%Y-%m-%d %H:%M"), "mttr_stats": mttr_stats,
-         "problems": problems_idx}
+         "problems": problems_idx, "staff": staff_data}
     T = {"fields": TF, "rows": rows_out, "idx": idx_out}
     return D, T, df
+
+def check_ai_availability():
+    """Verifica se o provedor de IA configurado está respondendo."""
+    provider = smd_config.DEFAULT_AI_PROVIDER
+    if provider == "ollama":
+        import urllib.request
+        try:
+            # Tenta um GET simples no endpoint do Ollama
+            # Se a URL não termina em /api/generate, ajustamos para checar tags
+            check_url = smd_config.OLLAMA_URL.split("/api/")[0] + "/api/tags"
+            with urllib.request.urlopen(check_url, timeout=2) as resp:
+                return resp.status == 200
+        except Exception:
+            return False
+    elif provider in ["gemini", "anthropic"]:
+        # Para cloud, assumimos que se tem a chave, está disponível (ou falhará no run)
+        key = smd_config.GEMINI_API_KEY if provider == "gemini" else smd_config.ANTHROPIC_API_KEY
+        return bool(key)
+    return False
 
 def run_pipeline(skip_agents=False, csv_override=None):
     """Executa a pipeline completa: Tickets -> AI -> Timesheet -> data.js"""
@@ -676,6 +847,11 @@ def run_pipeline(skip_agents=False, csv_override=None):
                     break
         except Exception:
             pass
+    if not skip_agents:
+        if not check_ai_availability():
+            log.warning(f"Provedor de IA ({smd_config.DEFAULT_AI_PROVIDER}) não está acessível. Pulando agentes.")
+            skip_agents = True
+            
     if not skip_agents:
         try:
             engine = SMDAIEngine()

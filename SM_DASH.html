@@ -9,7 +9,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0B1F2C;--surf:#0d2438;--card:#0f2a3d;--border:#1a3a50;--text:#e2e8f0;--muted:#64748b;--dim:#1e3a50;--open:#FF6B00;--closed:#CF0A2C;--green:#34d399;--amber:#fbbf24;--orange:#f97316;--red:#f87171;--blue:#60a5fa;--purple:#a78bfa;--f:'DM Sans','Segoe UI',sans-serif;--ft:'Orbitron',var(--f);}
+:root{--bg:#0B1F2C;--surf:#0d2438;--card:#0f2a3d;--border:#1a3a50;--text:#ffffff;--muted:#cbd5e1;--dim:#94a3b8;--open:#FF6B00;--closed:#CF0A2C;--green:#34d399;--amber:#fbbf24;--orange:#f97316;--red:#f87171;--blue:#60a5fa;--purple:#a78bfa;--f:'DM Sans','Segoe UI',sans-serif;--ft:'Orbitron',var(--f);}
 html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
 .hdr{background:var(--surf);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100}
 .logo{font-family:var(--ft);font-size:14px;font-weight:700;letter-spacing:.14em;color:var(--open);display:flex;align-items:center;gap:10px}
@@ -45,8 +45,9 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
 .rfill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--open),var(--closed));transition:width .5s}
 .rinfo{font-size:10px;color:var(--text)}.rpct{font-family:var(--ft);font-size:12px;font-weight:700;color:var(--open);min-width:34px;text-align:right}
 .nav{display:flex;border-bottom:1px solid var(--border);background:var(--surf);padding:0 20px;overflow-x:auto}
-.ntab{padding:10px 14px;font-family:var(--ft);font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:all .15s;white-space:nowrap;margin-bottom:-1px;flex-shrink:0}
-.ntab:hover{color:#94a3b8}
+.ntab{padding:10px 14px;font-family:var(--ft);font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border-bottom:3px solid transparent;color:var(--muted);transition:all .15s;white-space:nowrap;margin-bottom:-1px;flex-shrink:0;border-radius:6px 6px 0 0}
+.ntab:hover{color:#f1f5f9;background:rgba(255,255,255,.04)}
+.ntab.active{background:rgba(255,255,255,.06);box-shadow:inset 0 -3px 0 currentColor,0 -2px 8px rgba(0,0,0,.3);font-size:8px}
 .ntab.t-inc.active{color:var(--open);border-color:var(--open)}
 .ntab.t-ur.active{color:var(--blue);border-color:var(--blue)}
 .ntab.t-prb.active{color:var(--purple);border-color:var(--purple)}
@@ -64,7 +65,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
 .leg{display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap}
 .li{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--muted)}
 .lsq{width:8px;height:8px;border-radius:2px;flex-shrink:0}
-.hint{font-size:8px;color:#1e3a50;margin-top:4px;text-align:center}
+.hint{font-size:8px;color:var(--dim);margin-top:4px;text-align:center}
 .tip{position:relative;cursor:help}
 .tip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#0a1825;color:#cbd5e1;font-size:10px;font-family:var(--f);font-weight:400;line-height:1.5;padding:8px 11px;border-radius:6px;border:1px solid #1a3a50;white-space:pre-wrap;width:240px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.5);text-align:left;letter-spacing:0}
 .tip::before{content:'';position:absolute;bottom:calc(100% + 3px);left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#1a3a50;pointer-events:none;opacity:0;transition:opacity .15s;z-index:9999}
@@ -117,6 +118,44 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
 .slag svg{width:80px;height:80px;transform:rotate(-90deg)}
 .slagv{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:15px;font-weight:700}
 .slamt{font-size:9px;color:var(--muted);margin-top:2px}
+/* ── Aba Comparativo ── */
+.cmp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.cmp-card{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:10px;padding:14px;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;display:flex;flex-direction:column;gap:6px}
+.cmp-card:hover{transform:translateY(-2px);border-color:var(--blue);box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.cmp-card.cmp-warn{border-left-color:var(--orange)}
+.cmp-card.cmp-warn:hover{border-color:var(--orange)}
+.cmp-card.cmp-crit{border-left-color:var(--red)}
+.cmp-card.cmp-crit:hover{border-color:var(--red)}
+.cmp-proj-name{font-family:var(--ft);font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmp-kpi-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:10px}
+.cmp-kpi-lbl{color:var(--muted);font-weight:500}
+.cmp-kpi-val{color:var(--text);font-weight:700;font-size:11px}
+.cmp-bar-wrap{margin-top:8px;height:4px;background:var(--bg);border-radius:2px;overflow:hidden}
+.cmp-bar{height:100%;border-radius:2px;transition:width .3s}
+.cmp-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:8px}
+.cmp-health{font-family:var(--ft);font-size:22px;font-weight:700;line-height:1;flex-shrink:0;min-width:42px;text-align:right}
+.cmp-mom{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px}
+.cmp-mom.up{background:rgba(248,113,113,.12);color:#f87171}
+.cmp-mom.dn{background:rgba(52,211,153,.12);color:#34d399}
+.cmp-mom.flat{background:rgba(148,163,184,.12);color:var(--muted)}
+.cmp-spark{margin-top:6px;height:32px;width:100%;display:block}
+/* Ranking moderno (substitui heatmap) */
+.cmp-rank-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.cmp-rank-head{display:grid;grid-template-columns:220px 80px 1fr;gap:16px;align-items:center;padding:0 16px 6px 16px;border-bottom:1px solid var(--border);font-family:var(--ft);font-size:8px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.cmp-rank-head-stats{display:grid;grid-template-columns:repeat(8,1fr);gap:14px}
+.cmp-rank-head-stats div{text-align:center}
+.cmp-rank-row{display:grid;grid-template-columns:220px 80px 1fr;gap:16px;align-items:center;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;transition:border-color .15s,transform .15s;cursor:pointer}
+.cmp-rank-row:hover{border-color:var(--blue);transform:translateX(2px)}
+.cmp-rank-name{font-family:var(--ft);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmp-rank-score{display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;font-family:var(--ft);font-size:18px;font-weight:700;border:3px solid currentColor;background:rgba(255,255,255,.02)}
+.cmp-rank-score.na{font-size:12px;color:var(--dim)}
+.cmp-rank-stats{display:grid;grid-template-columns:repeat(8,1fr);gap:14px;min-width:0}
+.cmp-rank-stat{display:flex;flex-direction:column;gap:3px;min-width:0;text-align:center}
+.cmp-rank-stat-lbl{font-size:8px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmp-rank-stat-val{font-size:13px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.cmp-rank-stat-val.na{color:var(--dim);font-weight:400}
+.cmp-rank-stat-bar{height:3px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;margin-top:2px}
+.cmp-rank-stat-fill{height:100%;border-radius:2px;transition:width .3s}
 .attn-list{display:flex;flex-direction:column;gap:8px}
 .attn-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;border-left:3px solid;background:var(--card)}
 .attn-item.backlog_aging{border-color:var(--orange)}.attn-item.sla_breach{border-color:var(--red)}
@@ -165,7 +204,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
 .ai-card.ai-sel{border-color:#a78bfa;box-shadow:0 0 0 2px rgba(167,139,250,.15)}
 .ai-agent-name{font-family:var(--ft);font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#a78bfa;margin-bottom:6px}
 .ai-status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}
-.ai-status-dot.ok{background:#34d399}.ai-status-dot.error{background:#f87171}.ai-status-dot.ready{background:#64748b}.ai-status-dot.running{background:#fbbf24;animation:pulse 1s infinite}
+.ai-status-dot.ok{background:#34d399}.ai-status-dot.error{background:#f87171}.ai-status-dot.ready{background:#94a3b8}.ai-status-dot.running{background:#fbbf24;animation:pulse 1s infinite}
 .ai-health{font-size:22px;font-weight:700;line-height:1;margin:6px 0 2px}
 .ai-label{font-size:9px;color:var(--muted)}
 .ai-ts{font-size:8px;color:#334155;margin-top:6px}
@@ -180,7 +219,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
 .ai-alert.CRITICO{background:#1a0808;border-color:#f87171;color:#f87171}
 .ai-alert.ALTO{background:#1a1000;border-color:#f97316;color:#f97316}
 .ai-alert.MEDIO{background:#1a1500;border-color:#fbbf24;color:#fbbf24}
-.ai-alert.BAIXO{background:#0d2030;border-color:#64748b;color:#94a3b8}
+.ai-alert.BAIXO{background:#0d2030;border-color:#94a3b8;color:#94a3b8}
 .ai-rec{display:grid;grid-template-columns:100px 1fr;gap:8px;align-items:start;padding:8px 10px;background:var(--bg);border-radius:7px;margin-bottom:6px;font-size:11px}
 .ai-rec-pri{font-family:var(--ft);font-size:7px;font-weight:700;letter-spacing:.08em;padding:3px 7px;border-radius:4px;text-align:center}
 .ai-rec-pri.IMEDIATA{background:#2d0f0f;color:#f87171}
@@ -198,12 +237,12 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
 .ai-finding.CRITICO{background:#1a0808;border-left:3px solid #f87171}
 .ai-finding.ALTO{background:#1a1000;border-left:3px solid #f97316}
 .ai-finding.MEDIO{background:#1a1500;border-left:3px solid #fbbf24}
-.ai-finding.BAIXO{background:#0d2030;border-left:3px solid #64748b}
+.ai-finding.BAIXO{background:#0d2030;border-left:3px solid #94a3b8}
 .ai-empty{text-align:center;padding:40px;color:var(--dim);font-size:12px}
 .ai-run-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;background:#4c1d95;border:1px solid #7c3aed;border-radius:8px;color:#c4b5fd;font-family:var(--ft);font-size:8px;font-weight:700;letter-spacing:.1em;cursor:pointer;transition:all .18s;text-decoration:none;margin-top:12px}
 .ai-run-btn:hover{background:#5b21b6;border-color:#8b5cf6}
 .ai-verdict{display:inline-block;padding:3px 12px;border-radius:5px;font-family:var(--ft);font-size:9px;font-weight:700}
-.ai-verdict.APROVADO{background:#0a1e0f;color:#34d399}.ai-verdict.RESTRICAO{background:#2d1800;color:#fbbf24}.ai-verdict.REPROVADO{background:#2d0f0f;color:#f87171}.ai-verdict.PENDENTE{background:#0d2030;color:#64748b}
+.ai-verdict.APROVADO{background:#0a1e0f;color:#34d399}.ai-verdict.RESTRICAO{background:#2d1800;color:#fbbf24}.ai-verdict.REPROVADO{background:#2d0f0f;color:#f87171}.ai-verdict.PENDENTE{background:#0d2030;color:#94a3b8}
 
 
 /* ── ASSIGNED BAR CHART ─────────────────────────────────────── */
@@ -364,7 +403,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
     </div>
   </div>
 </div>
-<div id="panel-comp" class="panel" style="display:none">
+<div id="panel-comp" class="panel">
   <div class="cb">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div>
@@ -613,7 +652,7 @@ function refreshCFG() {
 var MPT = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 var SEVS = ['incident','user_request','problem','change_request','internal'];
 var SEV_LBL = {incident:'Incident',user_request:'User Request',problem:'Problem',change_request:'Change Request',internal:'Internal'};
-var RC_COL = {Client:'#60a5fa',RC:'#FF6B00','Problem Analysis':'#a78bfa',Oracle:'#fbbf24',Outros:'#64748b'};
+var RC_COL = {Client:'#60a5fa',RC:'#FF6B00','Problem Analysis':'#a78bfa',Oracle:'#fbbf24',Outros:'#94a3b8'};
 var ATTN_ICONS = {backlog_aging:'!',sla_breach:'X',open_gt_close:'^',rc_client_dominant:'@'};
 var ATTN_EMOJIS = {backlog_aging:'&#9201;',sla_breach:'&#128308;',open_gt_close:'&#128200;',rc_client_dominant:'&#128100;',kpi_alert:'&#128680;'};
 
@@ -866,7 +905,7 @@ function buildBar(sev, cid) {
     ]},
     options: {
       responsive:true, maintainAspectRatio:false, layout:{padding:{top:22}},
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'#0B1F2C',borderColor:'#1a3a50',borderWidth:1,titleColor:'#94a3b8',bodyColor:'#e2e8f0',padding:10,filter:function(i){return i.datasetIndex<2;}}},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#0B1F2C',borderColor:'#1a3a50',borderWidth:1,titleColor:'#94a3b8',bodyColor:'#f1f5f9',padding:10,filter:function(i){return i.datasetIndex<2;}}},
       scales:{x:{ticks:{color:'#475569',font:{size:9}},grid:{color:'rgba(255,255,255,0.03)'}},y:{ticks:{color:'#475569',font:{size:9}},grid:{color:'rgba(255,255,255,0.05)'},beginAtZero:true}}
     }
   });
@@ -905,7 +944,7 @@ function buildLine(sev, cid) {
       {label:'Fechados',data:cl,borderColor:'#CF0A2C',backgroundColor:'rgba(207,10,44,.05)',fill:true,pointBackgroundColor:'#CF0A2C',pointRadius:4,pointHoverRadius:6,borderWidth:2,tension:.3,borderDash:[4,3]}
     ]},
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18,right:8}},
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'#0B1F2C',borderColor:'#1a3a50',borderWidth:1,titleColor:'#94a3b8',bodyColor:'#e2e8f0',padding:10,callbacks:{title:function(i){return 'Dia '+i[0].label;},label:function(c){return ' '+c.dataset.label+': '+c.parsed.y;}}}},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#0B1F2C',borderColor:'#1a3a50',borderWidth:1,titleColor:'#94a3b8',bodyColor:'#f1f5f9',padding:10,callbacks:{title:function(i){return 'Dia '+i[0].label;},label:function(c){return ' '+c.dataset.label+': '+c.parsed.y;}}}},
       scales:{x:{ticks:{color:'#475569',font:{size:9}},grid:{color:'rgba(255,255,255,0.03)'},title:{display:true,text:'Dia',color:'#334155',font:{size:9}}},y:{ticks:{color:'#475569',font:{size:9},stepSize:1},grid:{color:'rgba(255,255,255,0.05)'},beginAtZero:true}}}
   });
   ctx.ondblclick = function(e) {
@@ -1086,7 +1125,7 @@ function buildRC(sev, cid) {
       var lbl=e[0], d=e[1];
       var pct = Math.round(d.count/total*100);
       var barPct = Math.round(d.count/maxCount*100);
-      var col = RC_COL[lbl] || '#64748b';
+      var col = RC_COL[lbl] || '#94a3b8';
       var isSel = (selRC === lbl);
       html += '<div class="rcb-item'+(isSel?' rcb-sel':'')+'" data-rc="'+lbl+'">' +
         '<span class="rcb-label" style="color:'+col+'">'+lbl+'</span>' +
@@ -1375,7 +1414,7 @@ function buildKPI() {
     return Math.round(o / c * 100);
   }
   function tpColor(pct) {
-    if (pct === null) return '#64748b';
+    if (pct === null) return '#94a3b8';
     return pct <= 100 ? '#34d399' : '#f87171';  // <= 100% verde, > 100% vermelho
   }
   function tpDisplay(pct) {
@@ -1409,8 +1448,8 @@ function buildKPI() {
   // abVar: mais abertos que mês anterior = ruim = vermelho
   // clVar: mais fechados que mês anterior = bom = verde
   function varColor(v, moreIsBad) {
-    if (v === null) return '#64748b';
-    if (v === 0)    return '#64748b';
+    if (v === null) return '#94a3b8';
+    if (v === 0)    return '#94a3b8';
     return (v > 0) === moreIsBad ? '#f87171' : '#34d399';
   }
 
@@ -2197,7 +2236,7 @@ function buildIncKPIs() {
       var p1oc = (ocPrj.by_priority || {})['P1'] || {};
       var p1ocLabel = p1oc.pct ? 'P1: '+p1oc.pct+'% oncall' : ocPrj.countries.join(', ');
       ocCard = '<div onclick="toggleOncallDetail()" style="cursor:pointer">' +
-        kpiCard('&#127758; On-Call &#9660;', ocCount+' ('+ocPct+'%)', p1ocLabel, ocCol, 'Tickets abertos fora do horário comercial.\nFarmatodo: Seg-Sex 11h-23h UTC\n(VE/AR/CO cobertura combinada)\nGDN: Seg-Sex 11h-21h UTC (Argentina)\nChanel: Seg-Sex 11h-21h UTC (Brasil)\nFins de semana = sempre on-call.\n\nClique para ver análise detalhada.') +
+        kpiCard('&#127758; On-Call &#9660;', ocCount+' ('+ocPct+'%)', p1ocLabel, ocCol, 'Tickets abertos fora do horário comercial.\nConsulte a aba de On-call para detalhes de janelas por projeto.\n\nClique para ver análise detalhada.') +
         '</div>';
     }
     // ────────────────────────────────────────────────────────────
@@ -2210,7 +2249,7 @@ function buildIncKPIs() {
       kpiCard('Aging +30d', ages.gt30, inc_open.length+' abertos', ages.gt30 > 0 ? '#f87171' : '#34d399',
         'Incidentes ainda abertos há mais\nde 30 dias sem resolução.\nContagem sobre tickets com status\nnão fechado/resolved no filtro ativo.')+
       kpiCard('Reopen Rate', reopen.rate+'%', reopen.count+' rejected', reopen.rate > 5 ? '#f87171' : '#34d399',
-        'Tickets rejeitados / total fechados.\nRejected = proxy de reabertura.\nVermelho se > 5%.\nFiltros: projeto, ano, mês.')+
+        'Tickets reabertos após fechamento (status Rejected) sobre o total de tickets fechados no período.\nMede se as resoluções estão "matando" o problema de verdade.\nTarget: abaixo de 5%.')+
       ocCard +
       '</div>';
   }
@@ -2280,7 +2319,7 @@ function buildOncallDetail(forceShow) {
   if (!el || (!_ocDetailOpen && !forceShow)) return;
 
   var _oc = (typeof SMD_ONCALL !== 'undefined') ? SMD_ONCALL : {};
-  var OC_PROJECTS = ['Farmatodo', 'GDN', 'Chanel'];
+  var OC_PROJECTS = Object.keys(_oc);
   var showProjects = (selProject && OC_PROJECTS.indexOf(selProject) >= 0) ? [selProject] : OC_PROJECTS;
   var validProjects = showProjects.filter(function(p) { return _oc[p]; });
 
@@ -3016,7 +3055,7 @@ function buildAICards() {
 
   // Barra compacta de contexto — não afeta layout dos cards
   var hsVal = (kpi && kpi.health_score!==undefined) ? kpi.health_score : null;
-  var hsCol = hsVal!==null?(hsVal>=75?'#34d399':hsVal>=50?'#fbbf24':'#f87171'):'#64748b';
+  var hsCol = hsVal!==null?(hsVal>=75?'#34d399':hsVal>=50?'#fbbf24':'#f87171'):'#94a3b8';
   var prjBar = '<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;padding:4px 10px;' +
     'background:rgba(255,107,0,0.08);border-radius:5px;border-left:3px solid #FF6B00">' +
     '<span style="font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--muted)">PROJETO</span>' +
@@ -3037,7 +3076,7 @@ function buildAICards() {
     var colVal   = realHS!==null ? (realHS>=75?'green':realHS>=50?'yellow':'red') : (isOk ? (hs.color || 'blue') : 'gray');
     var scoreColor = {
       'red':'#f87171','orange':'#f97316','yellow':'#fbbf24',
-      'green':'#34d399','blue':'#60a5fa','gray':'#64748b'
+      'green':'#34d399','blue':'#60a5fa','gray':'#94a3b8'
     }[colVal] || colVal;
     var isSel    = (_selAI === key);
 
@@ -3242,8 +3281,8 @@ function renderOpsDetail(ai) {
   // ── Health Score ─────────────────────────────────────────────
   if (ai.health_score) {
     var hs = ai.health_score;
-    var colMap = {red:'#f87171',orange:'#f97316',yellow:'#fbbf24',green:'#34d399',blue:'#60a5fa',gray:'#64748b'};
-    var col = colMap[hs.color] || '#64748b';
+    var colMap = {red:'#f87171',orange:'#f97316',yellow:'#fbbf24',green:'#34d399',blue:'#60a5fa',gray:'#94a3b8'};
+    var col = colMap[hs.color] || '#94a3b8';
     h += '<div class="ai-section">';
     h += '<div class="ai-section-title">Health Score Operacional</div>';
     h += '<div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">';
@@ -3315,7 +3354,7 @@ function renderOpsDetail(ai) {
     });
     h += '</div>';
     if (bk.worst_aging_days > 0) {
-      var wCol = bk.worst_aging_days > 100 ? '#f87171' : bk.worst_aging_days > 30 ? '#fbbf24' : '#64748b';
+      var wCol = bk.worst_aging_days > 100 ? '#f87171' : bk.worst_aging_days > 30 ? '#fbbf24' : '#94a3b8';
       h += '<div style="font-size:10px;color:'+wCol+';padding:6px 12px;background:var(--bg);border-radius:7px;margin-bottom:6px">'+
            '⚠ Ticket mais antigo: <strong>'+bk.worst_aging_days+' dias</strong></div>';
     }
@@ -3327,7 +3366,7 @@ function renderOpsDetail(ai) {
   if (ai.alerts && ai.alerts.length) {
     h += '<div class="ai-section"><div class="ai-section-title">Alertas ('+ai.alerts.length+')</div>';
     ai.alerts.forEach(function(a) {
-      var ac = {'CRITICO':'#f87171','ALTO':'#f97316','MEDIO':'#fbbf24'}[a.level]||'#64748b';
+      var ac = {'CRITICO':'#f87171','ALTO':'#f97316','MEDIO':'#fbbf24'}[a.level]||'#94a3b8';
       h += '<div class="ai-alert" style="border-left:3px solid '+ac+';background:'+ac+'11;padding:8px 12px;border-radius:0 6px 6px 0;margin-bottom:6px;display:flex;justify-content:space-between;align-items:flex-start">';
       h += '<div><span style="font-size:9px;font-weight:700;color:'+ac+'">'+a.level+'</span>';
       h += '<div style="font-size:11px;color:var(--text);margin-top:2px">'+esc(a.message)+'</div></div>';
@@ -3341,7 +3380,7 @@ function renderOpsDetail(ai) {
   if (ai.recommendations && ai.recommendations.length) {
     h += '<div class="ai-section"><div class="ai-section-title">Recomendações ITIL</div>';
     ai.recommendations.forEach(function(r) {
-      var pc = {'IMEDIATA':'#f87171','CURTO_PRAZO':'#f97316','MEDIO_PRAZO':'#fbbf24','LONGO_PRAZO':'#60a5fa'}[r.priority||'']||'#64748b';
+      var pc = {'IMEDIATA':'#f87171','CURTO_PRAZO':'#f97316','MEDIO_PRAZO':'#fbbf24','LONGO_PRAZO':'#60a5fa'}[r.priority||'']||'#94a3b8';
       h += '<div class="ai-rec" style="margin-bottom:10px;padding:10px 12px;background:var(--bg);border-radius:8px;border-left:3px solid '+pc+'">';
       h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
       h += '<span style="font-size:8px;font-weight:700;padding:2px 7px;border-radius:10px;background:'+pc+'22;color:'+pc+';border:1px solid '+pc+'44">'+(r.priority||'').replace(/_/g,' ')+'</span>';
@@ -3362,7 +3401,7 @@ function renderOpsDetail(ai) {
     [['jan_2026','Jan/26'],['feb_2026','Fev/26'],['mar_2026','Mar/26']].forEach(function(item) {
       var t = tr[item[0]]; if (!t) return;
       var bal = t.balance || (t.inc_opened - t.inc_closed);
-      var bc = bal > 0 ? '#f87171' : bal < 0 ? '#34d399' : '#64748b';
+      var bc = bal > 0 ? '#f87171' : bal < 0 ? '#34d399' : '#94a3b8';
       h += '<div style="background:var(--bg);border-radius:7px;padding:8px;text-align:center">';
       h += '<div style="font-size:9px;color:var(--muted)">'+item[1]+'</div>';
       h += '<div style="font-size:11px;margin-top:4px"><span style="color:#FF6B00">▲'+t.inc_opened+'</span> ';
@@ -3471,7 +3510,7 @@ function renderPredictiveDetail(ai) {
     var maxInc = Math.max.apply(null, series.map(function(s){return s.inc||0;})) || 1;
     series.forEach(function(s) {
       var bal = s.balance || (s.inc - s.closed);
-      var balCol = bal > 0 ? '#f87171' : bal < 0 ? '#34d399' : '#64748b';
+      var balCol = bal > 0 ? '#f87171' : bal < 0 ? '#34d399' : '#94a3b8';
       var barH = Math.round((s.inc/maxInc)*60);
       h += '<div style="text-align:center">';
       h += '<div style="font-size:8px;color:var(--muted);margin-bottom:4px">'+(s.month||'').replace('20','').replace('-','/')+'</div>';
@@ -3515,7 +3554,7 @@ function renderPredictiveDetail(ai) {
     h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px">';
     ['P1','P2','P3','P4'].forEach(function(p) {
       var risk = sr[p]||'DESCONHECIDO';
-      var rc = {'ALTO':'#f87171','MEDIO':'#fbbf24','BAIXO':'#34d399','DESCONHECIDO':'#64748b'}[risk];
+      var rc = {'ALTO':'#f87171','MEDIO':'#fbbf24','BAIXO':'#34d399','DESCONHECIDO':'#94a3b8'}[risk];
       h += '<div style="background:var(--bg);border-radius:7px;padding:8px;text-align:center">';
       h += '<div style="font-family:var(--ft);font-size:8px;color:var(--muted)">'+p+'</div>';
       h += '<div style="font-size:13px;font-weight:700;color:'+rc+'">'+risk+'</div>';
@@ -3531,7 +3570,7 @@ function renderPredictiveDetail(ai) {
   if (ao.length) {
     h += '<div class="ai-section"><div class="ai-section-title">Analistas — Projeção de Carga (30 dias)</div>';
     ao.forEach(function(a) {
-      var rc = {'ALTO':'#f87171','MEDIO':'#fbbf24','BAIXO':'#34d399'}[a.risk]||'#64748b';
+      var rc = {'ALTO':'#f87171','MEDIO':'#fbbf24','BAIXO':'#34d399'}[a.risk]||'#94a3b8';
       var barW = Math.min(100, Math.round(a.projected_30d / 30 * 100));
       h += '<div style="margin-bottom:10px">';
       h += '<div style="display:flex;justify-content:space-between;margin-bottom:4px">';
@@ -3554,7 +3593,7 @@ function renderPredictiveDetail(ai) {
   if (rct.length) {
     h += '<div class="ai-section"><div class="ai-section-title">Root Causes — Tendência 6 Meses</div>';
     rct.forEach(function(r) {
-      var dc = {'crescendo':'#f87171','estavel':'#60a5fa','caindo':'#34d399'}[r.direction]||'#64748b';
+      var dc = {'crescendo':'#f87171','estavel':'#60a5fa','caindo':'#34d399'}[r.direction]||'#94a3b8';
       var arrow = {'crescendo':'↑','estavel':'→','caindo':'↓'}[r.direction]||'';
       h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--bg);border-radius:6px;margin-bottom:4px">';
       h += '<span style="font-size:11px;color:var(--text)">'+esc(r.rc)+'</span>';
@@ -3571,7 +3610,7 @@ function renderPredictiveDetail(ai) {
   if (re_arr.length) {
     h += '<div class="ai-section"><div class="ai-section-title">Eventos de Risco Identificados</div>';
     re_arr.forEach(function(r) {
-      var pc = {'alta':'#f87171','media':'#fbbf24','baixa':'#60a5fa'}[r.probability]||'#64748b';
+      var pc = {'alta':'#f87171','media':'#fbbf24','baixa':'#60a5fa'}[r.probability]||'#94a3b8';
       h += '<div style="padding:10px 12px;background:var(--bg);border-radius:8px;border-left:3px solid '+pc+';margin-bottom:8px">';
       h += '<div style="display:flex;justify-content:space-between;margin-bottom:4px">';
       h += '<span style="font-size:11px;color:var(--text);font-weight:600">'+esc(r.event)+'</span>';
@@ -3778,7 +3817,7 @@ function renderMarketDetail(ai) {
     h += '<div class="ai-section"><div class="ai-section-title">Roadmap de Evolução</div>';
     rmKeys.slice(0,3).forEach(function(phase, idx) {
       var items = Array.isArray(rm[phase]) ? rm[phase] : [rm[phase]];
-      var col = phaseColors[idx] || '#64748b';
+      var col = phaseColors[idx] || '#94a3b8';
       h += '<div style="margin-bottom:10px">' +
         '<div style="font-size:9px;font-weight:700;color:'+col+';letter-spacing:.06em;margin-bottom:5px">'+esc(phase).toUpperCase()+'</div>';
       items.slice(0,3).forEach(function(item) {
@@ -3832,7 +3871,7 @@ function renderQADetail(ai) {
       var pct  = s.pct !== undefined ? s.pct : (s.value !== undefined ? s.value : '-');
       var tgt  = s.target || (p==='P1'?98:95);
       var stat = s.status || (pct==='-'?'PENDENTE':pct>=tgt?'OK':'FALHA');
-      var col  = stat==='OK'?'#34d399':stat==='PENDENTE'?'#64748b':'#f87171';
+      var col  = stat==='OK'?'#34d399':stat==='PENDENTE'?'#94a3b8':'#f87171';
       h += '<div style="background:var(--bg);border-radius:6px;padding:7px;text-align:center">';
       h += '<div style="font-size:10px;font-weight:700;color:'+col+'">'+(pct!=='-'?pct+'%':'-')+'</div>';
       h += '<div style="font-size:8px;color:var(--muted)">'+p+' (target '+tgt+'%)</div>';
@@ -4431,7 +4470,7 @@ function buildHoje() {
           plugins:{
             legend:{display:true, labels:{color:'#475569',font:{size:8},boxWidth:10,padding:6}},
             tooltip:{backgroundColor:'#0B1F2C',borderColor:'#1a3a50',borderWidth:1,
-                     titleColor:'#94a3b8',bodyColor:'#e2e8f0',padding:6}
+                     titleColor:'#94a3b8',bodyColor:'#f1f5f9',padding:6}
           },
           scales:{
             x:{ticks:{color:'#475569',font:{size:9}},grid:{display:false}},
@@ -4722,7 +4761,7 @@ function buildForecastChart(mode) {
     },
     options:{
       responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'#0B1F2C',borderColor:'#1a3a50',borderWidth:1,titleColor:'#94a3b8',bodyColor:'#e2e8f0',padding:8,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#0B1F2C',borderColor:'#1a3a50',borderWidth:1,titleColor:'#94a3b8',bodyColor:'#f1f5f9',padding:8,
         callbacks:{label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.y;}}}},
       scales:{
         x:{ticks:{color:'#475569',font:{size:8}},grid:{color:'rgba(255,255,255,0.03)'}},
@@ -4788,51 +4827,194 @@ function buildComparativo() {
 
   var maxOpen = Math.max.apply(null, projs.map(function(p){ return stats[p].open||0; })) || 1;
 
-  var html = '<div class="cmp-grid">';
+  // Período de referência (usa filtros globais ou mês atual)
+  var curY = selYear ? +selYear : new Date().getFullYear();
+  var curM = selMonth ? +selMonth : new Date().getMonth() + 1;
+
+  // Pré-calcula composites e tendências por projeto (usa helpers da aba Cliente — escopo igual filtros globais)
+  var enriched = {};
+  projs.forEach(function(p){
+    var hs   = (typeof getServiceHealthScore === 'function') ? getServiceHealthScore(p, curY, curM) : null;
+    var kc   = (typeof getKPIsForPeriod      === 'function') ? getKPIsForPeriod(p, curY, curM)      : null;
+    var kp   = (typeof getPrevMonthKPIs      === 'function') ? getPrevMonthKPIs(p, curY, curM)      : null;
+    var mttr = (typeof getClientMTTR         === 'function') ? getClientMTTR(p, curY, curM)         : null;
+    var rr   = (typeof getResolutionRate     === 'function') ? getResolutionRate(p, curY, curM)     : null;
+    var ftf  = (typeof getFirstTimeFixRate   === 'function') ? getFirstTimeFixRate(p, curY, curM)   : null;
+    var ag   = (typeof getClientAging        === 'function') ? getClientAging(p)                    : null;
+    enriched[p] = {hs: hs, kc: kc, kp: kp, mttr: mttr, rr: rr, ftf: ftf, ag: ag};
+  });
+
+  // Sparkline 6 meses (abertos vs fechados) — retorna SVG inline
+  function sparkline(p) {
+    var data = [];
+    var y = curY, m = curM;
+    for (var i = 0; i < 6; i++) {
+      var key = y + '-' + (m < 10 ? '0' + m : m);
+      var o = 0, cl = 0;
+      ['incident','user_request','problem'].forEach(function(sev){
+        var ent = (D.monthly[sev] || {})[key]; if (!ent) return;
+        var oids = ent.o_ids || [], cids = ent.c_ids || [];
+        if (p === 'Todos os Projetos') { o += oids.length; cl += cids.length; }
+        else {
+          o  += oids.filter(function(id){var t=getTix(id); return t && t.prj === p;}).length;
+          cl += cids.filter(function(id){var t=getTix(id); return t && t.prj === p;}).length;
+        }
+      });
+      data.unshift({o: o, cl: cl});
+      m--; if (m === 0) { m = 12; y--; }
+    }
+    var max = 1;
+    data.forEach(function(d){ if (d.o > max) max = d.o; if (d.cl > max) max = d.cl; });
+    var W = 200, H = 32, step = W / (data.length - 1 || 1);
+    function path(key, color) {
+      var pts = data.map(function(d, i){ return (i*step).toFixed(1) + ',' + (H - d[key]/max * (H-2) - 1).toFixed(1); });
+      return '<polyline fill="none" stroke="' + color + '" stroke-width="1.5" points="' + pts.join(' ') + '"/>';
+    }
+    return '<svg class="cmp-spark" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' +
+      path('o', '#FF6B00') + path('cl', '#34d399') + '</svg>';
+  }
+
+  // Δ MoM badge (volume abertos do mês atual vs anterior)
+  function momBadge(p) {
+    var e = enriched[p];
+    if (!e.kc || !e.kp) return '';
+    var cur = e.kc.open, prev = e.kp.open;
+    if (cur === 0 && prev === 0) return '';
+    var d = prev > 0 ? Math.round((cur - prev) / prev * 1000) / 10 : (cur > 0 ? 100 : 0);
+    var cls = d > 5 ? 'up' : (d < -5 ? 'dn' : 'flat');
+    var arrow = d > 5 ? '&#9650;' : (d < -5 ? '&#9660;' : '&#9632;');
+    var sign = d > 0 ? '+' : '';
+    return '<span class="cmp-mom ' + cls + '" title="Variação de tickets abertos vs mês anterior">' + arrow + ' ' + sign + d + '%</span>';
+  }
+
+  // ── RANKING MODERNO (substitui heatmap) ──
+  // Calcula fill % de uma stat com base em thresholds (0-100). invert = "menor é melhor".
+  function rankFill(val, t) {
+    if (val === null || val === undefined || isNaN(val)) return null;
+    var color, pct;
+    if (t.invert) {
+      color = val <= t.green ? '#34d399' : val <= t.amber ? '#fbbf24' : '#f87171';
+      // Fill: 100% no verde, decai conforme afasta. Usa scale referência max ~ 3*amber
+      var max = Math.max(t.amber * 3, val);
+      pct = Math.max(8, 100 - (val / max * 100));
+    } else {
+      color = val >= t.green ? '#34d399' : val >= t.amber ? '#fbbf24' : '#f87171';
+      pct = Math.max(8, Math.min(100, val));
+    }
+    return {color: color, pct: Math.round(pct)};
+  }
+  function rankStat(label, val, t, fmt, tip) {
+    var f = rankFill(val, t);
+    if (f === null) {
+      return '<div class="cmp-rank-stat" title="' + (tip || label) + '">' +
+        '<div class="cmp-rank-stat-lbl">' + label + '</div>' +
+        '<div class="cmp-rank-stat-val na">—</div>' +
+        '<div class="cmp-rank-stat-bar"></div></div>';
+    }
+    var disp = fmt ? fmt(val) : val;
+    return '<div class="cmp-rank-stat" title="' + (tip || label) + '">' +
+      '<div class="cmp-rank-stat-lbl">' + label + '</div>' +
+      '<div class="cmp-rank-stat-val">' + disp + '</div>' +
+      '<div class="cmp-rank-stat-bar"><div class="cmp-rank-stat-fill" style="width:' + f.pct + '%;background:' + f.color + '"></div></div>' +
+    '</div>';
+  }
+
+  function buildRanking() {
+    // Ordena por Health Score desc (fallback: backlog asc)
+    var ranked = projs.slice().sort(function(a, b){
+      var hsA = (enriched[a].hs && enriched[a].hs.score) || -1;
+      var hsB = (enriched[b].hs && enriched[b].hs.score) || -1;
+      if (hsA !== hsB) return hsB - hsA;
+      return (stats[a].open || 0) - (stats[b].open || 0);
+    });
+
+    var rows = ranked.map(function(p){
+      var e = enriched[p], s = stats[p];
+      var sla = s.sla_total > 0 ? Math.round(s.sla_met / s.sla_total * 100) : null;
+      var hs   = e.hs ? e.hs.score : null;
+      var rr   = e.rr ? e.rr.rate : null;
+      var ftf  = e.ftf ? e.ftf.rate : null;
+      var mttr = e.mttr && e.mttr.median_h > 0 ? e.mttr.median_h : null;
+      var aging= e.ag ? e.ag.avg : null;
+      var mom  = (e.kc && e.kp && e.kp.open > 0) ? Math.round((e.kc.open - e.kp.open) / e.kp.open * 100) : null;
+
+      var hsCol = hs === null ? 'var(--dim)' : hs >= 80 ? '#34d399' : hs >= 60 ? '#fbbf24' : '#f87171';
+      var scoreHtml = hs !== null
+        ? '<div class="cmp-rank-score" style="color:' + hsCol + '" title="Service Health Score">' + hs + '</div>'
+        : '<div class="cmp-rank-score na" title="Sem dados">—</div>';
+
+      return '<div class="cmp-rank-row" onclick="applyProjectFilter(\'' + p.replace(/'/g,"\\'") + '\')">' +
+        '<div class="cmp-rank-name" title="' + esc(p) + '">' + esc(p) + '</div>' +
+        scoreHtml +
+        '<div class="cmp-rank-stats">' +
+          rankStat('SLA',     sla,    {green:95, amber:80}, function(v){return v + '%';}, 'SLA Incidents PRD') +
+          rankStat('Resol.',  rr,     {green:100, amber:80}, function(v){return v + '%';}, 'Resolução = Fechados ÷ Abertos') +
+          rankStat('FTF',     ftf,    {green:95, amber:85}, function(v){return v + '%';}, 'Resolução na 1ª Tentativa') +
+          rankStat('MTTR',    mttr,   {invert:true, green:12, amber:24}, function(v){return v + 'h';}, 'MTTR mediano P1+P2') +
+          rankStat('Backlog', s.open, {invert:true, green:20, amber:50}, null, 'Backlog total') +
+          rankStat('P1 abr.', s.p1,   {invert:true, green:0, amber:2}, null, 'P1 abertos') +
+          rankStat('Aging',   aging,  {invert:true, green:14, amber:30}, function(v){return v + 'd';}, 'Idade média backlog') +
+          rankStat('Δ MoM',   mom,    {invert:true, green:0, amber:20}, function(v){return (v>0?'+':'') + v + '%';}, 'Variação volume vs mês anterior') +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    return '<div class="cmp-rank-list">' +
+      '<div class="cmp-rank-head">' +
+        '<div>Projeto</div>' +
+        '<div style="text-align:center">Health</div>' +
+        '<div class="cmp-rank-head-stats">' +
+          '<div>SLA</div><div>Resol.</div><div>FTF</div><div>MTTR</div>' +
+          '<div>Backlog</div><div>P1 abr.</div><div>Aging</div><div>Δ MoM</div>' +
+        '</div>' +
+      '</div>' + rows +
+    '</div>';
+  }
+
+  // ── RENDER ──
+  var html = buildRanking() + '<div class="cmp-grid">';
   projs.forEach(function(p) {
     var s   = stats[p];
+    var e   = enriched[p];
     var sla = s.sla_total > 0 ? Math.round(s.sla_met/s.sla_total*100) : null;
-    var slaCol = sla===null?'#64748b': sla>=95?'#34d399': sla>=80?'#fbbf24':'#f87171';
+    var slaCol = sla===null?'#94a3b8': sla>=95?'#34d399': sla>=80?'#fbbf24':'#f87171';
     var barW= Math.round((s.open||0)/maxOpen*100);
     var barCol = s.open>=50?'#f87171': s.open>=20?'#f97316':'#60a5fa';
     var cardClass = 'cmp-card' + (s.open>=50?' cmp-crit': s.open>=20?' cmp-warn':'');
+    var hs = e.hs ? e.hs.score : null;
+    var hsCol = hs === null ? 'var(--dim)' : hs >= 80 ? '#34d399' : hs >= 60 ? '#fbbf24' : '#f87171';
 
     html += '<div class="'+cardClass+'" onclick="applyProjectFilter(\''+p.replace(/'/g,"\\'")+'\''+')">';
 
-    // Project name
-    html += '<div class="cmp-proj-name" title="'+esc(p)+'">'+esc(p)+'</div>';
+    // Header: nome + Health Score
+    html += '<div class="cmp-card-head">' +
+      '<div class="cmp-proj-name" title="'+esc(p)+'">'+esc(p)+'</div>' +
+      (hs !== null ? '<div class="cmp-health" style="color:'+hsCol+'" title="Service Health Score (0-100)">'+hs+'</div>' : '') +
+    '</div>';
 
-    // KPI rows
-    html += '<div class="cmp-kpi-row">';
-    html +=   '<span class="cmp-kpi-lbl">Backlog Total</span>';
-    html +=   '<span class="cmp-kpi-val" style="color:'+(s.open>=50?'#f87171':s.open>=20?'#f97316':'var(--text)')+'">'+s.open+'</span>';
-    html += '</div>';
-
-    html += '<div class="cmp-kpi-row">';
-    html +=   '<span class="cmp-kpi-lbl">RC / Cliente</span>';
-    html +=   '<span class="cmp-kpi-val" style="font-size:10px;color:var(--muted)">'+s.rc+' / '+s.cli+'</span>';
-    html += '</div>';
-
-    html += '<div class="cmp-kpi-row">';
-    html +=   '<span class="cmp-kpi-lbl">INC / UR / PRB</span>';
-    html +=   '<span class="cmp-kpi-val" style="font-size:10px;color:var(--muted)">'+s.inc+' / '+s.ur+' / '+s.prb+'</span>';
-    html += '</div>';
-
+    // KPIs — compactos
+    html += '<div class="cmp-kpi-row">' +
+      '<span class="cmp-kpi-lbl">Backlog Total</span>' +
+      '<span class="cmp-kpi-val" style="color:'+(s.open>=50?'#f87171':s.open>=20?'#f97316':'var(--text)')+'">' + s.open + ' ' + momBadge(p) + '</span>' +
+    '</div>';
+    html += '<div class="cmp-kpi-row"><span class="cmp-kpi-lbl">RC / Cliente</span>' +
+      '<span class="cmp-kpi-val" style="font-size:10px;color:var(--muted)">'+s.rc+' / '+s.cli+'</span></div>';
+    html += '<div class="cmp-kpi-row"><span class="cmp-kpi-lbl">INC / UR / PRB</span>' +
+      '<span class="cmp-kpi-val" style="font-size:10px;color:var(--muted)">'+s.inc+' / '+s.ur+' / '+s.prb+'</span></div>';
     if (s.p1 > 0) {
-      html += '<div class="cmp-kpi-row">';
-      html +=   '<span class="cmp-kpi-lbl">P1 aberto</span>';
-      html +=   '<span class="cmp-kpi-val" style="color:#f87171;font-weight:700">'+s.p1+'</span>';
-      html += '</div>';
+      html += '<div class="cmp-kpi-row"><span class="cmp-kpi-lbl">P1 aberto</span>' +
+        '<span class="cmp-kpi-val" style="color:#f87171;font-weight:700">'+s.p1+'</span></div>';
     }
-
     if (sla !== null) {
-      html += '<div class="cmp-kpi-row">';
-      html +=   '<span class="cmp-kpi-lbl">SLA INC PRD</span>';
-      html +=   '<span class="cmp-kpi-val" style="color:'+slaCol+'">'+sla+'%</span>';
-      html += '</div>';
+      html += '<div class="cmp-kpi-row"><span class="cmp-kpi-lbl">SLA INC PRD</span>' +
+        '<span class="cmp-kpi-val" style="color:'+slaCol+'">'+sla+'%</span></div>';
     }
 
-    // Progress bar (open tickets)
+    // Sparkline 6 meses
+    html += sparkline(p);
+    html += '<div style="font-size:8px;color:var(--dim);text-align:center;margin-top:-4px">últimos 6 meses · <span style="color:#FF6B00">abertos</span> · <span style="color:#34d399">fechados</span></div>';
+
+    // Bar (volume relativo)
     html += '<div class="cmp-bar-wrap"><div class="cmp-bar" style="width:'+barW+'%;background:'+barCol+'"></div></div>';
 
     html += '</div>'; // .cmp-card
@@ -4898,7 +5080,7 @@ function exportSummary() {
                col + '22;color:' + col + ';border:1px solid ' + col + '44;font-size:11px">' +
                p + ': ' + s.pct + '%</span>';
   });
-  if (!slaInfo) slaInfo = '<span style="color:#64748b;font-size:11px">Sem dados SLA</span>';
+  if (!slaInfo) slaInfo = '<span style="color:#94a3b8;font-size:11px">Sem dados SLA</span>';
 
   var attnItems = document.querySelectorAll('.attn-item');
 
@@ -4906,16 +5088,16 @@ function exportSummary() {
     'body{font-family:Arial,sans-serif;background:#fff;color:#0B1F2C;padding:28px 36px;margin:0}',
     '.hdr{border-bottom:3px solid #FF6B00;padding-bottom:12px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end}',
     '.ttl{font-size:22px;font-weight:700;color:#FF6B00}',
-    '.sub{font-size:12px;color:#64748b;margin-top:4px}',
+    '.sub{font-size:12px;color:#94a3b8;margin-top:4px}',
     '.dt{font-size:14px;font-weight:700}',
     '.sec{margin-bottom:20px}',
-    '.sec-ttl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;border-bottom:1px solid #e2e8f0;padding-bottom:6px;margin-bottom:12px}',
+    '.sec-ttl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;border-bottom:1px solid #f1f5f9;padding-bottom:6px;margin-bottom:12px}',
     '.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}',
-    '.card{background:#f8fafc;border-radius:8px;padding:12px 14px;border:1px solid #e2e8f0}',
-    '.cl{font-size:10px;color:#64748b;margin-bottom:4px}',
+    '.card{background:#f8fafc;border-radius:8px;padding:12px 14px;border:1px solid #f1f5f9}',
+    '.cl{font-size:10px;color:#94a3b8;margin-bottom:4px}',
     '.cv{font-size:24px;font-weight:700;color:#0B1F2C}',
     '.ai{padding:7px 12px;margin-bottom:6px;border-radius:6px;border-left:3px solid #f97316;background:#fff7ed;font-size:11px}',
-    '.ft{margin-top:24px;padding-top:12px;border-top:1px solid #e2e8f0;font-size:10px;color:#94a3b8;text-align:center}'
+    '.ft{margin-top:24px;padding-top:12px;border-top:1px solid #f1f5f9;font-size:10px;color:#94a3b8;text-align:center}'
   ].join('');
 
   var body_html = '<div class="hdr">' +
@@ -5026,7 +5208,8 @@ function getTSMonth() {
 function getTSAgg() {
   var months = getTSMonth();
   var agg = { total_h:0, total_days:0, overtime_h:0, headcount_set:{},
-               staff:{}, tasks:{}, subs:{}, sub_projects:{}, weekly:[] };
+               staff:{}, tasks:{}, subs:{}, sub_projects:{}, weekly:[],
+               by_career_grade:{}, grade_details:{} };
   Object.values(months).forEach(function(b) {
     agg.total_h    += b.total_h    || 0;
     agg.total_days += b.total_days || 0;
@@ -5036,6 +5219,19 @@ function getTSAgg() {
     Object.keys(b.by_subsidiary||{}).forEach(function(s){ agg.subs[s] = (agg.subs[s]||0) + (b.by_subsidiary[s]||0); });
     (b.sub_projects||[]).forEach(function(p){ agg.sub_projects[p.name] = (agg.sub_projects[p.name]||0) + p.h; });
     (b.weekly||[]).forEach(function(w){ agg.weekly.push(w); });
+
+    // Career Grade Aggregation
+    if (b.by_career_grade) {
+      Object.keys(b.by_career_grade).forEach(function(g) {
+        agg.by_career_grade[g] = (agg.by_career_grade[g] || 0) + b.by_career_grade[g];
+      });
+    }
+    if (b.grade_details) {
+      Object.keys(b.grade_details).forEach(function(g) {
+        if (!agg.grade_details[g]) agg.grade_details[g] = [];
+        agg.grade_details[g] = agg.grade_details[g].concat(b.grade_details[g]);
+      });
+    }
   });
   agg.headcount = Object.keys(agg.staff).length;
   agg.avg_h_per_staff = agg.headcount ? Math.round(agg.total_h / agg.headcount * 10) / 10 : 0;
@@ -5054,8 +5250,9 @@ function getTSAgg() {
 
 function buildTimesheet() {
   var c = document.getElementById('panel-timesheet'); if (!c) return;
-  var agg = getTSAgg();
-  var orange = '#fb923c', blue = '#60a5fa', green = '#34d399', purple = '#a78bfa', dim = '#64748b';
+  try {
+    var agg = getTSAgg();
+  var orange = '#fb923c', blue = '#60a5fa', green = '#34d399', purple = '#a78bfa', dim = '#94a3b8';
 
   function kpiBadge(icon, label, val, color, tip) {
     var tipAttrs = tip ? ' class="tip" data-tip="'+tip+'"' : '';
@@ -5077,30 +5274,35 @@ function buildTimesheet() {
   var priCount = {P1:0, P2:0, P3:0, P4:0}; // Prioridade real (P1-P4)
   var catData  = {}; 
 
-  ['incident','user_request','problem','change_request','internal'].forEach(function(sevType) {
+  // ── FILTRAGEM DE TICKETS (ALINHADO COM EXEC HEADER) ──────────
+  var counted = 0;
+  var sevCount = {}; 
+  var catData  = {}; 
+
+  // Definimos quais severidades contam para o "Range" de MDs Planejados
+  // Conforme o Exec Header, apenas Incident e User Request geram a contagem de faturamento
+  var billingSevs = ['incident','user_request'];
+  var allSevs = ['incident','user_request','problem','change_request','internal'];
+
+  allSevs.forEach(function(sevType) {
     var entry = (D.monthly[sevType] || {})[tKey];
     if (!entry) return;
     var ids = filterByProject(entry.o_ids || []);
     ids.forEach(function(tid) {
       var t = getTix(tid);
       if (t && t.st !== 'rejected') {
-        counted++;
+        // Apenas billingSevs incrementam o 'counted' para o range de faturamento
+        if (billingSevs.indexOf(sevType) >= 0) counted++;
         
-        // 1. Severidade
         var sVal = (t.sev || t.sv || 'unknown').toUpperCase();
         sevCount[sVal] = (sevCount[sVal] || 0) + 1;
         
-        // 2. Prioridade (P1-P4)
-        var pVal = (t.pr || 'P4').toUpperCase();
-        if (priCount[pVal] !== undefined) priCount[pVal]++;
-        
-        // 3. Complexidade (Categoria)
-        var cat = t.ap || 'N/A'; // Usando Application como categoria/módulo principal
+        var cat = t.ap || 'N/A';
         if (!catData[cat]) catData[cat] = { tix: 0, mttrSum: 0, closed: 0 };
         catData[cat].tix++;
         if (t.st === 'closed' && t.op && t.cl) {
           var d1 = new Date(t.op), d2 = new Date(t.cl);
-          var diff = (d2 - d1) / (1000 * 3600); // hrs
+          var diff = (d2 - d1) / (1000 * 3600); 
           if (diff >= 0) { catData[cat].mttrSum += diff; catData[cat].closed++; }
         }
       }
@@ -5117,23 +5319,13 @@ function buildTimesheet() {
   });
 
   var ranges = CFG.ranges.filter(function(r){ return r.max > 0; });
-  var curR = null;
-  for (var i = 0; i < ranges.length; i++) {
-    if (counted >= ranges[i].min && counted <= ranges[i].max) { curR = ranges[i]; break; }
-  }
-  if (!curR && ranges.length) {
-    if (counted > ranges[ranges.length-1].max) {
-       curR = {min: ranges[ranges.length-1].max + 1, max: Math.ceil(counted/10)*10, effort_mds: (Math.ceil(counted/10)*10)*0.07 };
-    } else { curR = ranges[0]; }
-  }
-  if (!curR) curR = {min:0, max:0, effort_mds:0};
-
-  var plannedMD = curR.effort_mds;
+  var matchedRng = ranges.find(function(r){ return counted >= r.min && counted <= r.max; });
+  var plannedMD = matchedRng ? matchedRng.effort_mds : 0;
+  var deltaMD   = consumedMD - plannedMD;
   var efficiency = plannedMD > 0 ? Math.round((consumedMD / plannedMD) * 100) : 0;
   var effCol = efficiency > 100 ? '#f87171' : efficiency > 85 ? '#fbbf24' : '#34d399';
   
   // Novos Cálculos
-  var deltaMD = plannedMD - consumedMD;
   var deltaCol = deltaMD >= 0 ? '#34d399' : '#f87171';
   var mdPerTicketReal = counted > 0 ? (consumedMD / counted) : 0;
   var mdPerTicketPlan = plannedMD > 0 ? (plannedMD / counted) : 0;
@@ -5174,7 +5366,7 @@ function buildTimesheet() {
     return '<div style="margin-bottom:8px">' +
       '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">' +
         '<span>' + rank + ' ' + s.name + '</span>' +
-        '<span style="color:' + orange + ';font-weight:700">' + s.h + 'h</span>' +
+        '<span style="color:' + orange + ';font-weight:700">' + (s.h/8).toFixed(2) + ' MD</span>' +
       '</div>' +
       '<div style="background:rgba(255,255,255,0.06);border-radius:3px;height:5px">' +
         '<div style="width:' + pct + '%;height:100%;background:' + orange + ';border-radius:3px;transition:.3s"></div>' +
@@ -5189,11 +5381,21 @@ function buildTimesheet() {
     return '<div style="margin-bottom:8px">' +
       '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">' +
         '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px">' + t.task + '</span>' +
-        '<span style="color:' + blue + ';font-weight:700;white-space:nowrap">' + t.h + 'h <span style="color:var(--muted);font-weight:400">(' + taskPct + '%)</span></span>' +
+        '<span style="color:' + blue + ';font-weight:700;white-space:nowrap">' + (t.h/8).toFixed(2) + ' MD <span style="color:var(--muted);font-weight:400">(' + taskPct + '%)</span></span>' +
       '</div>' +
       '<div style="background:rgba(255,255,255,0.06);border-radius:3px;height:5px">' +
         '<div style="width:' + pct + '%;height:100%;background:' + blue + ';border-radius:3px;transition:.3s"></div>' +
       '</div></div>';
+  }).join('');
+
+  // ── SUB-PROJETOS ──────────────────────────────────────────────
+  var spRows = agg.top_sub_projects.map(function(p) {
+    var pct = agg.total_h > 0 ? Math.round(p.h / agg.total_h * 100) : 0;
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:10px">' +
+      '<span style="flex:1;color:var(--fg)">' + p.name + '</span>' +
+      '<span style="color:var(--muted);margin-right:10px">' + pct + '%</span>' +
+      '<span style="color:' + green + ';font-weight:700">' + (p.h/8).toFixed(2) + ' MD</span>' +
+    '</div>';
   }).join('');
 
   // ── SUBSIDIARY ────────────────────────────────────────────────
@@ -5204,19 +5406,54 @@ function buildTimesheet() {
       '<div style="width:10px;height:10px;border-radius:50%;background:' + (subColors[i]||dim) + ';flex-shrink:0"></div>' +
       '<span style="flex:1">' + s.sub + '</span>' +
       '<span style="color:' + (subColors[i]||dim) + ';font-weight:700">' + pct + '%</span>' +
-      '<span style="color:var(--muted)">' + s.h + 'h</span>' +
+      '<span style="color:var(--muted)">' + (s.h/8).toFixed(2) + ' MD</span>' +
     '</div>';
   }).join('');
 
-  // ── SUB-PROJETOS ──────────────────────────────────────────────
-  var spRows = agg.top_sub_projects.map(function(p) {
-    var pct = agg.total_h > 0 ? Math.round(p.h / agg.total_h * 100) : 0;
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:10px">' +
-      '<span style="flex:1;color:var(--fg)">' + p.name + '</span>' +
-      '<span style="color:var(--muted);margin-right:10px">' + pct + '%</span>' +
-      '<span style="color:' + green + ';font-weight:700">' + p.h + 'h</span>' +
+  // ── CAREER GRADE (SENIORITY) ───────────────────────────────
+  var gradeRows = Object.keys(agg.by_career_grade || {}).sort().map(function(g) {
+    var val = agg.by_career_grade[g];
+    var pct = consumedMD > 0 ? Math.round(val / consumedMD * 100) : 0;
+    var col = g.startsWith('3') ? '#f87171' : (g.startsWith('2') ? '#fb923c' : '#60a5fa');
+    return '<div style="margin-bottom:12px">' +
+      '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">' +
+        '<span>Grade <b>' + g + '</b></span>' +
+        '<span style="font-weight:700;color:' + col + '">' + val.toFixed(1) + ' MD (' + pct + '%)</span>' +
+      '</div>' +
+      '<div style="background:rgba(255,255,255,0.05);height:6px;border-radius:3px;overflow:hidden">' +
+        '<div style="width:' + pct + '%;height:100%;background:' + col + ';border-radius:3px"></div>' +
+      '</div>' +
     '</div>';
   }).join('');
+
+  // ── DETALHES POR RECURSO (LISTA ORDENADA) ─────────────────────
+  var staffByGrade = '';
+  var sortedGrades = Object.keys(agg.grade_details || {}).sort(function(a,b){
+    if(a==='N/A') return 1; if(b==='N/A') return -1;
+    return b.localeCompare(a);
+  });
+
+  sortedGrades.forEach(function(g) {
+    var people = agg.grade_details[g];
+    var gradeTotalMD = agg.by_career_grade[g] || 0;
+    var gCol = g.startsWith('4') ? '#a78bfa' : (g.startsWith('3') ? '#f87171' : (g.startsWith('2') ? '#fb923c' : '#60a5fa'));
+    
+    staffByGrade += '<div style="margin-bottom:20px;background:rgba(255,255,255,0.02);padding:10px;border-radius:4px;border-left:3px solid ' + gCol + '">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:6px">' +
+        '<span style="font-size:11px;font-weight:700;color:' + gCol + '">GRADE ' + g + '</span>' +
+        '<span style="font-size:11px;font-weight:700;color:' + gCol + '">' + gradeTotalMD.toFixed(2) + ' MD</span>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));gap:10px 30px">';
+    
+    people.forEach(function(p) {
+      staffByGrade += '<div style="display:flex;justify-content:space-between;font-size:11px">' +
+        '<span style="color:var(--fg)">' + p.name + ' <small style="color:var(--dim);margin-left:4px">' + p.sub + '</small></span>' +
+        '<span style="font-weight:600;color:var(--fg)">' + p.d.toFixed(2) + ' <small style="color:var(--dim)">MD</small></span>' +
+      '</div>';
+    });
+    
+    staffByGrade += '</div></div>';
+  });
 
   // ── TREND SPARKLINE ────────────────────────────────────────────
   var sparkHtml = '';
@@ -5316,7 +5553,7 @@ function buildTimesheet() {
               var share = counted > 0 ? (count / counted) : 0;
               var mds = consumedMD * share;
               var pct = Math.round(share * 100);
-              var col = colors[p] || '#64748b';
+              var col = colors[p] || '#94a3b8';
               return '<div style="margin-bottom:10px">' +
                 '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">' +
                   '<span>' + p + ' <small style="color:var(--dim)">(' + count + ' tix)</small></span>' +
@@ -5325,46 +5562,31 @@ function buildTimesheet() {
                 '<div style="background:rgba(255,255,255,0.06);border-radius:3px;height:5px">' +
                   '<div style="width:' + pct + '%;height:100%;background:' + col + ';border-radius:3px;transition:.3s"></div>' +
                 '</div></div>';
-            }).join('');
+            }).join('').replace(/<div/g, function(match, offset, string) {
+                // Injeta o evento de duplo clique nas severidades se estiver na string correta
+                if (string.substring(offset).startsWith('<div style="margin-bottom:10px">')) {
+                   // Precisamos de uma lógica mais esperta aqui para pegar a severidade 'p'
+                   // Mas como estamos dentro de um map, o ideal é fazer o replace direto no retorno do map anterior.
+                }
+                return match;
+            });
+
           })() +
+        '</div>' +
+        // Esforço por Senioridade (Career Grade)
+        '<div class="cb" style="padding:14px">' +
+          '<div class="cbt" style="margin-bottom:12px;color:#fb923c">&#127891; Career Grade (Seniority)</div>' +
+          (gradeRows || '<div style="color:var(--dim);font-size:11px">Sem dados de grade</div>') +
         '</div>' +
         // Top Staff
         '<div class="cb" style="padding:14px">' +
           '<div class="cbt" style="margin-bottom:12px;color:' + orange + '">&#128101; Top Colaboradores</div>' +
           (staffRows || '<div style="color:var(--dim);font-size:11px">Sem dados</div>') +
         '</div>' +
-        // Top Tasks
-        '<div class="cb" style="padding:14px">' +
-          '<div class="cbt" style="margin-bottom:12px;color:' + blue + '">&#128203; Distribuição por Tarefa</div>' +
-          (taskRows || '<div style="color:var(--dim);font-size:11px">Sem dados</div>') +
-        '</div>' +
       '</div>' +
       
-      // Grid Inferior (2 colunas)
-      '<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:12px">' +
-        // Esforço por Prioridade (MDs)
-        '<div class="cb" style="padding:14px">' +
-          '<div class="cbt" style="margin-bottom:12px;color:' + purple + '">&#9874; Esforço por Prioridade</div>' +
-          (function() {
-            var priList = ['P1','P2','P3','P4'];
-            var pCols = {P1:'#f87171', P2:'#fb923c', P3:'#fbbf24', P4:'#60a5fa'};
-            return priList.map(function(p) {
-              var count = priCount[p] || 0;
-              var share = counted > 0 ? (count / counted) : 0;
-              var mds = consumedMD * share;
-              var pct = Math.round(share * 100);
-              var col = pCols[p];
-              return '<div style="margin-bottom:10px">' +
-                '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">' +
-                  '<span>' + p + '</span>' +
-                  '<span style="font-weight:700;color:'+col+'">' + mds.toFixed(2) + ' MD</span>' +
-                '</div>' +
-                '<div style="background:rgba(255,255,255,0.06);border-radius:3px;height:5px">' +
-                  '<div style="width:' + pct + '%;height:100%;background:' + col + ';border-radius:3px;transition:.3s"></div>' +
-                '</div></div>';
-            }).join('');
-          })() +
-        '</div>' +
+      // Grid Médio (2 colunas)
+      '<div style="display:grid;grid-template-columns:1.5fr 1fr;gap:12px">' +
         // Matriz de Complexidade (MTTR vs MD)
         '<div class="cb" style="padding:14px">' +
           '<div class="cbt" style="margin-bottom:12px;color:' + green + '">&#128200; Matriz de Complexidade (MTTR vs MD)</div>' +
@@ -5372,6 +5594,12 @@ function buildTimesheet() {
             '<thead><tr><th>Aplicação/Módulo</th><th style="text-align:center">Tix</th><th style="text-align:right">MD</th><th style="text-align:right">MTTR</th></tr></thead>' +
             '<tbody>' + (complexityRows || '<tr><td colspan="4" style="text-align:center;color:var(--dim)">Sem dados</td></tr>') + '</tbody>' +
           '</table>' +
+        '</div>' +
+
+        // Distribuição por Tarefa (Subiu para o grid médio)
+        '<div class="cb" style="padding:14px">' +
+          '<div class="cbt" style="margin-bottom:12px;color:' + blue + '">&#128221; Distribuição por Tarefa</div>' +
+          (taskRows || '<div style="color:var(--dim);font-size:11px">Sem dados</div>') +
         '</div>' +
       '</div>' +
 
@@ -5388,14 +5616,108 @@ function buildTimesheet() {
           (spRows || '<div style="color:var(--dim);font-size:11px">Sem dados</div>') +
         '</div>' +
       '</div>' +
-      // Tendência semanal (full width)
-      (agg.weekly.length > 1 ?
-        '<div class="cb" style="padding:14px;margin-top:12px">' +
-          '<div class="cbt" style="margin-bottom:4px;color:' + orange + '">&#128200; Tendência Semanal de Horas</div>' +
-          sparkHtml +
-        '</div>' : '') +
+      // Equipe Detalhada (Full Width no lugar da tendência)
+      '<div class="cb" style="padding:16px;margin-top:12px">' +
+        '<div class="cbt" style="margin-bottom:16px;color:#a78bfa;display:flex;justify-content:space-between;align-items:center">' +
+          '<span>&#128101; DETALHAMENTO DE EQUIPE POR NÍVEL (GRADE)</span>' +
+          '<div style="text-align:right">' +
+            '<div style="font-size:11px;color:var(--fg);font-weight:700">' + (matchedRng ? matchedRng.label : 'Fora de Faixa') + ' | Consumo em ' + MPT[selMonth||(new Date().getMonth()+1)] + '/' + (selYear||new Date().getFullYear()) + ': <span style="color:#a78bfa">' + consumedMD.toFixed(2) + ' MDs</span></div>' +
+            '<div style="font-size:9px;color:var(--dim)">Total acumulado de ' + agg.headcount + ' recursos no período</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:12px">' +
+          staffByGrade +
+        '</div>' +
+      '</div>' +
     '</div>';
+
+  } catch (e) {
+    console.error("Error building Timesheet:", e);
+    c.innerHTML = '<div style="padding:40px;text-align:center;color:#f87171">' +
+      '<div style="font-size:32px;margin-bottom:16px">⚠️</div>' +
+      '<div style="font-size:16px;font-weight:700">Erro ao carregar Timesheet</div>' +
+      '<div style="font-size:12px;margin-top:8px;color:var(--muted)">' + e.message + '</div>' +
+      '<button onclick="location.reload()" style="margin-top:20px;padding:8px 16px;background:#334155;border:none;border-radius:4px;color:white;cursor:pointer">Recarregar Dashboard</button>' +
+    '</div>';
+  }
 }
+
+function showStaleProblemsDetail(prj) {
+  var list = _filterProblems(prj).filter(function(o) {
+    if (!o.p.is_open) return false;
+    if (!o.p.opening) return false;
+    var today = new Date();
+    var od = new Date(o.p.opening);
+    return !isNaN(od) && (today - od) / 86400000 > 30;
+  }).map(function(o) {
+    var incs = _filterIncs(o.p.incidents, prj);
+    var inc_md = incs.reduce(function(s,i){ return s + (+i.md || 0); }, 0);
+    return {
+      ticket: o.p.ticket, app: o.p.app, status: o.p.status, priority: o.p.priority,
+      inc_count: incs.length, self_md: (+o.p.self_md || 0),
+      inc_md: inc_md, total_md: ((+o.p.self_md || 0) + inc_md)
+    };
+  }).sort(function(a,b){ return b.total_md - a.total_md; });
+
+  if (!list.length) return alert('Nenhum problema parado encontrado.');
+
+  var html = '<div class="dtbl-wrap" style="max-height:70vh;overflow-y:auto"><table class="dtbl">' +
+    '<thead><tr><th>Problem</th><th>App</th><th>Pri</th><th style="text-align:right">#Inc</th>' +
+    '<th style="text-align:right">MD Self</th><th style="text-align:right">MD Inc</th>' +
+    '<th style="text-align:right">MD Total</th><th style="text-align:right">ROI</th><th>Status</th></tr></thead><tbody>' +
+    list.map(function(p){
+      var roi = p.inc_count > 0 ? Math.round(p.total_md / p.inc_count * 100) / 100 : 0;
+      var roiCol = roi > 1 ? '#f87171' : (roi > 0.5 ? '#fbbf24' : '#34d399');
+      return '<tr>' +
+        '<td><b>' + p.ticket + '</b></td>' +
+        '<td>' + (p.app || '—') + '</td>' +
+        '<td>' + (p.priority || '—') + '</td>' +
+        '<td style="text-align:right;font-weight:700">' + p.inc_count + '</td>' +
+        '<td style="text-align:right">' + p.self_md.toFixed(2) + '</td>' +
+        '<td style="text-align:right">' + p.inc_md.toFixed(2) + '</td>' +
+        '<td style="text-align:right;font-weight:700;color:#a78bfa">' + p.total_md.toFixed(2) + '</td>' +
+        '<td style="text-align:right;font-weight:700;color:' + roiCol + '">' + roi.toFixed(2) + '</td>' +
+        '<td>' + (p.status || '—') + '</td>' +
+      '</tr>';
+    }).join('') +
+    '</tbody></table></div>';
+
+  openTableModal('PROBLEMS PARADOS (+30 DIAS)', html);
+}
+
+function showSeverityEffortDetail(sev, mdsTotal) {
+  var prj = selProject || 'Todos os Projetos';
+  var curY = selYear ? +selYear : new Date().getFullYear();
+  var curM = selMonth ? +selMonth : new Date().getMonth() + 1;
+
+  var tickets = _ROWS.filter(function(r) {
+    if (prj !== 'Todos os Projetos' && r[_TF.indexOf('prj')] !== prj) return false;
+    if (r[_TF.indexOf('y_o')] !== curY) return false;
+    if (r[_TF.indexOf('m_o')] !== curM) return false;
+    if (r[_TF.indexOf('sv')].toUpperCase() !== sev.toUpperCase()) return false;
+    return true;
+  });
+
+  if (!tickets.length) return alert('Nenhum ticket encontrado para esta severidade no período.');
+
+  var individualMD = mdsTotal / tickets.length;
+  var html = '<div style="margin-bottom:12px;font-size:11px;color:var(--muted)">Exibindo ' + tickets.length + ' tickets com esforço distribuído proporcionalmente (' + individualMD.toFixed(3) + ' MD/ticket)</div>' +
+    '<div class="dtbl-wrap" style="max-height:70vh;overflow-y:auto"><table class="dtbl">' +
+    '<thead><tr><th>Ticket</th><th>Summary</th><th>Status</th><th>Priority</th><th style="text-align:right">MD Est.</th></tr></thead><tbody>' +
+    tickets.map(function(r) {
+      return '<tr>' +
+        '<td><b>#' + r[_TF.indexOf('k')] + '</b></td>' +
+        '<td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (r[_TF.indexOf('s')] || '—') + '</td>' +
+        '<td>' + (r[_TF.indexOf('st')] || '—') + '</td>' +
+        '<td>' + (r[_TF.indexOf('pr')] || '—') + '</td>' +
+        '<td style="text-align:right;font-weight:700;color:#34d399">' + individualMD.toFixed(2) + '</td>' +
+      '</tr>';
+    }).join('') +
+    '</tbody></table></div>';
+
+  openTableModal('DETALHE: ' + sev + ' (' + mdsTotal.toFixed(2) + ' MDs)', html);
+}
+
 
 // ── SIMULADOR ENGINE (SALES VS REAL) ───────────────────────────
 var SIM_BENCHMARKS = {
@@ -5818,6 +6140,61 @@ function getProblemStats(prj) {
   return { total: list.length, orphan: orphan, open: open, stale: stale };
 }
 
+function openTableModal(title, html) {
+  var modal = document.getElementById('modal');
+  if (!modal) return alert('Estrutura de modal não encontrada no HTML.');
+
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-stats').innerHTML = ''; // Limpa botões de paginação
+  document.getElementById('modal-tbl-wrap').innerHTML = html;
+  
+  // Usa o padrão do dashboard (classe .open) em vez de style.display inline
+  modal.classList.add('open');
+}
+
+function showStaleProblemsDetail(prj) {
+  var list = _filterProblems(prj).filter(function(o) {
+    if (!o.p.is_open) return false;
+    if (!o.p.opening) return false;
+    var today = new Date();
+    var od = new Date(o.p.opening);
+    return !isNaN(od) && (today - od) / 86400000 > 30;
+  }).map(function(o) {
+    var incs = _filterIncs(o.p.incidents, prj);
+    var inc_md = incs.reduce(function(s,i){ return s + (+i.md || 0); }, 0);
+    return {
+      ticket: o.p.ticket, app: o.p.app, status: o.p.status, priority: o.p.priority,
+      inc_count: incs.length, self_md: (+o.p.self_md || 0),
+      inc_md: inc_md, total_md: ((+o.p.self_md || 0) + inc_md)
+    };
+  }).sort(function(a,b){ return b.total_md - a.total_md; });
+
+  if (!list.length) return alert('Nenhum problema parado encontrado.');
+
+  var html = '<div class="dtbl-wrap" style="max-height:70vh;overflow-y:auto"><table class="dtbl">' +
+    '<thead><tr><th>Problem</th><th>App</th><th>Pri</th><th style="text-align:right">#Inc</th>' +
+    '<th style="text-align:right">MD Self</th><th style="text-align:right">MD Inc</th>' +
+    '<th style="text-align:right">MD Total</th><th style="text-align:right">ROI</th><th>Status</th></tr></thead><tbody>' +
+    list.map(function(p){
+      var roi = p.inc_count > 0 ? Math.round(p.total_md / p.inc_count * 100) / 100 : 0;
+      var roiCol = roi > 1 ? '#f87171' : (roi > 0.5 ? '#fbbf24' : '#34d399');
+      return '<tr>' +
+        '<td><b>' + p.ticket + '</b></td>' +
+        '<td>' + (p.app || '—') + '</td>' +
+        '<td>' + (p.priority || '—') + '</td>' +
+        '<td style="text-align:right;font-weight:700">' + p.inc_count + '</td>' +
+        '<td style="text-align:right">' + p.self_md.toFixed(2) + '</td>' +
+        '<td style="text-align:right">' + p.inc_md.toFixed(2) + '</td>' +
+        '<td style="text-align:right;font-weight:700;color:#a78bfa">' + p.total_md.toFixed(2) + '</td>' +
+        '<td style="text-align:right;font-weight:700;color:' + roiCol + '">' + roi.toFixed(2) + '</td>' +
+        '<td>' + (p.status || '—') + '</td>' +
+      '</tr>';
+    }).join('') +
+    '</tbody></table></div>';
+
+  openTableModal('PROBLEMS PARADOS (+30 DIAS)', html);
+}
+
 // Effort Real (MDs) - Onda 2 do plano Claude.
 function getMDStats(prj, y, m) {
   if (!_problemDataAvailable()) return { total: 0, avg: 0, zero_pct: 0, available: false };
@@ -5843,6 +6220,613 @@ function getMDStats(prj, y, m) {
   };
 }
 
+// ── ONDA 3: Quality / Country / Closed Admin ──────────────────
+// Detecta disponibilidade de Closed Admin no input (1-shot cache).
+var _CA_AVAIL = null;
+function _closedAdminAvailable() {
+  if (_CA_AVAIL !== null) return _CA_AVAIL;
+  var fi_ca = _TF.indexOf('ca');
+  if (fi_ca < 0) return (_CA_AVAIL = false);
+  for (var i = 0; i < _ROWS.length; i++) {
+    if (_ROWS[i][fi_ca]) return (_CA_AVAIL = true);
+  }
+  return (_CA_AVAIL = false);
+}
+// Detecta disponibilidade de Country (1-shot cache).
+var _CO_AVAIL = null;
+function _countryAvailable() {
+  if (_CO_AVAIL !== null) return _CO_AVAIL;
+  var fi_co = _TF.indexOf('co');
+  if (fi_co < 0) return (_CO_AVAIL = false);
+  for (var i = 0; i < _ROWS.length; i++) {
+    var v = _ROWS[i][fi_co];
+    if (v && v !== 'N/A') return (_CO_AVAIL = true);
+  }
+  return (_CO_AVAIL = false);
+}
+
+// % de tickets fechados administrativamente (Closed Admin = Y) no período/projeto.
+function getClosedAdminStats(prj, y, m) {
+  if (!_closedAdminAvailable()) return { closed_total: 0, admin: 0, pct: 0, available: false };
+  var fi_ca = _TF.indexOf('ca'), fi_st = _TF.indexOf('st'),
+      fi_yc = _TF.indexOf('y_c'), fi_mc = _TF.indexOf('m_c'),
+      fi_prj = _TF.indexOf('prj'), fi_sv = _TF.indexOf('sv');
+  var closed = 0, admin = 0;
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (CLIENT_SEVS.indexOf(r[fi_sv]) < 0) continue;
+    if (prj !== 'Todos os Projetos' && r[fi_prj] !== prj) continue;
+    var st = r[fi_st];
+    if (st !== 'closed' && st !== 'resolved') continue;
+    if (selYear  && r[fi_yc] !== +selYear)  continue;
+    if (selMonth && r[fi_mc] !== +selMonth) continue;
+    closed++;
+    if ((r[fi_ca] || '').toUpperCase() === 'Y') admin++;
+  }
+  return {
+    closed_total: closed, admin: admin,
+    pct: closed > 0 ? Math.round(admin / closed * 1000) / 10 : 0,
+    available: true
+  };
+}
+
+// Distribuição por Country — só Farmatodo. Retorna {countries:[{name,total,open,closed,md}], total}.
+function getCountrySplit(prj, y, m) {
+  if (!_countryAvailable() || prj !== 'Farmatodo') return { available: false };
+  var fi_co = _TF.indexOf('co'), fi_st = _TF.indexOf('st'),
+      fi_md = _TF.indexOf('md'), fi_prj = _TF.indexOf('prj'),
+      fi_sv = _TF.indexOf('sv'),
+      fi_yo = _TF.indexOf('y_o'), fi_mo = _TF.indexOf('m_o');
+  var agg = {};
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (r[fi_prj] !== 'Farmatodo') continue;
+    if (CLIENT_SEVS.indexOf(r[fi_sv]) < 0) continue;
+    if (selYear  && r[fi_yo] !== +selYear)  continue;
+    if (selMonth && r[fi_mo] !== +selMonth) continue;
+    var co = (r[fi_co] || 'N/A').trim() || 'N/A';
+    if (!agg[co]) agg[co] = { name: co, total: 0, open: 0, closed: 0, md: 0 };
+    agg[co].total++;
+    var st = r[fi_st];
+    if (st === 'closed' || st === 'resolved' || st === 'rejected') agg[co].closed++;
+    else agg[co].open++;
+    agg[co].md += (+r[fi_md] || 0);
+  }
+  var list = Object.keys(agg).map(function(k){ return agg[k]; });
+  list.sort(function(a,b){ return b.total - a.total; });
+  list.forEach(function(c){ c.md = Math.round(c.md * 100) / 100; });
+  return { available: true, countries: list, total: list.reduce(function(s,c){return s+c.total;}, 0) };
+}
+
+// Renderiza a seção Quality (Onda 3). Sempre exibe Closed Admin se disponível.
+// Country split só renderiza para Farmatodo.
+function _renderQualitySection(prj, y, m) {
+  var ca = getClosedAdminStats(prj, y, m);
+  var co = getCountrySplit(prj, y, m);
+  if (!ca.available && !co.available) return '';
+  var parts = [];
+  if (ca.available) {
+    var caCol = ca.pct > 30 ? '#f87171' : (ca.pct > 15 ? '#fbbf24' : '#34d399');
+    parts.push(
+      '<div class="exec-grid" style="margin-bottom:24px">' +
+        kpiCard('FECHAMENTO ADMINISTRATIVO', ca.pct + '%',
+                ca.admin + ' admin de ' + ca.closed_total + ' fechados',
+                caCol,
+                'Tickets encerrados administrativamente — sem trabalho real de resolução (cancelados, duplicados, classificações erradas).\nUma taxa alta sugere problema na triagem inicial ou tickets sendo abertos sem necessidade.\nVerde ≤15%, amarelo ≤30%, vermelho acima.') +
+        kpiCard('TOTAL FECHADOS NO MÊS', ca.closed_total, 'incidents + user requests + problems', '#a78bfa',
+                'Quantidade total de tickets encerrados no período (somando as três severidades acompanhadas).') +
+        '<div></div><div></div>' +
+      '</div>'
+    );
+  }
+  if (co.available && co.countries.length) {
+    parts.push(
+      '<div class="cb" style="margin-bottom:24px">' +
+        '<div class="cbt" style="margin-bottom:12px">DISTRIBUIÇÃO POR PAÍS — FARMATODO</div>' +
+        '<div class="dtbl-wrap"><table class="dtbl">' +
+        '<thead><tr><th>País</th><th style="text-align:right">Total</th>' +
+        '<th style="text-align:right">Abertos</th><th style="text-align:right">Fechados</th>' +
+        '<th style="text-align:right">MDs</th><th style="text-align:right">% do Total</th></tr></thead><tbody>' +
+        co.countries.map(function(c){
+          var pct = co.total > 0 ? Math.round(c.total / co.total * 1000) / 10 : 0;
+          return '<tr>' +
+            '<td><b>' + c.name + '</b></td>' +
+            '<td style="text-align:right">' + c.total + '</td>' +
+            '<td style="text-align:right;color:#fbbf24">' + c.open + '</td>' +
+            '<td style="text-align:right;color:var(--muted)">' + c.closed + '</td>' +
+            '<td style="text-align:right;color:#60a5fa">' + c.md.toFixed(2) + '</td>' +
+            '<td style="text-align:right;font-weight:700">' + pct + '%</td>' +
+          '</tr>';
+        }).join('') +
+        '</tbody></table></div>' +
+      '</div>'
+    );
+  }
+  return parts.join('');
+}
+
+// ── INSIGHTS extras (Quick wins + Composites) ──────────────────
+// Resolution Rate %: fechados ÷ abertos (do mês). >100% = backlog reduzindo.
+function getResolutionRate(prj, y, m) {
+  var k = getKPIsForPeriod(prj, y, m);
+  var rate = k.open > 0 ? Math.round(k.closed / k.open * 1000) / 10 : (k.closed > 0 ? 100 : 0);
+  return { open: k.open, closed: k.closed, rate: rate };
+}
+
+// First-Time Fix Rate: 1 − reopen.rate. Mede qualidade da resolução inicial.
+function getFirstTimeFixRate(prj, y, m) {
+  var rep = getClientReopen(prj, y, m);
+  return { rate: Math.round((100 - rep.rate) * 10) / 10, closed: rep.closed, reopened: rep.rejected };
+}
+
+// Backlog Burn-down ETA: backlog atual ÷ closed/dia (média 30d).
+function getBurndownETA(prj) {
+  var fi_st = _TF.indexOf('st'), fi_yc = _TF.indexOf('y_c'), fi_mc = _TF.indexOf('m_c'), fi_dc = _TF.indexOf('d_c'),
+      fi_sv = _TF.indexOf('sv'), fi_prj = _TF.indexOf('prj');
+  var today = new Date(); var cutoff = new Date(today.getTime() - 30*86400000);
+  var closed30 = 0;
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (CLIENT_SEVS.indexOf(r[fi_sv]) < 0) continue;
+    if (prj !== 'Todos os Projetos' && r[fi_prj] !== prj) continue;
+    var st = r[fi_st]; if (st !== 'closed' && st !== 'resolved') continue;
+    if (!r[fi_yc] || !r[fi_mc] || !r[fi_dc]) continue;
+    var cd = new Date(r[fi_yc], r[fi_mc]-1, r[fi_dc]);
+    if (cd >= cutoff && cd <= today) closed30++;
+  }
+  // Backlog atual via getKPIsForPeriod (usa filtros globais, mas desconsidera y/m do filtro).
+  var savedY = selYear, savedM = selMonth; selYear = null; selMonth = null;
+  var bk = 0;
+  CLIENT_SEVS.forEach(function(sev) {
+    var b = D.backlog[sev]; if (!b) return;
+    [b.rc, b.client].forEach(function(g) {
+      bk += g.tickets.filter(function(t){
+        var tx = getTix(t.ticket);
+        return tx && (prj === 'Todos os Projetos' || tx.prj === prj);
+      }).length;
+    });
+  });
+  selYear = savedY; selMonth = savedM;
+  var perDay = closed30 / 30;
+  var eta = perDay > 0 ? Math.round(bk / perDay) : 0;
+  return { backlog: bk, closed30: closed30, perDay: Math.round(perDay*10)/10, eta_days: eta };
+}
+
+// % Tickets P1+P2 — proxy de severidade do mês.
+function getHighPrioRatio(prj, y, m) {
+  var fi_pr = _TF.indexOf('pr'), fi_sv = _TF.indexOf('sv'), fi_prj = _TF.indexOf('prj'),
+      fi_yo = _TF.indexOf('y_o'), fi_mo = _TF.indexOf('m_o');
+  var hi = 0, total = 0;
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (CLIENT_SEVS.indexOf(r[fi_sv]) < 0) continue;
+    if (prj !== 'Todos os Projetos' && r[fi_prj] !== prj) continue;
+    if (selYear  && r[fi_yo] !== +selYear)  continue;
+    if (selMonth && r[fi_mo] !== +selMonth) continue;
+    total++;
+    if (r[fi_pr] === 'P1' || r[fi_pr] === 'P2') hi++;
+  }
+  return { hi: hi, total: total, pct: total > 0 ? Math.round(hi / total * 1000) / 10 : 0 };
+}
+
+// Customer Wait %: % do BACKLOG atual em status waiting_client_*.
+// Aproximação (não temos histórico de status changes — usamos o estado atual).
+function getCustomerWaitPct(prj) {
+  var WAIT = {'waiting_client_feedback':1,'waiting_client_prd_inst':1,'waiting_client_tests':1,'waiting_client_tst_inst':1,'waiting_oracle_feedback':1};
+  var fi_st = _TF.indexOf('st'), fi_sv = _TF.indexOf('sv'), fi_prj = _TF.indexOf('prj');
+  var wait = 0, open = 0;
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (CLIENT_SEVS.indexOf(r[fi_sv]) < 0) continue;
+    if (prj !== 'Todos os Projetos' && r[fi_prj] !== prj) continue;
+    var st = r[fi_st];
+    if (st === 'closed' || st === 'resolved' || st === 'rejected') continue;
+    open++;
+    if (WAIT[st]) wait++;
+  }
+  return { wait: wait, open: open, pct: open > 0 ? Math.round(wait / open * 1000) / 10 : 0 };
+}
+
+// ── APPLICATION HEALTH ─────────────────────────────────────────
+function getTopApps(prj, y, m, n) {
+  var fi_ap = _TF.indexOf('ap'), fi_sv = _TF.indexOf('sv'), fi_prj = _TF.indexOf('prj'),
+      fi_yo = _TF.indexOf('y_o'), fi_mo = _TF.indexOf('m_o'), fi_md = _TF.indexOf('md'),
+      fi_st = _TF.indexOf('st'), fi_pr = _TF.indexOf('pr'),
+      fi_yc = _TF.indexOf('y_c'), fi_mc = _TF.indexOf('m_c'), fi_dc = _TF.indexOf('d_c'),
+      fi_do = _TF.indexOf('d_o');
+  var agg = {};
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (CLIENT_SEVS.indexOf(r[fi_sv]) < 0) continue;
+    if (prj !== 'Todos os Projetos' && r[fi_prj] !== prj) continue;
+    if (selYear  && r[fi_yo] !== +selYear)  continue;
+    if (selMonth && r[fi_mo] !== +selMonth) continue;
+    var ap = r[fi_ap] || 'N/A';
+    if (!agg[ap]) agg[ap] = {app: ap, total: 0, closed: 0, open: 0, md: 0, mttr_h: [], reopened: 0, p1p2: 0};
+    agg[ap].total++;
+    agg[ap].md += (+r[fi_md] || 0);
+    if (r[fi_pr] === 'P1' || r[fi_pr] === 'P2') agg[ap].p1p2++;
+    var st = r[fi_st];
+    if (st === 'closed' || st === 'resolved') {
+      agg[ap].closed++;
+      if (r[fi_yc] && r[fi_mc] && r[fi_dc]) {
+        var od = new Date(r[fi_yo], r[fi_mo]-1, r[fi_do]);
+        var cd = new Date(r[fi_yc], r[fi_mc]-1, r[fi_dc]);
+        var h = (cd - od) / 3600000;
+        if (h >= 0) agg[ap].mttr_h.push(h);
+      }
+    } else if (st === 'rejected') {
+      agg[ap].reopened++;
+    } else {
+      agg[ap].open++;
+    }
+  }
+  function median(a){ if(!a.length) return 0; var s=a.slice().sort(function(x,y){return x-y;}); var mi=Math.floor(s.length/2); return s.length%2?s[mi]:(s[mi-1]+s[mi])/2; }
+  var list = Object.keys(agg).map(function(k){
+    var a = agg[k];
+    a.mttr_h_med = Math.round(median(a.mttr_h)*10)/10;
+    a.reopen_pct = a.closed > 0 ? Math.round(a.reopened / a.closed * 1000)/10 : 0;
+    a.md = Math.round(a.md*100)/100;
+    return a;
+  });
+  list.sort(function(a,b){ return b.total - a.total; });
+  return list.slice(0, n || 5);
+}
+
+// App Health Score (0-100): pondera SLA(30) + Backlog(20) + MTTR(20) + Reopen(15) + Closed Admin(15).
+// Cálculo: para cada componente, normaliza para 0-100 (100 = bom).
+function _appHealthScore(app) {
+  // Backlog ratio: open / total — penaliza se >50%
+  var bkRatio = app.total > 0 ? app.open / app.total : 0;
+  var bkScore = Math.max(0, 100 - bkRatio * 200); // 50% open = 0, 0% = 100
+  // MTTR vs benchmark (CFG.sla.P2.min/60 = horas alvo). Score 100 se ≤target, 0 se ≥3x target.
+  var tgt = (CFG.sla.P2 ? CFG.sla.P2.min/60 : 12);
+  var mttrScore = app.mttr_h_med <= 0 ? 100 :
+                  app.mttr_h_med <= tgt ? 100 :
+                  app.mttr_h_med >= tgt*3 ? 0 :
+                  Math.round(100 - (app.mttr_h_med - tgt) / (tgt*2) * 100);
+  // Reopen: 0% = 100, 10% = 0
+  var reopenScore = Math.max(0, 100 - app.reopen_pct * 10);
+  // SLA proxy: 100 - p1p2_rate (alta concentração de alta priority = mais risco).
+  var p1p2pct = app.total > 0 ? app.p1p2 / app.total * 100 : 0;
+  var slaScore = Math.max(0, 100 - p1p2pct);
+  // Admin (placeholder — sem distribuição admin por app, neutralizado em 80)
+  var adminScore = 80;
+  var score = Math.round(slaScore*0.30 + bkScore*0.20 + mttrScore*0.20 + reopenScore*0.15 + adminScore*0.15);
+  return Math.max(0, Math.min(100, score));
+}
+
+// ── TEAM / CAPACITY ────────────────────────────────────────────
+function getTopAssignees(prj, y, m, n) {
+  var fi_ass = _TF.indexOf('ass'), fi_sv = _TF.indexOf('sv'), fi_prj = _TF.indexOf('prj'),
+      fi_yo = _TF.indexOf('y_o'), fi_mo = _TF.indexOf('m_o'), fi_md = _TF.indexOf('md');
+  var agg = {};
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (CLIENT_SEVS.indexOf(r[fi_sv]) < 0) continue;
+    if (prj !== 'Todos os Projetos' && r[fi_prj] !== prj) continue;
+    if (selYear  && r[fi_yo] !== +selYear)  continue;
+    if (selMonth && r[fi_mo] !== +selMonth) continue;
+    var a = r[fi_ass] || ''; if (!a || a === 'nan') continue;
+    if (!agg[a]) agg[a] = {name: a, tickets: 0, md: 0};
+    agg[a].tickets++; agg[a].md += (+r[fi_md] || 0);
+  }
+  var list = Object.keys(agg).map(function(k){
+    agg[k].md = Math.round(agg[k].md*100)/100;
+    return agg[k];
+  });
+  list.sort(function(a,b){ return b.md - a.md; });
+  return list.slice(0, n || 5);
+}
+
+// Knowledge Concentration: % das MDs em top N pessoas (default 3). Alerta se >70%.
+function getKnowledgeConcentration(prj, y, m, topN) {
+  var all = getTopAssignees(prj, y, m, 999);
+  var totalMd = all.reduce(function(s,p){ return s + p.md; }, 0);
+  var topMd   = all.slice(0, topN || 3).reduce(function(s,p){ return s + p.md; }, 0);
+  return {
+    pct: totalMd > 0 ? Math.round(topMd / totalMd * 1000) / 10 : 0,
+    top_md: Math.round(topMd*100)/100, total_md: Math.round(totalMd*100)/100,
+    people: all.length
+  };
+}
+
+// Service Line split (precisa de svl no TF).
+var _SVL_AVAIL = null;
+function _serviceLineAvailable() {
+  if (_SVL_AVAIL !== null) return _SVL_AVAIL;
+  var fi_svl = _TF.indexOf('svl');
+  if (fi_svl < 0) return (_SVL_AVAIL = false);
+  for (var i = 0; i < _ROWS.length; i++) {
+    if (_ROWS[i][fi_svl]) return (_SVL_AVAIL = true);
+  }
+  return (_SVL_AVAIL = false);
+}
+function getServiceLineSplit(prj, y, m) {
+  if (!_serviceLineAvailable()) return { available: false, list: [] };
+  var fi_svl = _TF.indexOf('svl'), fi_sv = _TF.indexOf('sv'), fi_prj = _TF.indexOf('prj'),
+      fi_yo = _TF.indexOf('y_o'), fi_mo = _TF.indexOf('m_o'), fi_md = _TF.indexOf('md');
+  var agg = {};
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (CLIENT_SEVS.indexOf(r[fi_sv]) < 0) continue;
+    if (prj !== 'Todos os Projetos' && r[fi_prj] !== prj) continue;
+    if (selYear  && r[fi_yo] !== +selYear)  continue;
+    if (selMonth && r[fi_mo] !== +selMonth) continue;
+    var sl = r[fi_svl] || 'N/A';
+    if (!agg[sl]) agg[sl] = {name: sl, tickets: 0, md: 0};
+    agg[sl].tickets++; agg[sl].md += (+r[fi_md] || 0);
+  }
+  var list = Object.keys(agg).map(function(k){
+    agg[k].md = Math.round(agg[k].md*100)/100;
+    return agg[k];
+  });
+  list.sort(function(a,b){ return b.tickets - a.tickets; });
+  return { available: true, list: list };
+}
+
+// ── PROBLEM MANAGEMENT DEEP ────────────────────────────────────
+// Reincidência pós-fix: incidents com pid de problem JÁ FECHADO, abertos APÓS o close do problem.
+function getReincidenceAfterFix(prj, y, m) {
+  if (!_problemDataAvailable()) return { count: 0, problems: 0, available: false };
+  var fi_sv = _TF.indexOf('sv'), fi_pid = _TF.indexOf('pid'), fi_prj = _TF.indexOf('prj'),
+      fi_yo = _TF.indexOf('y_o'), fi_mo = _TF.indexOf('m_o'), fi_do = _TF.indexOf('d_o');
+  var idx = D.problems || {};
+  // Mapa: pid → close_date (Date) se o problem está fechado
+  var closedAt = {};
+  Object.keys(idx).forEach(function(pid){
+    var p = idx[pid];
+    if (!p.is_open && p.opening) {
+      // Aproximação: usa opening + buffer (não temos close_date no D.problems estrutura)
+      // Solução: olhar nos rows os tickets de severity=problem com mesmo k para pegar y_c/m_c/d_c
+    }
+  });
+  // Mais robusto: scan _ROWS para problems com close date e build map
+  var fi_sv2 = _TF.indexOf('sv'), fi_k = _TF.indexOf('k'),
+      fi_yc = _TF.indexOf('y_c'), fi_mc = _TF.indexOf('m_c'), fi_dc = _TF.indexOf('d_c'),
+      fi_st = _TF.indexOf('st');
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (r[fi_sv2] !== 'problem') continue;
+    var st = r[fi_st]; if (st !== 'closed' && st !== 'resolved') continue;
+    if (!r[fi_yc] || !r[fi_mc] || !r[fi_dc]) continue;
+    var k = String(r[fi_k]).replace(/^0+/, '') || String(r[fi_k]);
+    closedAt[k] = new Date(r[fi_yc], r[fi_mc]-1, r[fi_dc]);
+  }
+  var reinc = 0; var rProbs = {};
+  for (var j = 0; j < _ROWS.length; j++) {
+    var r2 = _ROWS[j];
+    if (r2[fi_sv] !== 'incident') continue;
+    var pid = r2[fi_pid]; if (!pid || !closedAt[pid]) continue;
+    if (prj !== 'Todos os Projetos' && r2[fi_prj] !== prj) continue;
+    if (selYear  && r2[fi_yo] !== +selYear)  continue;
+    if (selMonth && r2[fi_mo] !== +selMonth) continue;
+    if (!r2[fi_yo] || !r2[fi_mo] || !r2[fi_do]) continue;
+    var od = new Date(r2[fi_yo], r2[fi_mo]-1, r2[fi_do]);
+    if (od > closedAt[pid]) {
+      reinc++;
+      rProbs[pid] = 1;
+    }
+  }
+  return { count: reinc, problems: Object.keys(rProbs).length, available: true };
+}
+
+// Problem-to-Fix Time: mediana de dias entre opening e close dos problems (do projeto).
+function getProblemFixTime(prj) {
+  if (!_problemDataAvailable()) return { median_d: 0, n: 0, available: false };
+  var fi_sv = _TF.indexOf('sv'), fi_st = _TF.indexOf('st'), fi_prj = _TF.indexOf('prj'),
+      fi_yo = _TF.indexOf('y_o'), fi_mo = _TF.indexOf('m_o'), fi_do = _TF.indexOf('d_o'),
+      fi_yc = _TF.indexOf('y_c'), fi_mc = _TF.indexOf('m_c'), fi_dc = _TF.indexOf('d_c');
+  var days = [];
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (r[fi_sv] !== 'problem') continue;
+    var st = r[fi_st]; if (st !== 'closed' && st !== 'resolved') continue;
+    if (prj !== 'Todos os Projetos' && r[fi_prj] !== prj) continue;
+    if (!r[fi_yo] || !r[fi_yc]) continue;
+    var od = new Date(r[fi_yo], r[fi_mo]-1, r[fi_do]);
+    var cd = new Date(r[fi_yc], r[fi_mc]-1, r[fi_dc]);
+    var d = Math.floor((cd - od) / 86400000);
+    if (d >= 0) days.push(d);
+  }
+  if (!days.length) return { median_d: 0, n: 0, available: true };
+  days.sort(function(a,b){return a-b;});
+  var mid = Math.floor(days.length / 2);
+  var med = days.length % 2 ? days[mid] : (days[mid-1] + days[mid]) / 2;
+  return { median_d: Math.round(med), n: days.length, available: true };
+}
+
+// ── COMPOSITE EXECUTIVE SCORES ─────────────────────────────────
+// Service Health Score (0-100): SLA(30) + BacklogStale(20) + MTTRgap(20) + Reopen(15) + ClosedAdmin(15)
+function getServiceHealthScore(prj, y, m) {
+  var sla = getSLAFiltered();
+  // SLA score: peso por prioridade — P1+P2 mais críticos
+  var slaMet = 0, slaTot = 0;
+  ['P1','P2','P3','P4'].forEach(function(p){ if (sla[p]) { slaMet += sla[p].met; slaTot += sla[p].total; } });
+  var slaPct = slaTot > 0 ? slaMet / slaTot * 100 : 100;
+  var slaScore = Math.min(100, slaPct);
+  // Backlog Stale: 0% stale = 100; 50% stale = 0
+  var stale = getClientStale(prj);
+  var bkScore = Math.max(0, 100 - stale.pct * 2);
+  // MTTR vs target (P1+P2)
+  var mttr = getClientMTTR(prj, y, m);
+  var tgt = (CFG.sla.P2 ? CFG.sla.P2.min/60 : 12);
+  var mttrScore = mttr.median_h <= 0 ? 100 :
+                  mttr.median_h <= tgt ? 100 :
+                  mttr.median_h >= tgt*3 ? 0 :
+                  Math.round(100 - (mttr.median_h - tgt) / (tgt*2) * 100);
+  // Reopen
+  var rep = getClientReopen(prj, y, m);
+  var repScore = Math.max(0, 100 - rep.rate * 10);
+  // Closed Admin
+  var ca = getClosedAdminStats(prj, y, m);
+  var caScore = ca.available ? Math.max(0, 100 - ca.pct * 2) : 80;
+  var score = Math.round(slaScore*0.30 + bkScore*0.20 + mttrScore*0.20 + repScore*0.15 + caScore*0.15);
+  score = Math.max(0, Math.min(100, score));
+  return {
+    score: score,
+    components: {
+      sla: Math.round(slaScore), backlog: Math.round(bkScore), mttr: mttrScore,
+      reopen: Math.round(repScore), admin: Math.round(caScore)
+    }
+  };
+}
+
+// Risk Index: heurística com pesos. Verde ≤10, amarelo ≤25, vermelho >25.
+function getRiskIndex(prj, y, m) {
+  var fi_st = _TF.indexOf('st'), fi_pr = _TF.indexOf('pr'), fi_sv = _TF.indexOf('sv'),
+      fi_prj = _TF.indexOf('prj'), fi_yo = _TF.indexOf('y_o'), fi_mo = _TF.indexOf('m_o'), fi_do = _TF.indexOf('d_o');
+  var p1 = 0, p2 = 0, aging = 0;
+  var today = new Date();
+  for (var i = 0; i < _ROWS.length; i++) {
+    var r = _ROWS[i];
+    if (CLIENT_SEVS.indexOf(r[fi_sv]) < 0) continue;
+    if (prj !== 'Todos os Projetos' && r[fi_prj] !== prj) continue;
+    var st = r[fi_st];
+    if (st === 'closed' || st === 'resolved' || st === 'rejected') continue;
+    var od = new Date(r[fi_yo], r[fi_mo]-1, r[fi_do]);
+    var age = Math.floor((today - od) / 86400000);
+    if (r[fi_pr] === 'P1') p1++;
+    if (r[fi_pr] === 'P2') p2++;
+    if (age > 30) aging++;
+  }
+  var idx = p1 * 5 + p2 * 2 + aging * 3;
+  return { index: idx, p1: p1, p2: p2, aging: aging,
+           band: idx > 25 ? 'red' : (idx > 10 ? 'amber' : 'green') };
+}
+
+// ── RENDER: Insights + Apps + Team + Score sections ────────────
+function _renderExecScore(prj, y, m) {
+  var hs = getServiceHealthScore(prj, y, m);
+  var rk = getRiskIndex(prj, y, m);
+  var hsCol = hs.score >= 80 ? '#34d399' : (hs.score >= 60 ? '#fbbf24' : '#f87171');
+  var rkCol = rk.band === 'green' ? '#34d399' : (rk.band === 'amber' ? '#fbbf24' : '#f87171');
+  var c = hs.components;
+  var hsTip = 'SLA ' + c.sla + ' · Backlog ' + c.backlog + ' · MTTR ' + c.mttr + ' · Reopen ' + c.reopen + ' · Admin ' + c.admin +
+              '\nPesos: SLA 30% · Backlog 20% · MTTR 20% · Reopen 15% · Admin 15%';
+  var rkTip = 'P1 abertos: ' + rk.p1 + ' (×5) · P2 abertos: ' + rk.p2 + ' (×2) · Aging>30d: ' + rk.aging + ' (×3)' +
+              '\nVerde ≤10 · Amarelo ≤25 · Vermelho >25';
+  return '<div class="exec-grid" style="grid-template-columns:2fr 1fr 1fr 1fr;margin-bottom:24px">' +
+    '<div class="tip" data-tip="'+hsTip+'" style="background:var(--bg);border:2px solid '+hsCol+';border-radius:10px;padding:18px;display:flex;align-items:center;gap:18px">' +
+      '<div style="font-size:54px;font-weight:700;color:'+hsCol+';line-height:1">'+hs.score+'</div>' +
+      '<div>' +
+        '<div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--muted)">SERVICE HEALTH SCORE</div>' +
+        '<div style="font-size:10px;color:var(--dim);margin-top:4px">composto SLA + Backlog + MTTR + Reopen + Admin</div>' +
+      '</div>' +
+    '</div>' +
+    kpiCard('RISK INDEX', rk.index, rk.p1+'×P1 · '+rk.p2+'×P2 · '+rk.aging+'×age', rkCol, rkTip) +
+    '<div></div><div></div>' +
+    '</div>';
+}
+
+function _renderInsightsRow(prj, y, m) {
+  var rr  = getResolutionRate(prj, y, m);
+  var ftf = getFirstTimeFixRate(prj, y, m);
+  var bd  = getBurndownETA(prj);
+  var hp  = getHighPrioRatio(prj, y, m);
+  var cw  = getCustomerWaitPct(prj);
+  var rrCol  = rr.rate >= 100 ? '#34d399' : (rr.rate >= 80 ? '#fbbf24' : '#f87171');
+  var ftfCol = ftf.rate >= 95 ? '#34d399' : (ftf.rate >= 85 ? '#fbbf24' : '#f87171');
+  var bdCol  = bd.eta_days <= 30 ? '#34d399' : (bd.eta_days <= 90 ? '#fbbf24' : '#f87171');
+  var cwCol  = cw.pct >= 50 ? '#fbbf24' : '#34d399';
+  return '<div class="exec-grid" style="margin-bottom:24px">' +
+    kpiCard('TAXA DE RESOLUÇÃO', rr.rate + '%', rr.closed + ' fechados ÷ ' + rr.open + ' abertos', rrCol,
+            'Para cada 100 tickets abertos no mês, quantos foram fechados.\nAcima de 100% significa que estamos reduzindo o backlog. Abaixo significa que ele está crescendo.\nVerde ≥100%, amarelo ≥80%, vermelho abaixo.') +
+    kpiCard('RESOLUÇÃO NA 1ª TENTATIVA', ftf.rate + '%', ftf.reopened + ' reabertos de ' + ftf.closed + ' fechados', ftfCol,
+            'Tickets resolvidos sem precisar reabrir depois.\nMede a qualidade do fix entregue ao cliente. Quanto maior, melhor.\nTarget: 95% ou mais.') +
+    kpiCard('PROJEÇÃO PARA ZERAR BACKLOG', bd.eta_days + ' dias', bd.closed30 + ' fech. nos últimos 30d (' + bd.perDay + '/dia)', bdCol,
+            'Em quantos dias o backlog atual seria zerado se o ritmo de fechamento dos últimos 30 dias continuasse.\nNão considera novas aberturas — é uma projeção do ritmo atual.\nVerde ≤30d, amarelo ≤90d, vermelho acima.') +
+    kpiCard('% TICKETS DE ALTA PRIORIDADE', hp.pct + '%', hp.hi + ' P1+P2 de ' + hp.total + ' totais', hp.pct > 30 ? '#fbbf24' : '#34d399',
+            'Quanto do volume foi de tickets críticos (P1) ou altos (P2).\nUm pico aqui significa um mês mais turbulento operacionalmente.') +
+    '</div>' +
+    '<div class="exec-grid" style="margin-bottom:24px">' +
+    kpiCard('AGUARDANDO O CLIENTE', cw.pct + '%', cw.wait + ' de ' + cw.open + ' tickets abertos', cwCol,
+            'Parte do backlog que está parada esperando algo do cliente (validação, dados, instalação, etc).\nÚtil para mostrar quanto do atraso NÃO é responsabilidade da equipe.') +
+    '<div></div><div></div><div></div>' +
+    '</div>';
+}
+
+function _renderAppsSection(prj, y, m) {
+  var apps = getTopApps(prj, y, m, 5);
+  if (!apps.length) return '';
+  return '<div style="margin-bottom:24px;background:#0d2438;border:1px solid #1a3a50;border-radius:12px;padding:20px">' +
+    '<div style="font-family:var(--ft);font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:16px">' +
+      '&#128241; APPLICATION HEALTH — TOP 5' +
+    '</div>' +
+    '<div class="dtbl-wrap"><table class="dtbl">' +
+    '<thead><tr><th>App</th><th style="text-align:right">Tickets</th>' +
+    '<th style="text-align:right">Abertos</th><th style="text-align:right">MDs</th>' +
+    '<th style="text-align:right">MTTR (h)</th><th style="text-align:right">Reopen %</th>' +
+    '<th style="text-align:right">% P1+P2</th><th style="text-align:right">Health</th></tr></thead><tbody>' +
+    apps.map(function(a){
+      var hs = _appHealthScore(a);
+      var hsCol = hs >= 80 ? '#34d399' : (hs >= 60 ? '#fbbf24' : '#f87171');
+      var p1p2pct = a.total > 0 ? Math.round(a.p1p2 / a.total * 1000) / 10 : 0;
+      return '<tr>' +
+        '<td><b>' + a.app + '</b></td>' +
+        '<td style="text-align:right">' + a.total + '</td>' +
+        '<td style="text-align:right;color:#fbbf24">' + a.open + '</td>' +
+        '<td style="text-align:right;color:#60a5fa">' + a.md.toFixed(2) + '</td>' +
+        '<td style="text-align:right">' + (a.mttr_h_med || '—') + '</td>' +
+        '<td style="text-align:right;color:' + (a.reopen_pct > 5 ? '#f87171' : 'var(--muted)') + '">' + a.reopen_pct + '%</td>' +
+        '<td style="text-align:right">' + p1p2pct + '%</td>' +
+        '<td style="text-align:right;font-weight:700;color:' + hsCol + '">' + hs + '</td>' +
+      '</tr>';
+    }).join('') +
+    '</tbody></table></div></div>';
+}
+
+function _renderTeamSection(prj, y, m) {
+  var top = getTopAssignees(prj, y, m, 5);
+  var conc = getKnowledgeConcentration(prj, y, m, 3);
+  var sl = getServiceLineSplit(prj, y, m);
+  if (!top.length && !sl.available) return '';
+  var concCol = conc.pct > 70 ? '#f87171' : (conc.pct > 50 ? '#fbbf24' : '#34d399');
+  var html = '<div style="margin-bottom:24px;background:#0d2438;border:1px solid #1a3a50;border-radius:12px;padding:20px">' +
+    '<div style="font-family:var(--ft);font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:16px">' +
+      '&#128101; TEAM & CAPACITY' +
+    '</div>' +
+    '<div class="exec-grid" style="margin-bottom:16px">' +
+      kpiCard('CONCENTRAÇÃO DE CONHECIMENTO', conc.pct + '%',
+              'top 3 pessoas de ' + conc.people + ' totais',
+              concCol,
+              'Quanto do esforço total está concentrado nas 3 pessoas mais ativas.\nConcentração alta = risco se essas pessoas saírem ou ficarem indisponíveis (férias, doença, turnover).\nVerde ≤50%, amarelo ≤70%, vermelho acima.') +
+      kpiCard('ESFORÇO TOTAL DA EQUIPE', conc.total_md + ' MDs', conc.people + ' pessoas envolvidas no período', '#a78bfa',
+              'Total de Man-Days apontados pelo time todo no período.\n1 MD ≈ 1 dia de trabalho de uma pessoa.') +
+      '<div></div><div></div>' +
+    '</div>';
+  if (top.length) {
+    html += '<div class="cbt" style="margin:8px 0;font-size:11px">TOP 5 ASSIGNEES por MDs</div>' +
+      '<div class="dtbl-wrap"><table class="dtbl">' +
+      '<thead><tr><th>Pessoa</th><th style="text-align:right">Tickets</th><th style="text-align:right">MDs</th><th style="text-align:right">% do Total</th></tr></thead><tbody>' +
+      top.map(function(p){
+        var pct = conc.total_md > 0 ? Math.round(p.md / conc.total_md * 1000) / 10 : 0;
+        return '<tr>' +
+          '<td><b>' + p.name + '</b></td>' +
+          '<td style="text-align:right">' + p.tickets + '</td>' +
+          '<td style="text-align:right;color:#60a5fa">' + p.md.toFixed(2) + '</td>' +
+          '<td style="text-align:right;font-weight:700">' + pct + '%</td>' +
+        '</tr>';
+      }).join('') +
+      '</tbody></table></div>';
+  }
+  if (sl.available && sl.list.length) {
+    html += '<div class="cbt" style="margin:16px 0 8px 0;font-size:11px">DISTRIBUIÇÃO POR SERVICE LINE</div>' +
+      '<div class="dtbl-wrap"><table class="dtbl">' +
+      '<thead><tr><th>Service Line</th><th style="text-align:right">Tickets</th><th style="text-align:right">MDs</th></tr></thead><tbody>' +
+      sl.list.map(function(s){
+        return '<tr>' +
+          '<td>' + s.name + '</td>' +
+          '<td style="text-align:right">' + s.tickets + '</td>' +
+          '<td style="text-align:right;color:#60a5fa">' + s.md.toFixed(2) + '</td>' +
+        '</tr>';
+      }).join('') +
+      '</tbody></table></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
 // Renderiza a seção Problem Management (KPIs + tabela TOP 5).
 function _renderProblemSection(prj, y, m) {
   var cov = getProblemCoverage(prj, y, m);
@@ -5856,46 +6840,59 @@ function _renderProblemSection(prj, y, m) {
   }
   var ratio = getProblemEffortRatio(prj, y, m);
   var stats = getProblemStats(prj);
-  var topRec = getTopProblems(prj, y, m, 5, 'inc');
+  var topRec = getTopProblems(prj, y, m, 5, 'md');
+  var reinc  = getReincidenceAfterFix(prj, y, m);
+  var fixT   = getProblemFixTime(prj);
 
-  // Cobertura: <50% red, <70% amber, ≥70% green
   var covCol = cov.pct >= 70 ? '#34d399' : (cov.pct >= 50 ? '#fbbf24' : '#f87171');
-  // Ratio P/I: 20-30% green; <20 amber (sub-investido); >50 red (sobre-investido)
   var ratCol = (ratio.ratio >= 20 && ratio.ratio <= 30) ? '#34d399'
              : (ratio.ratio < 20 ? '#fbbf24' : (ratio.ratio > 50 ? '#f87171' : '#fbbf24'));
   var staleCol = stats.stale > 5 ? '#f87171' : (stats.stale > 2 ? '#fbbf24' : '#34d399');
+  var reincCol = reinc.count > 5 ? '#f87171' : (reinc.count > 0 ? '#fbbf24' : '#34d399');
+  var fixTCol  = fixT.median_d > 90 ? '#f87171' : (fixT.median_d > 30 ? '#fbbf24' : '#34d399');
 
   var html = '<div style="margin-bottom:24px;background:#0d2438;border:1px solid #1a3a50;border-radius:12px;padding:20px">' +
-    '<div style="font-family:var(--ft);font-size:16px;font-weight:700;color:#e2e8f0;margin-bottom:16px;display:flex;align-items:center;gap:10px">' +
+    '<div style="font-family:var(--ft);font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:16px;display:flex;align-items:center;gap:10px">' +
       '<div style="width:24px;height:24px;background:#a78bfa;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px">&#128270;</div>' +
       'PROBLEM MANAGEMENT' +
     '</div>' +
-    '<div class="exec-grid" style="margin-bottom:16px">' +
-      kpiCard('PROBLEM COVERAGE', cov.pct + '%',
-              cov.linked + ' / ' + cov.total + ' incidents linkados', covCol,
-              'Incidents com Problem ID vinculado.\nTarget: ≥70%.\nVermelho < 50%, amarelo 50-70%.') +
-      kpiCard('EFFORT RATIO P/I', ratio.ratio + '%',
-              ratio.prob_md + ' / ' + ratio.inc_md + ' MD', ratCol,
-              'MD problems ÷ MD incidents.\nBenchmark ITIL: 20-30%.\n>50% = sobre-investido em RC.\n<20% = sub-investido.') +
-      kpiCard('PROBLEMS ABERTOS', stats.open,
-              'de ' + stats.total + ' totais (' + stats.orphan + ' órfãos)',
+    '<div class="exec-grid" style="margin-bottom:12px">' +
+      kpiCard('COBERTURA DE CAUSA RAIZ', cov.pct + '%',
+              cov.linked + ' de ' + cov.total + ' incidents com problem associado', covCol,
+              'Quantos incidents foram analisados a fundo e ligados a um problem (causa raiz).\nCobertura baixa significa que estamos perdendo a oportunidade de identificar e corrigir problemas estruturais.\nTarget: 70% ou mais.') +
+      kpiCard('INVESTIMENTO EM CAUSA RAIZ', ratio.ratio + '%',
+              ratio.prob_md + ' MDs em problems ÷ ' + ratio.inc_md + ' MDs em incidents', ratCol,
+              'Quanto do esforço vai para investigação de causa raiz versus apagar incêndio.\nPadrão de mercado (ITIL): 20% a 30%.\nMuito baixo = só apaga incêndio. Muito alto = analisa demais sem entregar.') +
+      kpiCard('PROBLEMS EM ANÁLISE', stats.open,
+              'de ' + stats.total + ' totais · ' + stats.orphan + ' sem incident vinculado',
               stats.open > 10 ? '#fbbf24' : '#34d399',
-              'Problems com status diferente de closed/resolved/rejected.\nÓrfãos = sem incident vinculado (auditar).') +
-      kpiCard('PROBLEMS STALE', stats.stale,
-              'abertos há > 30 dias', staleCol,
-              'Problems abertos com opening > 30 dias.\nVermelho > 5, amarelo > 2.') +
+              'Problems ainda em investigação (não fechados nem rejeitados).\n"Sem incident vinculado" = problems abertos isoladamente; vale auditar se ainda fazem sentido.') +
+      kpiCard('PROBLEMS PARADOS', stats.stale,
+              'abertos há mais de 30 dias', staleCol,
+              'Problems em análise há mais de 30 dias sem fechar.\nClique duplo para ver a lista detalhada.').replace('<div', '<div ondblclick="showStaleProblemsDetail(selProject||\'Todos os Projetos\')" style="cursor:pointer" ') +
+    '</div>' +
+    '<div class="exec-grid" style="margin-bottom:16px">' +
+      kpiCard('PROBLEMA QUE VOLTOU APÓS FIX', reinc.count,
+              'em ' + reinc.problems + ' problems já encerrados', reincCol,
+              'Incidents que apareceram DEPOIS do problem ter sido fechado — ou seja, o fix permanente não funcionou e o problema voltou.\nMede a efetividade real das correções estruturais.\nVerde 0, amarelo até 5, vermelho acima.') +
+      kpiCard('TEMPO PARA RESOLVER UM PROBLEM', fixT.median_d + ' dias',
+              'tempo típico em ' + fixT.n + ' problems já fechados', fixTCol,
+              'Tempo típico (do meio do grupo) entre abrir e fechar um problem — ou seja, quanto tempo levamos para entregar o fix permanente.\nVerde até 30d, amarelo até 90d, vermelho acima.') +
+      '<div></div><div></div>' +
     '</div>';
 
-  // Tabela TOP recorrentes
+  // Tabela TOP recorrentes — agora com coluna ROI = MD Total / #Inc
   if (topRec.length && topRec[0].inc_count > 0) {
-    html += '<div class="cbt" style="margin:8px 0 8px 0;font-size:11px">TOP 5 Problems por recorrência (clique no problem para detalhes)</div>' +
+    html += '<div class="cbt" style="margin:8px 0 8px 0;font-size:11px">TOP 5 Problems por recorrência (ROI = MD Total ÷ #Inc — menor é melhor)</div>' +
       '<div class="dtbl-wrap"><table class="dtbl">' +
       '<thead><tr><th>Problem</th><th>App</th><th>Pri</th><th style="text-align:right">#Inc</th>' +
       '<th style="text-align:right">MD Self</th><th style="text-align:right">MD Inc</th>' +
-      '<th style="text-align:right">MD Total</th><th>Status</th></tr></thead><tbody>' +
+      '<th style="text-align:right">MD Total</th><th style="text-align:right">ROI (MD/Inc)</th><th>Status</th></tr></thead><tbody>' +
       topRec.map(function(p){
         if (!p.inc_count) return '';
         var statusCol = p.is_open ? '#fbbf24' : 'var(--muted)';
+        var roi = p.inc_count > 0 ? Math.round(p.total_md / p.inc_count * 100) / 100 : 0;
+        var roiCol = roi > 1 ? '#f87171' : (roi > 0.5 ? '#fbbf24' : '#34d399');
         return '<tr>' +
           '<td><b>' + p.ticket + '</b></td>' +
           '<td>' + (p.app || '—') + '</td>' +
@@ -5904,6 +6901,7 @@ function _renderProblemSection(prj, y, m) {
           '<td style="text-align:right">' + p.self_md.toFixed(2) + '</td>' +
           '<td style="text-align:right">' + p.inc_md.toFixed(2) + '</td>' +
           '<td style="text-align:right;font-weight:700;color:#a78bfa">' + p.total_md.toFixed(2) + '</td>' +
+          '<td style="text-align:right;font-weight:700;color:' + roiCol + '">' + roi.toFixed(2) + '</td>' +
           '<td style="color:' + statusCol + '">' + (p.status || '—') + '</td>' +
         '</tr>';
       }).join('') +
@@ -5953,42 +6951,60 @@ function buildCliente() {
         '<div style="font-size:16px;font-weight:700;color:' + (slaP12 >= slaTgt ? '#34d399' : '#f87171') + '">' + slaP12 + '%</div>' +
       '</div>' +
     '</div>' +
+    // Executive Score (Service Health + Risk Index)
+    _renderExecScore(prj, curY, curM) +
     // Linha 1: Volumetria com Δ MoM
     '<div class="exec-grid" style="margin-bottom:12px">' +
-      kpiCard('TOTAL ABERTOS',  kpi.open,    _fmtDelta(kpi.open, prevK.open) + ' MoM',     '#FF6B00') +
-      kpiCard('TOTAL FECHADOS', kpi.closed,  _fmtDelta(kpi.closed, prevK.closed) + ' MoM', '#CF0A2C') +
-      kpiCard('THROUGHPUT LÍQUIDO', (thr >= 0 ? '+' : '') + thr, 'Fechados − Abertos', thr >= 0 ? '#34d399' : '#f87171') +
-      kpiCard('BACKLOG ATUAL',  kpi.backlog, 'Tickets pendentes', '#fbbf24') +
+      kpiCard('TOTAL ABERTOS',  kpi.open,    _fmtDelta(kpi.open, prevK.open) + ' vs mês anterior',     '#FF6B00',
+              'Tickets criados no período (incident, user request, problem).\nA variação mostra se a demanda está crescendo ou caindo em relação ao mês anterior.') +
+      kpiCard('TOTAL FECHADOS', kpi.closed,  _fmtDelta(kpi.closed, prevK.closed) + ' vs mês anterior', '#CF0A2C',
+              'Tickets resolvidos ou encerrados no período.\nIdealmente acompanha ou supera o número de abertos.') +
+      kpiCard('THROUGHPUT LÍQUIDO', (thr >= 0 ? '+' : '') + thr, 'Fechados − Abertos', thr >= 0 ? '#34d399' : '#f87171',
+              'Diferença entre o que foi fechado e o que foi aberto no mês.\nPositivo = backlog encolhendo. Negativo = backlog crescendo.') +
+      kpiCard('BACKLOG ATUAL',  kpi.backlog, 'Tickets pendentes', '#fbbf24',
+              'Total de tickets que ainda não foram resolvidos.\nInclui os que aguardam ação da equipe e os que aguardam retorno do cliente.') +
     '</div>' +
     // Linha 2: Qualidade & Saúde
     '<div class="exec-grid" style="margin-bottom:24px">' +
-      kpiCard('MTTR P1+P2', mttr.median_h ? mttr.median_h + 'h' : '—', 'Mediana ' + mttr.n + ' incidents', '#a78bfa') +
-      kpiCard('BACKLOG STALE', stale.pct + '%', stale.stale + ' / ' + stale.total + ' sem update',
-              stale.pct > 30 ? '#f87171' : (stale.pct > 15 ? '#fbbf24' : '#34d399')) +
-      kpiCard('AGING MÉDIO', aging.avg + 'd', aging.n + ' tickets abertos',
-              aging.avg > 30 ? '#f87171' : (aging.avg > 14 ? '#fbbf24' : '#34d399')) +
-      kpiCard('TAXA REABERTURA', reopen.rate + '%', reopen.rejected + ' rejected / ' + reopen.closed + ' closed',
-              reopen.rate > 5 ? '#f87171' : '#34d399') +
+      kpiCard('MTTR P1+P2', mttr.median_h ? mttr.median_h + 'h' : '—', 'Tempo típico em ' + mttr.n + ' incidents', '#a78bfa',
+              'Tempo típico (em horas) para resolver incidents críticos (P1) e altos (P2), da abertura até o fechamento.\nMenor é melhor. Mostra a velocidade de resposta nos casos mais sensíveis.') +
+      kpiCard('BACKLOG SEM ATUALIZAÇÃO', stale.pct + '%', stale.stale + ' de ' + stale.total + ' tickets parados',
+              stale.pct > 30 ? '#f87171' : (stale.pct > 15 ? '#fbbf24' : '#34d399'),
+              'Tickets do backlog sem qualquer atualização há mais dias do que o limite configurado.\nIndica trabalho esquecido ou bloqueado.\nVerde até 15%, amarelo até 30%, vermelho acima.') +
+      kpiCard('IDADE MÉDIA DO BACKLOG', aging.avg + 'd', aging.n + ' tickets abertos',
+              aging.avg > 30 ? '#f87171' : (aging.avg > 14 ? '#fbbf24' : '#34d399'),
+              'Quantos dias, em média, os tickets em aberto estão no backlog.\nQuanto mais alto, mais tempo o cliente está esperando.\nVerde até 14d, amarelo até 30d, vermelho acima.') +
+      kpiCard('TAXA DE REABERTURA', reopen.rate + '%', reopen.rejected + ' reabertos de ' + reopen.closed + ' fechados',
+              reopen.rate > 5 ? '#f87171' : '#34d399',
+              'Quando um ticket fechado precisa voltar a ser trabalhado, ele é reaberto (status Rejected).\nMede se as resoluções estão "matando" o problema de verdade.\nTarget: abaixo de 5%.') +
     '</div>' +
-    // Linha 3: Esforço Real (Onda 2 do plano Claude)
-    (mds.available ? 
+    // Linha 3: Esforço Real (Onda 2)
+    (mds.available ?
     '<div class="exec-grid" style="margin-bottom:24px">' +
-      kpiCard('MDs TOTAIS', mds.total, mds.n + ' tickets com esforço', '#60a5fa',
-              'Soma real de MD\'s apontados no período.\nFonte: Campo MD\'s do CSV.') +
-      kpiCard('ESFORÇO MÉDIO', mds.avg + ' MD', 'por ticket atendido', '#34d399',
-              'MD Total ÷ Total de Tickets.\nIndica a complexidade média de resolução.') +
-      kpiCard('TICKETS SEM MD', mds.zero_pct + '%', 'proxy de fechamento admin', mds.zero_pct > 20 ? '#fbbf24' : '#34d399',
-              'Porcentagem de tickets com 0 MD.\nAlta taxa indica fechamentos administrativos ou falta de apontamento.') +
-      kpiCard('EFFORT RATIO P/I', ratio.ratio + '%', 'Problema vs Incidente', ratCol,
-              'Benchmark ITIL: 20-30%.\nIndica eficiência na análise de causa raiz.') +
-    '</div>' : '');
+      kpiCard('ESFORÇO TOTAL (MDs)', mds.total, mds.n + ' tickets com horas registradas', '#60a5fa',
+              'Soma de Man-Days (MDs) apontados no período. 1 MD ≈ 1 dia de trabalho de uma pessoa.\nMostra o volume real de esforço gasto, independente do número de tickets.') +
+      kpiCard('ESFORÇO MÉDIO POR TICKET', mds.avg + ' MD', 'esforço médio para resolver um ticket', '#34d399',
+              'Esforço total dividido pelo número de tickets.\nQuanto maior, mais complexo está sendo o trabalho médio.') +
+      kpiCard('TICKETS SEM ESFORÇO REGISTRADO', mds.zero_pct + '%', mds.n + ' tickets no período', mds.zero_pct > 20 ? '#fbbf24' : '#34d399',
+              'Tickets fechados sem qualquer hora apontada.\nPode indicar: fechamento administrativo, ticket sem trabalho real, ou falha no registro de horas.\nAcima de 20% merece investigação.') +
+      kpiCard('INVESTIMENTO EM CAUSA RAIZ', ratio.ratio + '%', 'esforço em problems vs incidents', ratCol,
+              'Quanto do esforço vai para investigação de causa raiz (problems) versus apagar incêndio (incidents).\nPadrão de mercado (ITIL): 20% a 30%.\nMuito baixo = só apaga incêndio. Muito alto = analisa demais sem entregar.') +
+    '</div>' : '') +
+    // Insights — Resolution Rate, FTF, Burn-down ETA, P1+P2, Customer Wait
+    _renderInsightsRow(prj, curY, curM) +
+    // Onda 3: Quality (Closed Admin sempre; Country split só Farmatodo)
+    _renderQualitySection(prj, curY, curM) +
     // SLA grid migrado da aba INC — clique no card abre o detail modal flutuante
     '<div class="cb" style="margin-bottom:24px">' +
       '<div class="cbt" style="margin-bottom:12px">SLA por Prioridade — clique no card para detalhes</div>' +
       '<div class="sla-grid" id="sla-cards"></div>' +
       '<div style="font-size:9px;color:#2a4a60;margin-top:4px" id="sla-cfg-lbl"></div>' +
     '</div>' +
-    // ── Problem Management ──
+    // Application Health — TOP 5 apps com health score
+    _renderAppsSection(prj, curY, curM) +
+    // Team & Capacity — top assignees, knowledge concentration, service line
+    _renderTeamSection(prj, curY, curM) +
+    // Onda 1: Problem Management (estendido com Reincidência, Fix Time, ROI)
     _renderProblemSection(prj, curY, curM);
 
   var clientSevs = ['incident', 'user_request', 'problem'];
@@ -5996,7 +7012,7 @@ function buildCliente() {
   clientSevs.forEach(function(sev) {
     var sevName = sev.toUpperCase().replace('_', ' ');
     html += '<div style="margin-bottom:30px;background:#0d2438;border:1px solid #1a3a50;border-radius:12px;padding:20px">' +
-      '<div style="font-family:var(--ft);font-size:16px;font-weight:700;color:#e2e8f0;margin-bottom:20px;display:flex;align-items:center;gap:10px">' +
+      '<div style="font-family:var(--ft);font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:20px;display:flex;align-items:center;gap:10px">' +
         '<div style="width:24px;height:24px;background:var(--open);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px">&#128200;</div>' + sevName + 
       '</div>' +
       '<div style="display:grid;grid-template-columns:1.5fr 1fr;gap:20px">' +
@@ -6165,7 +7181,7 @@ function renderClientOpClChart(sev, history) {
         legend: { display: true, position: 'top', align: 'start', labels: { usePointStyle: true, boxWidth: 6, color: '#94a3b8', font: { size: 10 } } },
         tooltip: {
           backgroundColor: '#0B1F2C', borderColor: '#1a3a50', borderWidth: 1,
-          titleColor: '#94a3b8', bodyColor: '#e2e8f0', padding: 10,
+          titleColor: '#94a3b8', bodyColor: '#f1f5f9', padding: 10,
           callbacks: {
             title: function(i) { return i[0].label; },
             label: function(c) { return ' ' + c.dataset.label + ': ' + c.parsed.y; }
@@ -6173,8 +7189,8 @@ function renderClientOpClChart(sev, history) {
         }
       },
       scales: {
-        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } },
-        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } }
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
       }
     }
   });
@@ -6215,12 +7231,12 @@ function renderClientPrioChart(sev, prioData) {
         legend: { display: false },
         tooltip: {
           backgroundColor: '#0B1F2C', borderColor: '#1a3a50', borderWidth: 1,
-          titleColor: '#94a3b8', bodyColor: '#e2e8f0', padding: 10
+          titleColor: '#94a3b8', bodyColor: '#f1f5f9', padding: 10
         }
       },
       scales: {
-        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { stepSize: 1, color: '#64748b', font: { size: 10 } } },
-        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } }
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { stepSize: 1, color: '#94a3b8', font: { size: 10 } } },
+        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
       }
     }
   });
@@ -6245,7 +7261,7 @@ function renderClientBkChart(sev, rcCount, cliCount, rcIds, cliIds) {
       datasets: [{
         label: 'Tickets',
         data: [rcCount, cliCount],
-        backgroundColor: ['#FF6B00', '#64748b'],
+        backgroundColor: ['#FF6B00', '#94a3b8'],
         borderRadius: 4
       }]
     },
@@ -6255,12 +7271,12 @@ function renderClientBkChart(sev, rcCount, cliCount, rcIds, cliIds) {
         legend: { display: false },
         tooltip: {
           backgroundColor: '#0B1F2C', borderColor: '#1a3a50', borderWidth: 1,
-          titleColor: '#94a3b8', bodyColor: '#e2e8f0', padding: 10
+          titleColor: '#94a3b8', bodyColor: '#f1f5f9', padding: 10
         }
       },
       scales: {
-        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { stepSize: 1, color: '#64748b', font: { size: 10 } } },
-        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } }
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { stepSize: 1, color: '#94a3b8', font: { size: 10 } } },
+        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
       }
     }
   });
