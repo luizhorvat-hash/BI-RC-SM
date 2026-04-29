@@ -390,6 +390,9 @@ def parse_timesheet(path, tickets_df):
     log.info(f"Processando timesheet estrito (ID-based) de {path}...")
     import pandas as pd
     try:
+        # Usar header=4 para pegar os nomes das colunas reais (Row 4)
+        df_ts = pd.read_excel(path, sheet_name='Report', header=4)
+        
         # Mapa de tickets {id: {sv, pr, prj}}
         ticket_map = {}
         for _, r in tickets_df.iterrows():
@@ -398,8 +401,9 @@ def parse_timesheet(path, tickets_df):
             tk_id = str(int(pd.to_numeric(tk_raw, errors='coerce')))
             ticket_map[tk_id] = {
                 'sv': str(r.get('Severity', 'incident')).lower().replace(' ', '_'),
-                'prj': str(r.get('Project Name', 'Other')).strip(),
+                'prj': TIMESHEET_PROJECT_MAP.get(str(r.get('Project Name', 'Other')).strip(), str(r.get('Project Name', 'Other')).strip()),
                 'pr': str(r.get('Priority', 'P4')).strip(),
+                'st': str(r.get('Status', 'New')).strip(),
                 'iv': str(r.get('Invoice', '')).strip()
             }
 
@@ -410,25 +414,35 @@ def parse_timesheet(path, tickets_df):
         def process_ts_row(row_data):
             nonlocal stats
             try:
-                hc = row_data.get(22)
-                dc = row_data.get(23)
-                hours = float(hc) if hc and not pd.isnull(hc) else 0
-                days  = float(dc) if dc and not pd.isnull(dc) else 0
-                
-                if math.isnan(hours): hours = 0
-                if math.isnan(days): days = 0
-                
-                if hours <= 0 and days <= 0: return
+                # Acessar colunas por posição física (0-based)
+                # 1=Project, 6=Staff, 7=Week, 19=Ticket(Comments), 21=Hours, 22=Days
+                try:
+                    # Garantir que row_data seja uma Series para usar iloc
+                    if not isinstance(row_data, pd.Series):
+                        row_data = pd.Series(row_data)
+                        
+                    hc = row_data.iloc[21]
+                    dc = row_data.iloc[22]
+                    hours = float(hc) if hc is not None and not pd.isnull(hc) else 0
+                    days  = float(dc) if dc is not None and not pd.isnull(dc) else 0
+                    
+                    if math.isnan(hours): hours = 0
+                    if math.isnan(days): days = 0
+                    
+                    if hours <= 0 and days <= 0: return
 
-                staff_name = row_data.get(7, "Unknown")
-                desc_col   = str(row_data.get(4, ""))
-                ref_col    = str(row_data.get(20, ""))
-                week_iso   = str(row_data.get(8, ""))
-                
-                # 1. Match Ticket ID (Regra Estrita)
-                tid_col    = str(row_data.get(3, ""))
-                search_text = f"{tid_col} {desc_col} {ref_col}"
-                ids_found = re.findall(r'(\d{4,7})', search_text)
+                    staff_name = str(row_data.iloc[6]) if not pd.isnull(row_data.iloc[6]) else "Unknown"
+                    desc_col   = str(row_data.iloc[3]) if not pd.isnull(row_data.iloc[3]) else ""
+                    ref_col    = str(row_data.iloc[19]) if not pd.isnull(row_data.iloc[19]) else ""
+                    week_val   = row_data.iloc[7]
+                    
+                    # 1. Match Ticket ID (Coluna 19 contém o ID no campo Comments)
+                    tid_col    = str(row_data.iloc[19]) if not pd.isnull(row_data.iloc[19]) else ""
+                    search_text = f"{tid_col} {desc_col}"
+                    ids_found = re.findall(r'(\d{4,7})', search_text)
+                except Exception as ex:
+                    # Se der erro de índice em alguma linha malformada, apenas ignora
+                    return
                 
                 t_meta = None
                 tid_match = None
@@ -445,10 +459,7 @@ def parse_timesheet(path, tickets_df):
 
                 # 2. Determinar Período (Ano-Mes)
                 try: 
-                    if isinstance(week_iso, str):
-                        dt = datetime.fromisoformat(week_iso[:19])
-                    else:
-                        dt = week_iso
+                    dt = week_val
                     mk = f"{dt.year}-{dt.month:02d}"
                 except: 
                     mk = datetime.now().strftime("%Y-%m")
@@ -459,6 +470,7 @@ def parse_timesheet(path, tickets_df):
                         'prj': t_meta['prj'],
                         'sv': t_meta['sv'],
                         'pr': t_meta['pr'],
+                        'st': t_meta['st'],
                         'iv': t_meta['iv'],
                         'periods': {}
                     }
@@ -474,41 +486,17 @@ def parse_timesheet(path, tickets_df):
                 stats["match_ticket"] += 1
             except: pass
 
-        # --- LEITURA DOS DADOS ---
-        if path.suffix.lower() == ".xlsx":
-            try:
-                df_ts = pd.read_excel(path, header=None)
-                for _, row in df_ts.iterrows():
-                    process_ts_row({idx+1: val for idx, val in enumerate(row)})
-                log.info(f"Timesheet XLSX concluído: {len(ts_final)} tickets vinculados. Status: {stats}")
-            except Exception as e:
-                log.error(f"Erro ao ler XLSX: {e}")
-                return {}
-        else:
-            # Tenta ler como XML
-            try:
-                context = ET.iterparse(str(path), events=('end',))
-                for event, elem in context:
-                    if elem.tag == '{urn:schemas-microsoft-com:office:spreadsheet}Row':
-                        cells_raw = elem.findall('{urn:schemas-microsoft-com:office:spreadsheet}Cell', ns)
-                        if not cells_raw:
-                            elem.clear(); continue
-                        
-                        row_data = {}
-                        current_idx = 1
-                        for cell in cells_raw:
-                            idx_attr = cell.get('{urn:schemas-microsoft-com:office:spreadsheet}Index')
-                            if idx_attr: current_idx = int(idx_attr)
-                            data_elem = cell.find('{urn:schemas-microsoft-com:office:spreadsheet}Data', ns)
-                            row_data[current_idx] = data_elem.text if data_elem is not None else None
-                            current_idx += 1 + int(cell.get('{urn:schemas-microsoft-com:office:spreadsheet}MergeAcross', 0))
-                        
-                        process_ts_row(row_data)
-                        elem.clear()
-                log.info(f"Timesheet concluído: {len(ts_final)} tickets vinculados. Status: {stats}")
-            except Exception as e:
-                log.error(f"Erro ao processar timesheet: {e}")
-                return {}
+        # --- PROCESSAMENTO ---
+        # df_ts já foi carregado com header=4 (nomes de colunas na Row 4)
+        for _, row in df_ts.iterrows():
+            process_ts_row(row)
+
+        log.info(f"Timesheet granular concluído: {len(ts_final)} tickets vinculados. Status: {stats}")
+        return ts_final
+
+    except Exception as e:
+        log.error(f"Falha ao processar timesheet: {e}")
+        return {}
 
         return ts_final
     except Exception as e:
@@ -612,7 +600,8 @@ def process_tickets_data(csv_override=None):
             str(r.get("assigned", "")), float(sl_ack) if pd.notna(sl_ack) else None,
             str(r.get("Root Cause Source", "N/A")),
             str(r.get("Root Cause Type", "N/A")),
-            float(sl_res) if pd.notna(sl_res) else None, str(r.get("Project Name", "Desconhecido")),
+            float(sl_res) if pd.notna(sl_res) else None, 
+            TIMESHEET_PROJECT_MAP.get(str(r.get("Project Name", "Desconhecido")).strip(), str(r.get("Project Name", "Desconhecido")).strip()),
             int(r["Opening Date"].year) if pd.notnull(r.get("Opening Date")) else 0,
             int(r["Opening Date"].month) if pd.notnull(r.get("Opening Date")) else 0,
             int(r["Opening Date"].day) if pd.notnull(r.get("Opening Date")) else 0,
@@ -789,7 +778,7 @@ def process_tickets_data(csv_override=None):
             }
     for row in rows_out:
         if row[fi_sv] == "incident" and row[fi_pid]:
-            pid = row[fi_pid]
+            pid = str(row[fi_pid]).lstrip("0")
             if pid in problems_idx:
                 problems_idx[pid]["incidents"].append({
                     "ticket": str(row[fi_k]), "md": row[fi_md], "pri": row[fi_pr],

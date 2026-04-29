@@ -1818,7 +1818,7 @@ function buildTimesheetKPI(sev, id) {
     var entry = ts[tid];
     var entryPrj = entry.prj ? entry.prj.trim().toLowerCase() : '';
     
-    // Calcular horas do projeto (todas as severidades) para o indicador
+    // Calcular MDs do projeto (todas as severidades) para o indicador
     if (!targetPrj || entryPrj === targetPrj) {
       if (filterKey) {
         totalProjectHours += (entry.periods[filterKey] || {}).h || 0;
@@ -1832,6 +1832,8 @@ function buildTimesheetKPI(sev, id) {
     // Filtragem para o Ranking da Aba Atual
     if (entry && entry.sv === sev) {
       if (targetPrj && entryPrj !== targetPrj) return;
+      if (entry.st === 'Rejected') return; // EXCLUIR REJECTED
+
       var h = 0;
       if (filterKey) {
         h = (entry.periods[filterKey] && entry.periods[filterKey].h) || 0;
@@ -1842,7 +1844,7 @@ function buildTimesheetKPI(sev, id) {
       } else {
         Object.keys(entry.periods || {}).forEach(function(pk){ h += (entry.periods[pk].h || 0); });
       }
-      if (h > 0) tix.push({tid: tid, h: h});
+      if (h > 0) tix.push({tid: tid, h: h / 8.0, st: entry.st}); // CONVERSÃO PARA MDs + STATUS
     }
   });
 
@@ -1863,25 +1865,39 @@ function buildTimesheetKPI(sev, id) {
       badge.style = 'font-size:10px;background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:10px;margin-left:10px;color:#a78bfa;border:1px solid rgba(167,139,250,0.3)';
       hTitle.appendChild(badge);
     }
-    badge.innerText = 'Total no Projeto: ' + (totalProjectHours || 0).toFixed(1) + 'h';
+    badge.innerText = 'Total no Projeto: ' + ((totalProjectHours || 0) / 8.0).toFixed(1) + ' MDs';
   }
 
-  var emptyMsg = 'Nenhuma hora lançada';
+  var emptyMsg = 'Nenhum MD lançado';
   if (totalProjectHours > 0 && tix.length === 0) {
-      emptyMsg = 'Sem ' + sev + 's, mas há <b style="color:#a78bfa">' + totalProjectHours.toFixed(1) + 'h</b> em outras abas';
+      emptyMsg = 'Sem ' + sev + 's, mas há <b style="color:#a78bfa">' + (totalProjectHours / 8.0).toFixed(1) + ' MDs</b> em outras abas';
   }
 
   tix.sort(function(a,b){return b.h - a.h});
-  var top = tix.slice(0, 5);
-  var max = top.length ? top[0].h : 1;
-  c.innerHTML = top.map(function(x){
-    var valH = x.h || 0;
-    var pct = Math.max(5, Math.round(valH/max*100));
-    return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px">' +
-           '<span class="tno">#'+x.tid+'</span><span style="color:#a78bfa;font-weight:700">'+valH.toFixed(1)+'h</span></div>' +
-           '<div style="width:100%;height:3px;background:rgba(255,255,255,0.03);border-radius:2px">' +
-           '<div style="width:'+pct+'%;height:100%;background:#a78bfa;border-radius:2px"></div></div></div>';
-  }).join('') || '<div style="font-size:11px;color:rgba(255,255,255,0.4);border:1px dashed rgba(255,255,255,0.1);padding:15px;text-align:center;border-radius:8px">' + emptyMsg + '</div>';
+  
+  var closed = tix.filter(function(x){ return x.st === 'Closed' || x.st === 'Resolved'; });
+  var opened = tix.filter(function(x){ return x.st !== 'Closed' && x.st !== 'Resolved'; });
+  
+  var renderSub = function(title, list, color) {
+    if (!list.length) return '';
+    var subMax = list[0].h || 1;
+    return '<div style="margin-top:10px">' +
+           '<div style="font-size:9px;font-weight:700;color:var(--muted);margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:4px">' + title.toUpperCase() + '</div>' +
+           list.slice(0, 5).map(function(x){
+             var pct = Math.max(5, Math.round(x.h/subMax*100));
+             return '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px">' +
+                    '<span class="tno">#'+x.tid+'</span><span style="color:'+color+';font-weight:700">'+x.h.toFixed(1)+' MDs</span></div>' +
+                    '<div style="width:100%;height:3px;background:rgba(255,255,255,0.03);border-radius:2px">' +
+                    '<div style="width:'+pct+'%;height:100%;background:'+color+';border-radius:2px"></div></div></div>';
+           }).join('') + '</div>';
+  };
+
+  if (tix.length === 0) {
+    c.innerHTML = '<div style="font-size:11px;color:rgba(255,255,255,0.4);border:1px dashed rgba(255,255,255,0.1);padding:15px;text-align:center;border-radius:8px">' + emptyMsg + '</div>';
+  } else {
+    c.innerHTML = renderSub('Resolvidos / Fechados', closed, '#34d399') + 
+                  renderSub('Em Aberto / Outros', opened, '#a78bfa');
+  }
 }
 
 function buildStaffKPI(sev, id) {
@@ -1918,12 +1934,12 @@ function buildStaffKPI(sev, id) {
     }
   });
 
-  var sorted = Object.keys(staff).map(function(k){return {n:k,h:staff[k]}}).sort(function(a,b){return b.h-a.h}).slice(0,5);
+  var sorted = Object.keys(staff).map(function(k){return {n:k,h:staff[k] / 8.0}}).sort(function(a,b){return b.h-a.h}).slice(0,5);
   var max = sorted.length ? sorted[0].h : 1;
   c.innerHTML = sorted.map(function(x){
     var pct = Math.round((x.h || 0)/max*100);
     return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px">' +
-           '<span>'+x.n.split(' ').slice(0,2).join(' ')+'</span><span style="font-weight:700">'+(x.h || 0).toFixed(1)+'h</span></div>' +
+           '<span>'+x.n.split(' ').slice(0,2).join(' ')+'</span><span style="font-weight:700">'+(x.h || 0).toFixed(1)+' MDs</span></div>' +
            '<div style="width:100%;height:3px;background:rgba(255,255,255,0.03);border-radius:2px">' +
            '<div style="width:'+pct+'%;height:100%;background:#34d399;border-radius:2px"></div></div></div>';
   }).join('') || '<div style="font-size:10px;color:var(--dim)">Sem dados de staff</div>';
@@ -6195,6 +6211,45 @@ function showStaleProblemsDetail(prj) {
   openTableModal('PROBLEMS PARADOS (+30 DIAS)', html);
 }
 
+function showOpenProblemsDetail(prj) {
+  var list = _filterProblems(prj).filter(function(o) {
+    return o.p.is_open;
+  }).map(function(o) {
+    var incs = _filterIncs(o.p.incidents, prj);
+    var inc_md = incs.reduce(function(s,i){ return s + (+i.md || 0); }, 0);
+    return {
+      ticket: o.p.ticket, app: o.p.app, status: o.p.status, priority: o.p.priority,
+      inc_count: incs.length, self_md: (+o.p.self_md || 0),
+      inc_md: inc_md, total_md: ((+o.p.self_md || 0) + inc_md)
+    };
+  }).sort(function(a,b){ return b.total_md - a.total_md; });
+
+  if (!list.length) return alert('Nenhum problema em análise encontrado.');
+
+  var html = '<div class="dtbl-wrap" style="max-height:70vh;overflow-y:auto"><table class="dtbl">' +
+    '<thead><tr><th>Problem</th><th>App</th><th>Pri</th><th style="text-align:right">#Inc</th>' +
+    '<th style="text-align:right">MD Self</th><th style="text-align:right">MD Inc</th>' +
+    '<th style="text-align:right">MD Total</th><th style="text-align:right">ROI</th><th>Status</th></tr></thead><tbody>' +
+    list.map(function(p){
+      var roi = p.inc_count > 0 ? Math.round(p.total_md / p.inc_count * 100) / 100 : 0;
+      var roiCol = roi > 1 ? '#f87171' : (roi > 0.5 ? '#fbbf24' : '#34d399');
+      return '<tr>' +
+        '<td><b>' + p.ticket + '</b></td>' +
+        '<td>' + (p.app || '—') + '</td>' +
+        '<td>' + (p.priority || '—') + '</td>' +
+        '<td style="text-align:right;font-weight:700">' + p.inc_count + '</td>' +
+        '<td style="text-align:right">' + p.self_md.toFixed(2) + '</td>' +
+        '<td style="text-align:right">' + p.inc_md.toFixed(2) + '</td>' +
+        '<td style="text-align:right;font-weight:700;color:#a78bfa">' + p.total_md.toFixed(2) + '</td>' +
+        '<td style="text-align:right;font-weight:700;color:' + roiCol + '">' + roi.toFixed(2) + '</td>' +
+        '<td>' + (p.status || '—') + '</td>' +
+      '</tr>';
+    }).join('') +
+    '</tbody></table></div>';
+
+  openTableModal('PROBLEMS EM ANÁLISE (ABERTOS)', html);
+}
+
 // Effort Real (MDs) - Onda 2 do plano Claude.
 function getMDStats(prj, y, m) {
   if (!_problemDataAvailable()) return { total: 0, avg: 0, zero_pct: 0, available: false };
@@ -6866,7 +6921,7 @@ function _renderProblemSection(prj, y, m) {
       kpiCard('PROBLEMS EM ANÁLISE', stats.open,
               'de ' + stats.total + ' totais · ' + stats.orphan + ' sem incident vinculado',
               stats.open > 10 ? '#fbbf24' : '#34d399',
-              'Problems ainda em investigação (não fechados nem rejeitados).\n"Sem incident vinculado" = problems abertos isoladamente; vale auditar se ainda fazem sentido.') +
+              'Problems ainda em investigação (não fechados nem rejeitados).\n"Sem incident vinculado" = problems abertos isoladamente; vale auditar se ainda fazem sentido.\n\nClique duplo para ver a lista detalhada.').replace('<div', '<div ondblclick="showOpenProblemsDetail(selProject||\'Todos os Projetos\')" style="cursor:pointer" ') +
       kpiCard('PROBLEMS PARADOS', stats.stale,
               'abertos há mais de 30 dias', staleCol,
               'Problems em análise há mais de 30 dias sem fechar.\nClique duplo para ver a lista detalhada.').replace('<div', '<div ondblclick="showStaleProblemsDetail(selProject||\'Todos os Projetos\')" style="cursor:pointer" ') +
