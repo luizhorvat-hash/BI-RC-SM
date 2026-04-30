@@ -662,13 +662,13 @@ def process_tickets_data(csv_override=None):
     for pri, lim, tgt in [("P1",360,98),("P2",720,95),("P3",1920,95),("P4",2880,95)]:
         g = sla_df[sla_df["Priority"]==pri]
         if len(g) == 0: continue
-        met = int((g["Resolution SLA"] > 0).sum())
+        met = int((g["Resolution SLA"] >= 0).sum())
         total = len(g)
         tix = []
         for _, r in g.iterrows():
             tix.append({
                 "tid": int(r["Ticket"]), "rs": round(float(r["Resolution SLA"]),1),
-                "met": 1 if r["Resolution SLA"] > 0 else 0, "op": fmt_date(r["Opening Date"]),
+                "met": 1 if r["Resolution SLA"] >= 0 else 0, "op": fmt_date(r["Opening Date"]),
                 "ap": str(r.get("Application", "N/A"))[:30], "s": str(r.get("Summary", ""))[:50],
                 "y": int(r["Close Date"].year) if pd.notnull(r["Close Date"]) else int(r["Opening Date"].year),
                 "m": int(r["Close Date"].month) if pd.notnull(r["Close Date"]) else int(r["Opening Date"].month),

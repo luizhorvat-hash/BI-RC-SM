@@ -819,7 +819,7 @@ function getSLAFiltered() {
       if (selYear  && t.y !== +selYear)  return false;
       if (selMonth && t.m !== +selMonth) return false;
       // Project filter via getTix
-      if (selProject) {
+      if (selProject && selProject !== 'TODOS') {
         var tk = getTix(t.tid);
         if (tk && tk.prj !== selProject) return false;
       }
