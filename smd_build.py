@@ -34,67 +34,7 @@ def normalize_project(name):
     return first_word.lower()
 
 # ── PROCESSAMENTO DE TIMESHEET ────────────────────────────────────────────────
-DE_PARA_PROJETOS = {
-    "PARFOIS (PT) CMS 2025": "Parfois",
-    "Farmatodo (PT) CMS 2024": "Farmatodo",
-    "TATA (DE) CMS 2024": "Tata",
-    "ARROCHA (MX) CMS 2025": "Farmacia Arrocha",
-    "GDN (DE) CMS 2025": "GDN",
-    "CHANEL (BR) CMS 2025": "Chanel"
-}
-
-# Mapeamento completo: nome no timesheet → projeto do dashboard
-TIMESHEET_PROJECT_MAP = {
-    # Chanel
-    "CHANEL (BR) CMS 2024": "Chanel",
-    "CHANEL (BR) CMS 2024 Change Requests": "Chanel",
-    "CHANEL (BR) CMS 2025": "Chanel",
-    "CHANEL (BR) Reforma Tributaria - Xstore": "Chanel",
-    # Farmacia Arrocha
-    "ARROCHA (MX) CMS 2025": "Farmacia Arrocha",
-    "ARROCHA (MX) CMS 2025 Change Requests": "Farmacia Arrocha",
-    "ARROCHA (MX) Improvements 2025": "Farmacia Arrocha",
-    # Farmatodo
-    "Farmatodo (PT) CMS 2024": "Farmatodo",
-    "Farmatodo (PT) Agile 2024": "Farmatodo",
-    "Farmatodo (PT) Improvements": "Farmatodo",
-    "FARMATODO (PT) CMS 2024 Change Requests": "Farmatodo",
-    "FARMATODO (PT) AR RWMS Implementation": "Farmatodo",
-    # GDN
-    "GDN (DE) CMS 2025": "GDN",
-    # Parfois
-    "PARFOIS (PT) 2025": "Parfois",
-    "PARFOIS (PT) Apps Evolution 2026": "Parfois",
-    "PARFOIS (PT) CMS 2025": "Parfois",
-    "PARFOIS (PT) Consultoria Xstore 2026": "Parfois",
-    "PARFOIS (PT) FIL Team 2025": "Parfois",
-    "PARFOIS (PT) MOM Move to Cloud": "Parfois",
-    "PARFOIS (PT) MOM Move to Cloud - RDT": "Parfois",
-    "PARFOIS (PT) Pequenas Acoes 2025": "Parfois",
-    "PARFOIS (PT) Pequenas Acoes 2026": "Parfois",
-    "PARFOIS (PT) Stream MOM": "Parfois",
-    "PARFOIS (PT) Waving 3.0": "Parfois",
-    "RC (PT) PARFOIS": "Parfois",
-    # Sonae RDF
-    "SONAE (PT) CMS Planning 2023": "Sonae RDF",
-    "SONAE (PT) MDM Genesis": "Sonae RDF",
-    "SONAE (PT) Pequenas Acoes 2025": "Sonae RDF",
-    "SONAE (PT) Pequenas Acoes 2026": "Sonae RDF",
-    "SONAE (PT) Resource Assignment T&M 2025": "Sonae RDF",
-    "SONAE (PT) Resource Assignment T&M 2026": "Sonae RDF",
-    "SONAE (PT) SPLIT Maxmat Data Migration": "Sonae RDF",
-    "SONAE (PT) SPLIT Maxmat MW 2025": "Sonae RDF",
-    "SONAE (PT) Suporte MDM 2025": "Sonae RDF",
-    "SONAE (PT) Suporte MDM 2026": "Sonae RDF",
-    "SONAE (PT) Worten Darwin Migracao Vistex 2025": "Sonae RDF",
-    "SONAE (PT) Worten Park Orders": "Sonae RDF",
-    "SONAE (PT) Worten Receitas 2026": "Sonae RDF",
-    "RC (PT) SONAE": "Sonae RDF",
-    # Tata
-    "TATA (DE) CMS 2024": "Tata",
-    "TIA (MX) CMS 2025": "Tata",
-    "Tata Tia (MX) TIA CMS 2021": "Tata",
-}
+# (Mapeamentos agora carregados via smd_config.py -> smd_projects.json)
 
 # ── UTILITÁRIOS DE TIMESHEET ──────────────────────────────────────────────────
 def get_ts_path():
@@ -118,10 +58,10 @@ def normalize_name(n):
 
 def get_resource_grade_map():
     """Lê o arquivo Resource Level.xlsx e retorna um mapeamento de nomes para Career Grade."""
-    res_path = smd_config.BASE_DIR / "DOcs" / "Resource Level.xlsx"
+    res_path = smd_config.RESOURCE_LEVEL_FILE
     if not res_path.exists():
-        log.warning(f"Arquivo de Resource Level não encontrado em {res_path}")
-        return {}
+        log.warning(f"Arquivo de Resource Level não encontrado em {res_path}. Usando apenas correções manuais.")
+        return smd_config.MANUAL_RESOURCE_FIXES
 
     try:
         import pandas as pd
@@ -137,37 +77,40 @@ def get_resource_grade_map():
                 if len(parts) > 1:
                     short = f"{parts[0]} {parts[-1]}"
                     if short not in mapping: mapping[short] = grade
-        # Mapeamentos manuais fornecidos pelo usuário para nomes divergentes no Timesheet
-        manual_fixes = {
-            "helder ferreira": "300",
-            "joao pinto": "203",
-            "bruno madaleno": "300",
-            "nuno pereira": "101",
-            "joao cunha goncalves": "202"
-        }
-        mapping.update(manual_fixes)
+        
+        # Adiciona mapeamentos manuais configurados
+        mapping.update(smd_config.MANUAL_RESOURCE_FIXES)
 
-        log.info(f"Carregados {len(mapping)} mapeamentos de Career Grade (incluindo variações e correções manuais).")
+        log.info(f"Carregados {len(mapping)} mapeamentos de Career Grade.")
         return mapping
     except Exception as e:
         log.error(f"Erro ao carregar Resource Level: {e}")
         return {}
 
-def parse_timesheet_tab(path):
-    """
-    Lê o timesheet e agrega por projeto-dashboard / ano / mês.
-    Suporta .xls (XML 2003) e .xlsx (Pandas).
-    """
-    if not path:
-        log.warning(f"Timesheet não configurado ou não encontrado.")
-        return {}
-    if not path.exists():
-        log.warning(f"Arquivo de timesheet {path} não existe.")
+def parse_timesheet_tab(path, tickets_df=None):
+    """Lê o arquivo XLS/XML de timesheet e gera agregação por projeto/ano/mês para a aba dedicada."""
+    if not path or not path.exists():
+        log.warning(f"Arquivo de timesheet não encontrado para a aba: {path}")
         return {}
 
     log.info(f"Gerando dados da aba Timesheet de {path.name}...")
     import pandas as pd
     from collections import defaultdict
+    import re
+
+    # Mapa de info dos tickets (prioridade e severidade)
+    ticket_info_map = {}
+    if tickets_df is not None:
+        for _, r in tickets_df.iterrows():
+            tk_raw = r.get('Ticket')
+            if pd.isna(tk_raw): continue
+            try:
+                tk_id = str(int(pd.to_numeric(tk_raw, errors='coerce')))
+                ticket_info_map[tk_id] = {
+                    "pr": str(r.get('Priority', 'P4')).strip(),
+                    "sv": str(r.get('Severity', 'incident')).strip()
+                }
+            except: continue
 
     # acumuladores: [prj][year][month] → dicts
     grade_map = get_resource_grade_map()
@@ -176,7 +119,8 @@ def parse_timesheet_tab(path):
         "staff": defaultdict(float),
         "tasks": defaultdict(float),
         "subs":  defaultdict(float),
-        "sub_projects": defaultdict(float),
+        "by_priority": defaultdict(lambda: {"md": 0.0, "tix": defaultdict(float)}),
+        "by_sev_prio": defaultdict(lambda: defaultdict(lambda: {"md": 0.0, "tix": set()})),
         "weekly": defaultdict(float),
         "grades": defaultdict(float),
         "staff_detailed": defaultdict(lambda: {"h": 0.0, "d": 0.0, "sub": "", "grade": ""}),
@@ -188,6 +132,8 @@ def parse_timesheet_tab(path):
         staff  = row_data.get(6, "") or ""
         week_s = row_data.get(7, "") or ""
         sub    = row_data.get(23, "") or ""
+        # Coluna 19 costuma ter IDs de tickets nos comentários
+        ref_col = str(row_data.get(19, ""))
 
         try:
             wk_h  = float(row_data.get(21) or 0)
@@ -206,7 +152,7 @@ def parse_timesheet_tab(path):
             return
 
         prj_ts_clean = str(prj_ts).strip()
-        dash_prj = TIMESHEET_PROJECT_MAP.get(prj_ts_clean, "Outros")
+        dash_prj = smd_config.TIMESHEET_PROJECT_MAP.get(prj_ts_clean, prj_ts_clean)
 
         try:
             if isinstance(week_s, str):
@@ -217,13 +163,13 @@ def parse_timesheet_tab(path):
             if pd.isnull(dt) or not isinstance(dt, (datetime, date)):
                 return
                 
-            year  = str(dt.year)
-            month = f"{dt.month:02d}"
-            week_key = f"{dt.year}-W{dt.isocalendar()[1]:02d}"
+            d_year  = str(dt.year)
+            d_month = f"{dt.month:02d}"
+            d_week  = f"{dt.year}-W{dt.isocalendar()[1]:02d}"
         except Exception:
             return
 
-        # Busca Career Grade com normalização e fallback para nome curto
+        # Busca Career Grade
         s_norm = normalize_name(staff)
         grade = grade_map.get(s_norm)
         if not grade:
@@ -233,8 +179,20 @@ def parse_timesheet_tab(path):
             else:
                 grade = "N/A"
 
-        # Itera sobre os dias da semana (índices específicos devido a colunas vazias no CMS)
-        day_indices = [9, 10, 11, 13, 14, 15, 17] # Seg, Ter, Qua, Qui, Sex, Sab, Dom
+        # Match Ticket ID para Prioridade e Severidade
+        priority = "N/A"
+        severity = "N/A"
+        search_text = f"{ref_col} {task}"
+        ids_found = re.findall(r'(\d{4,7})', search_text)
+        if ids_found:
+            for tid in ids_found:
+                if tid in ticket_info_map:
+                    priority = ticket_info_map[tid]["pr"]
+                    severity = ticket_info_map[tid]["sv"]
+                    break
+
+        # Itera sobre os dias da semana
+        day_indices = [9, 10, 11, 13, 14, 15, 17]
         for idx, i in enumerate(day_indices):
             h = row_data.get(i, 0)
             try:
@@ -246,16 +204,15 @@ def parse_timesheet_tab(path):
             day_offset = idx
             day_date = dt + timedelta(days=day_offset)
             
-            d_year  = str(day_date.year)
-            d_month = f"{day_date.month:02d}"
-            d_week  = f"{day_date.year}-W{day_date.isocalendar()[1]:02d}"
+            dy  = str(day_date.year)
+            dm  = f"{day_date.month:02d}"
+            dw  = f"{day_date.year}-W{day_date.isocalendar()[1]:02d}"
             
-            # MD proporcional (base 8h)
             d_md = h / 8.0
-            is_overtime = (i >= 15) # Sábado (15) e Domingo (17)
+            is_overtime = (i >= 15)
 
             for prj in [dash_prj, "Todos"]:
-                b = acc[prj][d_year][d_month]
+                b = acc[prj][dy][dm]
                 b["total_h"]    += h
                 b["total_days"] += d_md
                 if is_overtime:
@@ -264,11 +221,30 @@ def parse_timesheet_tab(path):
                 b["staff"][staff]   += h
                 b["tasks"][task]    += h
                 b["subs"][sub]      += h
-                b["sub_projects"][prj_ts] += h
-                b["weekly"][d_week]       += h
-                b["grades"][grade]        += d_md
                 
-                # Detalhes do colaborador para o novo KPI
+                # MDs por prioridade e ticket
+                bp = b["by_priority"][priority]
+                bp["md"] += d_md
+                if priority != "N/A" and ids_found:
+                    # Tenta achar qual ticket dos encontrados gerou esta prioridade
+                    matched_tid = None
+                    for tid in ids_found:
+                        ti = ticket_info_map.get(tid)
+                        if ti and ti.get("pr") == priority:
+                            matched_tid = tid
+                            break
+                    if not matched_tid: matched_tid = ids_found[0]
+                    bp["tix"][matched_tid] += d_md
+                    
+                    # Médias por Severidade e Prioridade
+                    if severity != "N/A":
+                        sp = b["by_sev_prio"][severity][priority]
+                        sp["md"] += d_md
+                        sp["tix"].add(matched_tid)
+
+                b["weekly"][dw]       += h
+                b["grades"][grade]    += d_md
+                
                 sd = b["staff_detailed"][staff]
                 sd["h"] += h
                 sd["d"] += d_md
@@ -339,15 +315,35 @@ def parse_timesheet_tab(path):
                     [{"task": t, "h": round(h, 1)} for t, h in b["tasks"].items()],
                     key=lambda x: -x["h"])[:8]
                 by_sub = {s: round(h, 1) for s, h in sorted(b["subs"].items(), key=lambda x: -x[1])}
-                sub_projects = sorted(
-                    [{"name": n, "h": round(h, 1)} for n, h in b["sub_projects"].items()],
-                    key=lambda x: -x["h"])[:10]
+                by_priority = []
+                for p_name, p_data in b["by_priority"].items():
+                    tix_list = sorted(
+                        [{"id": tid, "md": round(m, 2)} for tid, m in p_data["tix"].items()],
+                        key=lambda x: -x["md"]
+                    )
+                    by_priority.append({
+                        "name": p_name, 
+                        "d": round(p_data["md"], 2),
+                        "tix": tix_list
+                    })
+                by_priority.sort(key=lambda x: x["name"])
+
+                # Médias por Severidade e Prioridade (preparação para o frontend)
+                by_sev_prio = {}
+                for sv, prios in b["by_sev_prio"].items():
+                    by_sev_prio[sv] = {}
+                    for pr, data in prios.items():
+                        by_sev_prio[sv][pr] = {
+                            "md": round(data["md"], 2),
+                            "n": len(data["tix"])
+                        }
+
                 weekly = [{"week": w, "h": round(h, 1)}
                           for w, h in sorted(b["weekly"].items())]
 
                 by_grade = {g: round(d, 2) for g, d in sorted(b["grades"].items(), key=lambda x: -x[1])}
 
-                # Detalhes por grade para o novo KPI
+                # Detalhes por grade
                 grade_details = {}
                 for name, d in b["staff_detailed"].items():
                     g = d["grade"]
@@ -371,7 +367,8 @@ def parse_timesheet_tab(path):
                     "by_subsidiary": by_sub,
                     "by_career_grade": by_grade,
                     "grade_details": grade_details,
-                    "sub_projects": sub_projects,
+                    "by_priority": by_priority,
+                    "by_sev_prio": by_sev_prio,
                     "weekly": weekly,
                 }
 
@@ -401,7 +398,7 @@ def parse_timesheet(path, tickets_df):
             tk_id = str(int(pd.to_numeric(tk_raw, errors='coerce')))
             ticket_map[tk_id] = {
                 'sv': str(r.get('Severity', 'incident')).lower().replace(' ', '_'),
-                'prj': TIMESHEET_PROJECT_MAP.get(str(r.get('Project Name', 'Other')).strip(), str(r.get('Project Name', 'Other')).strip()),
+                'prj': smd_config.TIMESHEET_PROJECT_MAP.get(str(r.get('Project Name', 'Other')).strip(), str(r.get('Project Name', 'Other')).strip()),
                 'pr': str(r.get('Priority', 'P4')).strip(),
                 'st': str(r.get('Status', 'New')).strip(),
                 'iv': str(r.get('Invoice', '')).strip()
@@ -601,7 +598,7 @@ def process_tickets_data(csv_override=None):
             str(r.get("Root Cause Source", "N/A")),
             str(r.get("Root Cause Type", "N/A")),
             float(sl_res) if pd.notna(sl_res) else None, 
-            TIMESHEET_PROJECT_MAP.get(str(r.get("Project Name", "Desconhecido")).strip(), str(r.get("Project Name", "Desconhecido")).strip()),
+            smd_config.TIMESHEET_PROJECT_MAP.get(str(r.get("Project Name", "Desconhecido")).strip(), str(r.get("Project Name", "Desconhecido")).strip()),
             int(r["Opening Date"].year) if pd.notnull(r.get("Opening Date")) else 0,
             int(r["Opening Date"].month) if pd.notnull(r.get("Opening Date")) else 0,
             int(r["Opening Date"].day) if pd.notnull(r.get("Opening Date")) else 0,
@@ -866,7 +863,7 @@ def run_pipeline(skip_agents=False, csv_override=None):
     
     # Timesheet por projeto/ano/mês (aba dedicada)
     ts_path = get_ts_path()
-    timesheet_tab = parse_timesheet_tab(ts_path)
+    timesheet_tab = parse_timesheet_tab(ts_path, df_raw)
     
     # Restauração do KPI de Oncall
     oncall_data = {}

@@ -659,6 +659,7 @@ var ATTN_EMOJIS = {backlog_aging:'&#9201;',sla_breach:'&#128308;',open_gt_close:
 var selProject = null, selYear = null, selMonth = null;
 var activeSev = null, activeView = null;
 var charts = {};
+window._tsPrioDetails = {}; // Global store for drill-down data
 var _ocDetailOpen = false;
 
 // Status que contam como assigned/cli para metricas
@@ -5224,7 +5225,7 @@ function getTSMonth() {
 function getTSAgg() {
   var months = getTSMonth();
   var agg = { total_h:0, total_days:0, overtime_h:0, headcount_set:{},
-               staff:{}, tasks:{}, subs:{}, sub_projects:{}, weekly:[],
+               staff:{}, tasks:{}, subs:{}, by_priority:{}, by_sev_prio:{}, weekly:[],
                by_career_grade:{}, grade_details:{} };
   Object.values(months).forEach(function(b) {
     agg.total_h    += b.total_h    || 0;
@@ -5233,7 +5234,22 @@ function getTSAgg() {
     (b.top_staff||[]).forEach(function(s){ agg.staff[s.name] = (agg.staff[s.name]||0) + s.h; });
     (b.top_tasks||[]).forEach(function(t){ agg.tasks[t.task] = (agg.tasks[t.task]||0) + t.h; });
     Object.keys(b.by_subsidiary||{}).forEach(function(s){ agg.subs[s] = (agg.subs[s]||0) + (b.by_subsidiary[s]||0); });
-    (b.sub_projects||[]).forEach(function(p){ agg.sub_projects[p.name] = (agg.sub_projects[p.name]||0) + p.h; });
+    (b.by_priority||[]).forEach(function(p){ 
+      if (!agg.by_priority[p.name]) agg.by_priority[p.name] = { d: 0, tix: {} };
+      agg.by_priority[p.name].d += p.d;
+      (p.tix||[]).forEach(function(t){
+        agg.by_priority[p.name].tix[t.id] = (agg.by_priority[p.name].tix[t.id]||0) + t.md;
+      });
+    });
+    // Aggregation of by_sev_prio
+    Object.keys(b.by_sev_prio||{}).forEach(function(sv) {
+      if (!agg.by_sev_prio[sv]) agg.by_sev_prio[sv] = {};
+      Object.keys(b.by_sev_prio[sv]).forEach(function(pr) {
+        if (!agg.by_sev_prio[sv][pr]) agg.by_sev_prio[sv][pr] = {md:0, n:0};
+        agg.by_sev_prio[sv][pr].md += b.by_sev_prio[sv][pr].md;
+        agg.by_sev_prio[sv][pr].n  += b.by_sev_prio[sv][pr].n;
+      });
+    });
     (b.weekly||[]).forEach(function(w){ agg.weekly.push(w); });
 
     // Career Grade Aggregation
@@ -5257,8 +5273,14 @@ function getTSAgg() {
     .sort(function(a,b){ return b.h - a.h; }).slice(0,8);
   agg.top_subs = Object.keys(agg.subs).map(function(s){ return {sub:s, h:Math.round(agg.subs[s]*10)/10}; })
     .sort(function(a,b){ return b.h - a.h; });
-  agg.top_sub_projects = Object.keys(agg.sub_projects).map(function(n){ return {name:n, h:Math.round(agg.sub_projects[n]*10)/10}; })
-    .sort(function(a,b){ return b.h - a.h; }).slice(0,8);
+  agg.top_priorities = Object.keys(agg.by_priority).map(function(n){ 
+    var p = agg.by_priority[n];
+    return {
+      name: n, 
+      d: Math.round(p.d*100)/100,
+      tix: Object.keys(p.tix).map(function(tid){ return {id:tid, md:p.tix[tid]}; }).sort(function(a,b){ return b.md - a.md; })
+    }; 
+  }).sort(function(a,b){ return a.name.localeCompare(b.name); });
   // Sort weekly
   agg.weekly.sort(function(a,b){ return a.week < b.week ? -1 : 1; });
   return agg;
@@ -5379,7 +5401,7 @@ function buildTimesheet() {
   var staffRows = agg.top_staff.map(function(s, i) {
     var pct = Math.round(s.h / maxStaffH * 100);
     var rank = i === 0 ? '&#129351;' : i === 1 ? '&#129352;' : i === 2 ? '&#129353;' : (i+1)+'.';
-    return '<div style="margin-bottom:8px">' +
+    return '<div class="tip" data-tip="Esforço total apontado por ' + s.name + ': ' + (s.h/8).toFixed(2) + ' MD" style="margin-bottom:8px">' +
       '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">' +
         '<span>' + rank + ' ' + s.name + '</span>' +
         '<span style="color:' + orange + ';font-weight:700">' + (s.h/8).toFixed(2) + ' MD</span>' +
@@ -5394,7 +5416,7 @@ function buildTimesheet() {
   var taskRows = agg.top_tasks.map(function(t) {
     var pct = Math.round(t.h / maxTaskH * 100);
     var taskPct = agg.total_h > 0 ? Math.round(t.h / agg.total_h * 100) : 0;
-    return '<div style="margin-bottom:8px">' +
+    return '<div class="tip" data-tip="Esforço total alocado na tarefa: ' + t.task + '" style="margin-bottom:8px">' +
       '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">' +
         '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px">' + t.task + '</span>' +
         '<span style="color:' + blue + ';font-weight:700;white-space:nowrap">' + (t.h/8).toFixed(2) + ' MD <span style="color:var(--muted);font-weight:400">(' + taskPct + '%)</span></span>' +
@@ -5404,21 +5426,72 @@ function buildTimesheet() {
       '</div></div>';
   }).join('');
 
-  // ── SUB-PROJETOS ──────────────────────────────────────────────
-  var spRows = agg.top_sub_projects.map(function(p) {
-    var pct = agg.total_h > 0 ? Math.round(p.h / agg.total_h * 100) : 0;
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:10px">' +
-      '<span style="flex:1;color:var(--fg)">' + p.name + '</span>' +
+  // ── PRIORIDADE ──────────────────────────────────────────────
+  var categorizedPrio = agg.top_priorities.filter(function(p){ return p.name !== 'N/A'; });
+  var prioTotalMD = categorizedPrio.reduce(function(acc, p){ return acc + p.d; }, 0);
+
+  var prioRows = categorizedPrio.map(function(p) {
+    var pct = prioTotalMD > 0 ? Math.round(p.d / prioTotalMD * 100) : 0;
+    var col = p.name === 'P1' ? '#f87171' : (p.name === 'P2' ? '#f97316' : (p.name === 'P3' ? '#a3e635' : '#60a5fa'));
+    
+    // Store data in global variable to avoid long attribute strings
+    var key = 'prio_' + p.name + '_' + Math.random().toString(36).substr(2, 9);
+    window._tsPrioDetails[key] = p.tix;
+    
+    return '<div class="tip" data-tip="Esforço: ' + p.d.toFixed(2) + ' MD (' + pct + '%)\nDouble-click para ver os tickets desta prioridade." style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:10px;cursor:help" ondblclick="showPrioDetail(\''+p.name+'\', \''+key+'\')">' +
+      '<span style="flex:1;color:var(--fg);font-weight:700">' + p.name + '</span>' +
       '<span style="color:var(--muted);margin-right:10px">' + pct + '%</span>' +
-      '<span style="color:' + green + ';font-weight:700">' + (p.h/8).toFixed(2) + ' MD</span>' +
+      '<span style="color:' + col + ';font-weight:700">' + p.d.toFixed(2) + ' MD</span>' +
     '</div>';
   }).join('');
+
+  // ── MÉDIA POR SEVERIDADE ─────────────────────────────────────
+  function _renderPrioAvgBlock(label, data) {
+    var prios = ['P1','P2','P3','P4'];
+    var rows = prios.map(function(pr) {
+      var d = data[pr] || {md:0, n:0};
+      var avg = d.n > 0 ? (d.md / d.n).toFixed(2) : '0.00';
+      var col = pr === 'P1' ? '#f87171' : (pr === 'P2' ? '#f97316' : (pr === 'P3' ? '#a3e635' : '#60a5fa'));
+      return '<div class="tip" data-tip="Média calculada sobre ' + d.n + ' tickets encerrados." style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:10px">' +
+        '<span style="color:var(--fg);font-weight:700">' + pr + '</span>' +
+        '<span style="color:' + col + ';font-weight:700">' + avg + ' MD avg</span>' +
+      '</div>';
+    }).join('');
+    return '<div class="cb" style="padding:14px">' +
+      '<div class="cbt tip" data-tip="Média de Man-Days gastos para encerrar cada ticket desta categoria." style="margin-bottom:10px;color:var(--muted);font-size:10px">&#9881; MD MÉDIO: ' + label.toUpperCase() + '</div>' +
+      rows +
+    '</div>';
+  }
+  var avgInc = _renderPrioAvgBlock('Incident', agg.by_sev_prio['incident'] || {});
+  var avgReq = _renderPrioAvgBlock('User Request', agg.by_sev_prio['user_request'] || {});
+  var avgPrb = _renderPrioAvgBlock('Problem', agg.by_sev_prio['problem'] || {});
+
+  // ── MÉDIA POR HORAS ──────────────────────────────────────────
+  function _renderPrioAvgBlockH(label, data) {
+    var prios = ['P1','P2','P3','P4'];
+    var rows = prios.map(function(pr) {
+      var d = data[pr] || {md:0, n:0};
+      var avgH = d.n > 0 ? ((d.md * 8) / d.n).toFixed(1) : '0.0';
+      var col = pr === 'P1' ? '#f87171' : (pr === 'P2' ? '#f97316' : (pr === 'P3' ? '#a3e635' : '#60a5fa'));
+      return '<div class="tip" data-tip="Média calculada sobre ' + d.n + ' tickets encerrados." style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:10px">' +
+        '<span style="color:var(--fg);font-weight:700">' + pr + '</span>' +
+        '<span style="color:' + col + ';font-weight:700">' + avgH + ' hrs avg</span>' +
+      '</div>';
+    }).join('');
+    return '<div class="cb" style="padding:14px">' +
+      '<div class="cbt tip" data-tip="Média de horas (MD * 8) gastas para encerrar cada ticket desta categoria." style="margin-bottom:10px;color:var(--muted);font-size:10px">&#9202; MÉDIA HORAS: ' + label.toUpperCase() + '</div>' +
+      rows +
+    '</div>';
+  }
+  var avgIncH = _renderPrioAvgBlockH('Incident', agg.by_sev_prio['incident'] || {});
+  var avgReqH = _renderPrioAvgBlockH('User Request', agg.by_sev_prio['user_request'] || {});
+  var avgPrbH = _renderPrioAvgBlockH('Problem', agg.by_sev_prio['problem'] || {});
 
   // ── SUBSIDIARY ────────────────────────────────────────────────
   var subColors = [orange, blue, green, purple, '#fbbf24', '#f87171'];
   var subRows = agg.top_subs.map(function(s, i) {
     var pct = agg.total_h > 0 ? Math.round(s.h / agg.total_h * 100) : 0;
-    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px">' +
+    return '<div class="tip" data-tip="Distribuição para ' + s.sub + '" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px">' +
       '<div style="width:10px;height:10px;border-radius:50%;background:' + (subColors[i]||dim) + ';flex-shrink:0"></div>' +
       '<span style="flex:1">' + s.sub + '</span>' +
       '<span style="color:' + (subColors[i]||dim) + ';font-weight:700">' + pct + '%</span>' +
@@ -5431,7 +5504,7 @@ function buildTimesheet() {
     var val = agg.by_career_grade[g];
     var pct = consumedMD > 0 ? Math.round(val / consumedMD * 100) : 0;
     var col = g.startsWith('3') ? '#f87171' : (g.startsWith('2') ? '#fb923c' : '#60a5fa');
-    return '<div style="margin-bottom:12px">' +
+    return '<div class="tip" data-tip="Esforço consumido por profissionais de nível ' + g + '" style="margin-bottom:12px">' +
       '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">' +
         '<span>Grade <b>' + g + '</b></span>' +
         '<span style="font-weight:700;color:' + col + '">' + val.toFixed(1) + ' MD (' + pct + '%)</span>' +
@@ -5553,7 +5626,7 @@ function buildTimesheet() {
       '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">' +
         // Esforço por Severidade (MDs)
         '<div class="cb" style="padding:14px">' +
-          '<div class="cbt" style="margin-bottom:12px;color:#f87171">&#9888; Esforço por Severidade (MDs)</div>' +
+          '<div class="cbt tip" data-tip="Distribuição proporcional do esforço consumido baseada no volume de tickets de cada severidade." style="margin-bottom:12px;color:#f87171">&#9888; Esforço por Severidade (MDs)</div>' +
           (function() {
             var sevList = Object.keys(sevCount).sort();
             var colors = {
@@ -5570,7 +5643,7 @@ function buildTimesheet() {
               var mds = consumedMD * share;
               var pct = Math.round(share * 100);
               var col = colors[p] || '#94a3b8';
-              return '<div style="margin-bottom:10px">' +
+              return '<div class="tip" data-tip="Esforço estimado para tickets da severidade ' + p + '" style="margin-bottom:10px">' +
                 '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">' +
                   '<span>' + p + ' <small style="color:var(--dim)">(' + count + ' tix)</small></span>' +
                   '<span style="font-weight:700;color:'+col+'">' + mds.toFixed(2) + ' MD</span>' +
@@ -5591,12 +5664,12 @@ function buildTimesheet() {
         '</div>' +
         // Esforço por Senioridade (Career Grade)
         '<div class="cb" style="padding:14px">' +
-          '<div class="cbt" style="margin-bottom:12px;color:#fb923c">&#127891; Career Grade (Seniority)</div>' +
+          '<div class="cbt tip" data-tip="Consumo de Man-Days segmentado pelo nível de senioridade (Grade) dos colaboradores envolvidos." style="margin-bottom:12px;color:#fb923c">&#127891; Career Grade (Seniority)</div>' +
           (gradeRows || '<div style="color:var(--dim);font-size:11px">Sem dados de grade</div>') +
         '</div>' +
         // Top Staff
         '<div class="cb" style="padding:14px">' +
-          '<div class="cbt" style="margin-bottom:12px;color:' + orange + '">&#128101; Top Colaboradores</div>' +
+          '<div class="cbt tip" data-tip="Recursos com maior alocação de Man-Days no período selecionado." style="margin-bottom:12px;color:' + orange + '">&#128101; Top Colaboradores</div>' +
           (staffRows || '<div style="color:var(--dim);font-size:11px">Sem dados</div>') +
         '</div>' +
       '</div>' +
@@ -5605,16 +5678,21 @@ function buildTimesheet() {
       '<div style="display:grid;grid-template-columns:1.5fr 1fr;gap:12px">' +
         // Matriz de Complexidade (MTTR vs MD)
         '<div class="cb" style="padding:14px">' +
-          '<div class="cbt" style="margin-bottom:12px;color:' + green + '">&#128200; Matriz de Complexidade (MTTR vs MD)</div>' +
+          '<div class="cbt tip" data-tip="Relação entre Volume de Tickets, Esforço (MD) e Tempo de Resolução (MTTR) por módulo ou aplicação." style="margin-bottom:12px;color:' + green + '">&#128200; Matriz de Complexidade (MTTR vs MD)</div>' +
           '<table class="tbl">' +
-            '<thead><tr><th>Aplicação/Módulo</th><th style="text-align:center">Tix</th><th style="text-align:right">MD</th><th style="text-align:right">MTTR</th></tr></thead>' +
+            '<thead><tr>' +
+              '<th class="tip" data-tip="Nome do módulo ou categoria da aplicação">Aplicação/Módulo</th>' +
+              '<th class="tip" data-tip="Total de tickets abertos no período" style="text-align:center">Tix</th>' +
+              '<th class="tip" data-tip="Esforço total consumido (estimado via distribuição proporcional)" style="text-align:right">MD</th>' +
+              '<th class="tip" data-tip="Tempo médio de resolução para tickets encerrados" style="text-align:right">MTTR</th>' +
+            '</tr></thead>' +
             '<tbody>' + (complexityRows || '<tr><td colspan="4" style="text-align:center;color:var(--dim)">Sem dados</td></tr>') + '</tbody>' +
           '</table>' +
         '</div>' +
 
         // Distribuição por Tarefa (Subiu para o grid médio)
         '<div class="cb" style="padding:14px">' +
-          '<div class="cbt" style="margin-bottom:12px;color:' + blue + '">&#128221; Distribuição por Tarefa</div>' +
+          '<div class="cbt tip" data-tip="Principais centros de custo e atividades registradas no timesheet." style="margin-bottom:12px;color:' + blue + '">&#128221; Distribuição por Tarefa</div>' +
           (taskRows || '<div style="color:var(--dim);font-size:11px">Sem dados</div>') +
         '</div>' +
       '</div>' +
@@ -5623,14 +5701,24 @@ function buildTimesheet() {
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">' +
         // Subsidiary
         '<div class="cb" style="padding:14px">' +
-          '<div class="cbt" style="margin-bottom:12px;color:' + green + '">&#127757; Por Subsidiary</div>' +
+          '<div class="cbt tip" data-tip="Esforço total segmentado pela unidade/subsidiária do colaborador." style="margin-bottom:12px;color:' + green + '">&#127757; Por Subsidiary</div>' +
           (subRows || '<div style="color:var(--dim);font-size:11px">Sem dados</div>') +
         '</div>' +
-        // Sub-projetos
+        // Esforço por Prioridade
         '<div class="cb" style="padding:14px">' +
-          '<div class="cbt" style="margin-bottom:10px;color:' + purple + '">&#128193; Sub-Projetos</div>' +
-          (spRows || '<div style="color:var(--dim);font-size:11px">Sem dados</div>') +
+          '<div class="cbt tip" data-tip="Distribuição do esforço total entre as prioridades dos tickets (P1 a P4)." style="margin-bottom:10px;color:' + purple + '">&#128202; Esforço por Prioridade</div>' +
+          (prioRows || '<div style="color:var(--dim);font-size:11px">Sem dados de prioridade</div>') +
         '</div>' +
+      '</div>' +
+
+      // Nova Linha: Médias por Severidade (MD)
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">' +
+        avgInc + avgReq + avgPrb +
+      '</div>' +
+      
+      // Nova Linha: Médias por Severidade (HORAS)
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">' +
+        avgIncH + avgReqH + avgPrbH +
       '</div>' +
       // Equipe Detalhada (Full Width no lugar da tendência)
       '<div class="cb" style="padding:16px;margin-top:12px">' +
@@ -5786,7 +5874,6 @@ function buildSimulador() {
     });
   });
 
-  // 2. Dados de Timesheet e Custos
   var consumedMD = 0;
   var totalCost = 0;
   var staffCosts = [];
@@ -6161,11 +6248,33 @@ function openTableModal(title, html) {
   if (!modal) return alert('Estrutura de modal não encontrada no HTML.');
 
   document.getElementById('modal-title').textContent = title;
-  document.getElementById('modal-stats').innerHTML = ''; // Limpa botões de paginação
+  document.getElementById('modal-stats').innerHTML = '';
   document.getElementById('modal-tbl-wrap').innerHTML = html;
   
-  // Usa o padrão do dashboard (classe .open) em vez de style.display inline
   modal.classList.add('open');
+}
+
+function showPrioDetail(pName, key) {
+  var tixList = window._tsPrioDetails[key];
+  if (!tixList || !tixList.length) return alert('Sem detalhes de tickets para esta prioridade (' + pName + ').');
+
+  var html = '<div class="dtbl-wrap" style="max-height:70vh;overflow-y:auto"><table class="dtbl">' +
+    '<thead><tr><th>Ticket</th><th>Assigned</th><th>Severity</th><th style="text-align:right">MDs</th></tr></thead><tbody>';
+  
+  tixList.forEach(function(t) {
+    var tx = getTix(t.id);
+    var as = tx ? (tx.as || '—') : '—';
+    var sv = tx ? (tx.sv || '—') : '—';
+    html += '<tr>' +
+      '<td><span class="tno">#' + t.id + '</span></td>' +
+      '<td>' + as + '</td>' +
+      '<td>' + sv + '</td>' +
+      '<td style="text-align:right;font-weight:700;color:var(--green)">' + t.md.toFixed(2) + '</td>' +
+    '</tr>';
+  });
+  
+  html += '</tbody></table></div>';
+  openTableModal('DETALHE ESFORÇO: ' + pName, html);
 }
 
 function showStaleProblemsDetail(prj) {

@@ -48,6 +48,27 @@ if API_KEY_FILE.exists():
             DEFAULT_AI_PROVIDER = "gemini"
         print(f"[SMD-CONFIG] Chave Gemini detectada — provedor ativo: {DEFAULT_AI_PROVIDER}")
 
+# --- MAPEAMENTOS DE PROJETOS ---
+PROJECTS_CONFIG_FILE = BASE_DIR / "smd_projects.json"
+DE_PARA_PROJETOS = {}
+TIMESHEET_PROJECT_MAP = {}
+MANUAL_RESOURCE_FIXES = {}
+
+if PROJECTS_CONFIG_FILE.exists():
+    try:
+        import json
+        with open(PROJECTS_CONFIG_FILE, "r", encoding="utf-8") as f:
+            pdata = json.load(f)
+            DE_PARA_PROJETOS = pdata.get("DE_PARA_PROJETOS", {})
+            TIMESHEET_PROJECT_MAP = pdata.get("TIMESHEET_PROJECT_MAP", {})
+            MANUAL_RESOURCE_FIXES = pdata.get("MANUAL_RESOURCE_FIXES", {})
+            print(f"[SMD-CONFIG] Mapeamentos de projetos carregados ({len(TIMESHEET_PROJECT_MAP)} itens)")
+    except Exception as e:
+        print(f"[SMD-CONFIG] Erro ao carregar {PROJECTS_CONFIG_FILE.name}: {e}")
+
+# Arquivos de Suporte
+RESOURCE_LEVEL_FILE = BASE_DIR / "DOcs" / "Resource Level.xlsx"
+
 # Criar diretórios se não existirem
 for d in [INPUT_DIR, RESULTS_DIR, BUILDS_DIR, DOWNLOADS_DIR]:
     d.mkdir(parents=True, exist_ok=True)

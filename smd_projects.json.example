@@ -1,0 +1,11 @@
+{
+  "DE_PARA_PROJETOS": {
+    "NOME_ORIGINAL_MANTIS": "Nome Amigável Dashboard"
+  },
+  "TIMESHEET_PROJECT_MAP": {
+    "NOME_PROJETO_NO_TIMESHEET": "Nome Amigável Dashboard"
+  },
+  "MANUAL_RESOURCE_FIXES": {
+    "nome do colaborador": "Career Grade (ex: 300)"
+  }
+}

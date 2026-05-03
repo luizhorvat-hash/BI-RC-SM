@@ -4,16 +4,14 @@ smd_merge.py — Merge de CSVs do Mantis → Tickets.csv
 Arrocha ITSM | 2026
 
 FUNÇÃO:
-  Varre C:\\Users\\luiz.horvat\\Downloads procurando arquivos no padrão:
+  Varre a pasta de Downloads procurando arquivos no padrão:
     Incidents_<Projeto><AAAA-MM-DD>.csv
-  Junta todos em um único Tickets.csv e salva em C:\\Dashboard\\input\\
+  Junta todos em um único Tickets.csv e salva na pasta input.
 
 EXEMPLOS DE NOMES ACEITOS:
-  chanel.csv
-  farmatodo.csv
-  farmacias arrocha.csv
-  Incidents_Chanel2026-04-08.csv
-  Incidents_Farmatodo2026-04-08.csv
+  projeto_a.csv
+  projeto_b.csv
+  Incidents_ProjetoA2026-04-08.csv
 
 USO:
   python C:\\Dashboard\\smd_merge.py              # merge + confirma
