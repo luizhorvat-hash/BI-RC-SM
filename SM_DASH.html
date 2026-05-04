@@ -425,16 +425,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
 </div>
 
 
-<!-- panel-sla removido: SLA migrado para a aba Cliente (rendered inside panel-cliente) -->
-<!-- SLA Detail Modal -->
-<div class="cb" id="sla-detail" style="display:none">
-    <div class="cbt" id="sla-det-title" style="margin-bottom:10px"></div>
-    <div class="mstats" id="sla-det-stats"></div>
-    <div class="dtbl-wrap"><table class="dtbl">
-      <thead><tr><th>#</th><th>Application</th><th>Aberto</th><th>Res.SLA(min)</th><th>Limite</th><th>Status</th><th>Summary</th></tr></thead>
-      <tbody id="sla-det-body"></tbody>
-    </table></div>
-  </div>
+<!-- SLA Detail removido daqui para ser exibido no modal global -->
 
 <div id="panel-attn" class="panel">
   <div class="cb">
@@ -1199,37 +1190,37 @@ function buildSLA() {
 
 var _selSLAPri = null;
 function showSLADetail(pri) {
-  if (_selSLAPri === pri) {
-    _selSLAPri = null;
-    document.getElementById('sla-detail').style.display = 'none';
-    document.querySelectorAll('.slacard').forEach(function(c){c.classList.remove('sel');});
-    return;
-  }
-  _selSLAPri = pri;
-  document.querySelectorAll('.slacard').forEach(function(c){c.classList.remove('sel');});
-  var sc = document.getElementById('sla-c-'+pri); if (sc) sc.classList.add('sel');
   var filtered = getSLAFiltered();
   var s = filtered[pri]; if (!s) return;
   var lim = CFG.sla[pri].min;
-  document.getElementById('sla-detail').style.display = 'block';
-  document.getElementById('sla-det-title').textContent = 'SLA '+pri+' - Limite: '+lim+'min - '+s.met+' dentro / '+s.not_met+' fora';
-  document.getElementById('sla-det-stats').innerHTML =
-    '<div class="ms"><div class="ms-lbl">Total</div><div class="ms-val">'+s.total+'</div></div>' +
-    '<div class="ms"><div class="ms-lbl">Dentro</div><div class="ms-val" style="color:#34d399">'+s.met+'</div></div>' +
-    '<div class="ms"><div class="ms-lbl">Fora</div><div class="ms-val" style="color:#f87171">'+s.not_met+'</div></div>' +
-    '<div class="ms"><div class="ms-lbl">%</div><div class="ms-val" style="color:'+(s.pct>=90?'#34d399':s.pct>=80?'#fbbf24':'#f87171')+'">'+s.pct+'%</div></div>' +
-    '<div class="ms"><div class="ms-lbl">Avg Real</div><div class="ms-val">'+Math.round((s.avg_actual||0)/60)+'h</div></div>';
-  var rows = s.tickets.map(function(t) {
-    return '<tr>' +
-      '<td><span class="tno">#'+t.tid+'</span></td>' +
-      '<td style="font-size:10px">'+t.ap+'</td>' +
-      '<td style="font-size:10px;color:#475569">'+t.op+'</td>' +
-      '<td style="font-size:11px;font-weight:600;color:'+(t.met?'#34d399':'#f87171')+'">'+(t.rs!==null&&t.rs!==undefined?Math.round(t.rs):'N/A')+'</td>' +
-      '<td style="font-size:10px;color:#475569">'+lim+'</td>' +
-      '<td style="font-size:10px;font-weight:700;color:'+(t.met?'#34d399':'#f87171')+'">'+(t.met?'OK':'Fora')+'</td>' +
-      '<td style="font-size:10px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(t.s||'')+'</td></tr>';
-  }).join('');
-  document.getElementById('sla-det-body').innerHTML = rows;
+  
+  var title = 'SLA ' + pri + ' - Limite: ' + lim + 'min - ' + s.met + ' dentro / ' + s.not_met + ' fora';
+  
+  var statsHtml = 
+    '<div class="ms"><div class="ms-lbl">Total</div><div class="ms-val">' + s.total + '</div></div>' +
+    '<div class="ms"><div class="ms-lbl">Dentro</div><div class="ms-val" style="color:#34d399">' + s.met + '</div></div>' +
+    '<div class="ms"><div class="ms-lbl">Fora</div><div class="ms-val" style="color:#f87171">' + s.not_met + '</div></div>' +
+    '<div class="ms"><div class="ms-lbl">%</div><div class="ms-val" style="color:' + (s.pct >= 90 ? '#34d399' : s.pct >= 80 ? '#fbbf24' : '#f87171') + '">' + s.pct + '%</div></div>';
+    // Removido 'Avg Real' conforme solicitado pelo usuário
+
+  var tableHtml = '<div class="dtbl-wrap"><table class="dtbl">' +
+    '<thead><tr><th>#</th><th>Application</th><th>Aberto</th><th>Res.SLA(min)</th><th>Limite</th><th>Status</th><th>Summary</th></tr></thead><tbody>' +
+    s.tickets.map(function(t) {
+      return '<tr>' +
+        '<td><span class="tno">#' + t.tid + '</span></td>' +
+        '<td style="font-size:10px">' + t.ap + '</td>' +
+        '<td style="font-size:10px;color:#475569">' + t.op + '</td>' +
+        '<td style="font-size:11px;font-weight:600;color:' + (t.met ? '#34d399' : '#f87171') + '">' + (t.rs !== null && t.rs !== undefined ? Math.round(t.rs) : 'N/A') + '</td>' +
+        '<td style="font-size:10px;color:#475569">' + lim + '</td>' +
+        '<td style="font-size:10px;font-weight:700;color:' + (t.met ? '#34d399' : '#f87171') + '">' + (t.met ? 'OK' : 'Fora') + '</td>' +
+        '<td style="font-size:10px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(t.s || '') + '</td></tr>';
+    }).join('') +
+    '</tbody></table></div>';
+
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-stats').innerHTML = statsHtml;
+  document.getElementById('modal-tbl-wrap').innerHTML = tableHtml;
+  document.getElementById('modal').classList.add('open');
 }
 
 //  ATTENTION 
