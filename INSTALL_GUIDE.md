@@ -4,10 +4,11 @@ Este guia descreve como instalar e configurar o Service Management Dashboard em 
 
 ## 1. Pré-requisitos
 
-- **Python 3.10+** instalado.
-- Bibliotecas Python necessárias:
+- **Python 3.10+** instalado (Certifique-se de marcar "Add Python to PATH").
+- **Instalação Automática**: Basta executar o arquivo `install_deps.bat` incluído no pacote.
+- **Instalação Manual**:
   ```bash
-  pip install pandas openpyxl
+  pip install pandas openpyxl lxml
   ```
 - (Opcional) **Ollama** instalado localmente se desejar usar as funcionalidades de IA local.
 
@@ -62,5 +63,13 @@ Se tiver configurado o Ollama ou uma chave de API do Gemini no arquivo `.env`, v
 python smd_build.py
 ```
 
+## 6. Ferramentas de Análise (BI)
+
+Para gerar relatórios detalhados de esforço e crescimento por projeto (Top Tickets e Resumo Mensal), utilize:
+```bash
+python smd_analyze_project.py "Nome do Projeto"
+```
+Exemplo: `python smd_analyze_project.py "Arrocha"`
+
 ---
-*Versão Portátil 2.0 | Arrocha ITSM*
+*Versão Portátil 3.1 | Arrocha ITSM*

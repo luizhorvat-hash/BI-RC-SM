@@ -73,8 +73,11 @@ def find_csv_files(source_dir: Path) -> list[dict]:
         log.error(f"Pasta não encontrada: {source_dir}")
         return []
 
-    # Padrões
-    p_with_date = re.compile(r'^Incidents_(.+?)(\d{4}-\d{2}-\d{2})\.csv$', re.IGNORECASE)
+    # Padrões de nome de arquivo do Mantis:
+    # 1. Incidents_Projeto_AAAA-MM-DD.csv (Padrão Completo)
+    # 2. Tickets_Projeto_AAAA-MM-DD.csv (Padrão Alternativo)
+    # 3. Projeto.csv (Padrão Simples)
+    p_with_date = re.compile(r'^(?:Incidents_|Tickets_)?(.+?)_?(\d{4}-\d{2}-\d{2})\.csv$', re.IGNORECASE)
     p_simple    = re.compile(r'^(.+)\.csv$', re.IGNORECASE)
     
     today_str = datetime.now().strftime('%Y-%m-%d')
@@ -84,24 +87,23 @@ def find_csv_files(source_dir: Path) -> list[dict]:
         if not f.is_file():
             continue
         
-        # Ignorar arquivos de sistema ou o próprio tickets.csv se estiver na pasta errada
-        if f.name.lower() in ('tickets.csv', 'smd_merge.log'):
+        # Ignorar arquivos de sistema ou o próprio tickets.csv de saída
+        if f.name.lower() in ('tickets.csv', 'smd_merge.log', 'api_key.txt'):
             continue
 
-        # Tentar padrão 1 (com data)
+        # Tentar padrão com data (mais específico)
         m1 = p_with_date.match(f.name)
         if m1:
-            project = m1.group(1).strip().rstrip('_')
+            project = m1.group(1).strip().strip('_')
             date    = m1.group(2)
             found.append({'path': f, 'project': project, 'date': date})
             continue
             
-        # Tentar padrão 2 (simples)
+        # Tentar padrão simples (qualquer outro CSV)
         m2 = p_simple.match(f.name)
         if m2:
             project = m2.group(1).strip()
-            # Se for um nome genérico demais, talvez ignorar? 
-            # Mas o usuário pediu especificamente chanel.csv, etc.
+            # Se já pegamos no padrão com data, o continue lá em cima evitou duplicar aqui
             found.append({'path': f, 'project': project, 'date': today_str})
 
     return found
