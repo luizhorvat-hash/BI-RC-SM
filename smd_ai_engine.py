@@ -22,6 +22,27 @@ class SMDAIEngine:
     def __init__(self, provider=None):
         self.provider = provider or smd_config.DEFAULT_AI_PROVIDER
         self.prompts = self._load_agent_prompts()
+        self.anonymization_map = {} # Real -> Anon
+        self.reverse_map = {}       # Anon -> Real
+        
+    def _get_anon_name(self, name):
+        """Mapeia um nome real para um pseudônimo constante durante a sessão."""
+        if not name or name == "Unknown": return name
+        if name in self.anonymization_map:
+            return self.anonymization_map[name]
+        
+        idx = len(self.anonymization_map) + 1
+        anon = f"Analista_{idx}"
+        self.anonymization_map[name] = anon
+        self.reverse_map[anon] = name
+        return anon
+
+    def _deanonymize_text(self, text):
+        """Restaura nomes reais em um texto retornado pela IA."""
+        if not text or not isinstance(text, str): return text
+        for anon, real in self.reverse_map.items():
+            text = text.replace(anon, real)
+        return text
         
     def _load_agent_prompts(self):
         """Carrega personas e instruções do AGENTS.md."""
@@ -169,6 +190,11 @@ class SMDAIEngine:
         breached_tickets = v[(v['Status'].isin(CLOSED)) & (pd.to_numeric(v['Resolution SLA'], errors='coerce') < 0)]['Ticket'].head(3).tolist()
         backlog_tickets = v[v['Status'].isin(MY_BK)].sort_values('Opening Date')['Ticket'].head(3).tolist()
 
+        # --- APLICA ANONIMIZAÇÃO ---
+        anon_staff = {}
+        for name, count in top_staff.items():
+            anon_staff[self._get_anon_name(name)] = count
+        
         return {
             'total_tickets': int(len(v)),
             'summary': summary,
@@ -189,7 +215,7 @@ class SMDAIEngine:
             'calculated_health': {'value': calc_hs_val, 'label': calc_hs_lbl, 'color': calc_hs_col},
             'top_apps': top_apps,
             'top_rcs': top_rcs,
-            'top_staff': top_staff,
+            'top_staff': anon_staff,
             'breached_tickets': breached_tickets,
             'backlog_tickets': backlog_tickets,
             'timestamp': today.strftime('%Y-%m-%d %H:%M:%S')
@@ -440,7 +466,7 @@ JSON_DATA: {{"executive_summary": "...", "alerts": [{{ "level": "INF", "message"
 
     def call_gemini(self, prompt, model=smd_config.GEMINI_MODEL):
         if not smd_config.GEMINI_API_KEY:
-            return "Erro: GEMINI_API_KEY não configurada."
+            return "Erro: GEMINI_API_KEY não configurada.", {}
         
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={smd_config.GEMINI_API_KEY}"
         body = json.dumps({
@@ -452,21 +478,27 @@ JSON_DATA: {{"executive_summary": "...", "alerts": [{{ "level": "INF", "message"
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 data = json.loads(resp.read())
-                return data['candidates'][0]['content']['parts'][0]['text'].strip()
+                text = data['candidates'][0]['content']['parts'][0]['text'].strip()
+                # Captura uso de tokens (se disponível na API Gemini)
+                usage = data.get('usageMetadata', {})
+                return text, {
+                    "input_tokens": usage.get('promptTokenCount', 0),
+                    "output_tokens": usage.get('candidatesTokenCount', 0)
+                }
         except Exception as e:
             log.error(f"Erro Gemini: {e}")
-            return f"Erro Gemini: {str(e)}"
+            return f"Erro Gemini: {str(e)}", {}
 
-    def call_anthropic(self, prompt, model="claude-haiku-4-5-20251001"):
+    def call_anthropic(self, prompt, model="claude-3-5-haiku-20241022"):
         if not smd_config.ANTHROPIC_API_KEY:
-            return "Erro: ANTHROPIC_API_KEY não configurada."
+            return "Erro: ANTHROPIC_API_KEY não configurada.", {}
 
         url = "https://api.anthropic.com/v1/messages"
         body = json.dumps({
             "model": model,
             "max_tokens": 2048,
             "temperature": 0.1,
-            "system": "Você é um especialista sênior em ITSM/ITIL com foco em análise executiva. Responda sempre em português do Brasil. Seja detalhado, direto e orientado a dados. Ao estruturar JSON, use aspas duplas e campos completos.",
+            "system": "Você é um especialista sênior em ITSM/ITIL com foco em análise executiva. Responda sempre em português do Brasil. Use nomes fictícios ou IDs fornecidos (ex: Analista_1) sem revelar nomes reais. Ao estruturar JSON, use aspas duplas e campos completos.",
             "messages": [{"role": "user", "content": prompt}]
         }).encode('utf-8')
         
@@ -480,72 +512,87 @@ JSON_DATA: {{"executive_summary": "...", "alerts": [{{ "level": "INF", "message"
         try:
             with urllib.request.urlopen(req, timeout=45) as resp:
                 data = json.loads(resp.read())
-                return data['content'][0]['text'].strip()
+                text = data['content'][0]['text'].strip()
+                usage = data.get('usage', {})
+                return text, {
+                    "input_tokens": usage.get('input_tokens', 0),
+                    "output_tokens": usage.get('output_tokens', 0)
+                }
         except urllib.error.HTTPError as e:
             err = e.read().decode()
             log.error(f"Erro Anthropic HTTP: {err}")
-            return f"Erro Anthropic: {err}"
+            return f"Erro Anthropic: {err}", {}
         except Exception as e:
             log.error(f"Erro Anthropic: {e}")
-            return f"Erro Anthropic: {str(e)}"
+            return f"Erro Anthropic: {str(e)}", {}
 
-    def get_structured_result(self, key, text, ctx):
+    def get_structured_result(self, key, text, usage, ctx):
         """Converte a resposta em texto da IA no formato JSON esperado pelo dashboard."""
         ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
-        # Tentar extrair JSON da resposta usando o novo extrator resiliente
+        # 1. Desanonimizar a resposta bruta antes de qualquer processamento
+        text = self._deanonymize_text(text)
+
+        # 2. Extrair JSON
         structured_info = self._extract_json(text)
         if not structured_info:
-            log.warning(f"Falha ao extrair JSON estruturado para {key}. Resposta bruta salva em Results/debug_{key}.txt")
-            (smd_config.RESULTS_DIR / f"debug_{key}.txt").write_text(text, encoding="utf-8")
+            log.warning(f"Falha ao extrair JSON estruturado para {key}.")
             structured_info = {}
 
-        # Lógica de Health Score conectada diretamente ao Backend de Negócio
+        # 3. FinOps: Cálculo de Custo
+        costs = smd_config.AI_COST_TABLE.get(self.provider, {"input_1m":0, "output_1m":0})
+        in_t = usage.get("input_tokens", 0)
+        out_t = usage.get("output_tokens", 0)
+        est_cost = ((in_t * costs["input_1m"]) / 1000000) + ((out_t * costs["output_1m"]) / 1000000)
+
         calc_hs = ctx.get('calculated_health', {})
         hs_val = calc_hs.get('value', 30)
         hs_lbl = calc_hs.get('label', 'CRÍTICO')
         hs_col = calc_hs.get('color', 'red')
-        
-        # P1 SLA
         p1_pct = ctx['sla'].get('P1',{}).get('pct',0)
 
-        # PLANO B: Fallback determinístico se a IA falhou ou deu timeout
+        # Fallback de texto se a IA falhou
         if not text or "Erro" in text or len(text) < 20:
              if key == "ops":
-                 clean_text = f"Análise Automática: Saúde do projeto em {hs_val}/100 ({hs_lbl}). SLA P1 atual em {p1_pct}%. Backlog RC: {ctx.get('backlog_rc',0)}. Backlog Cliente: {ctx.get('backlog_cli',0)}."
-             elif key == "predictive":
-                 clean_text = f"Previsão Baseada em Histórico: O projeto apresenta um volume total de {ctx.get('total_tickets',0)} tickets analisados. Tendência atual de burn-rate: {ctx.get('burn_rate',0)} (Abertos-Fechados 7d)."
+                 clean_text = f"Análise Automática: Saúde do projeto em {hs_val}/100 ({hs_lbl}). SLA P1 em {p1_pct}%."
              else:
-                 clean_text = f"Resumo operacional baseado nos indicadores: {hs_lbl} ({hs_val}/100). SLA P1: {p1_pct}%. Backlog total detectado."
+                 clean_text = f"Resumo operacional baseado nos indicadores: {hs_lbl} ({hs_val}/100)."
         else:
-             # Se houver structured_summary, usamos o texto da IA (limpando o JSON se estiver lá)
              clean_text = re.sub(r'JSON_DATA:?.*?\{.*\}', '', text, flags=re.DOTALL).strip()
-             if not clean_text or len(clean_text) < 10:
-                  clean_text = text[:300]
+             if not clean_text or len(clean_text) < 10: clean_text = text[:300]
 
         result = {
             "agent": f"AI_{key.upper()}",
             "timestamp": ts,
             "status": "ok" if "Erro" not in text else "error",
+            "approved": False, # Human-in-the-Loop: Pendente por padrão
+            "usage_stats": {
+                "provider": self.provider,
+                "input_tokens": in_t,
+                "output_tokens": out_t,
+                "cost_usd": round(est_cost, 6)
+            },
             "executive_summary": structured_info.get("executive_summary", clean_text),
-            "reasoning": text if len(text) > 10 else clean_text,
             "health_score": {"value": hs_val, "label": hs_lbl, "color": hs_col},
-            "alerts": structured_info.get("alerts", [{"level": "INF", "message": "Analise automatica (AI Fallback)", "metric": "IA"}]),
-            "primary_bottleneck": structured_info.get("primary_bottleneck", ""),
+            "alerts": structured_info.get("alerts", []),
             "recommendations": structured_info.get("recommendations", []),
             "prediction_risk": structured_info.get("prediction_risk", ""),
             "maturity_assessment": structured_info.get("maturity_assessment", {}),
             "quick_wins": structured_info.get("quick_wins", [])
         }
         
+        # Desanonimizar campos específicos caso o extrator JSON tenha falhado em restaurar tudo
+        result["executive_summary"] = self._deanonymize_text(result["executive_summary"])
+        for rec in result["recommendations"]:
+            if "action" in rec: rec["action"] = self._deanonymize_text(rec['action'])
+
         if key == "ops":
             result["sla_analysis"] = {"p1_pct": p1_pct, "overall_status": "OK" if p1_pct >= 95 else "EM_RISCO"}
         
         if key == "predictive":
-            # PRIORIDADE: Usar a previsão estatística do Python se a IA não gerou uma válida
             if "weekly_forecast" not in result or not result["weekly_forecast"]:
                 result["weekly_forecast"] = ctx.get("stat_forecast", [])
-            
+                
             if "prediction_risk" not in result or not result["prediction_risk"]:
                 slope = ctx.get("trend_slope", 0)
                 result["prediction_risk"] = "ALTO" if slope > 1.0 else ("MEDIO" if slope > 0.5 else "BAIXO")
@@ -556,28 +603,26 @@ JSON_DATA: {{"executive_summary": "...", "alerts": [{{ "level": "INF", "message"
         prompt = self.generate_prompt(key, ctx)
         log.info(f"Executando agente {key} via {self.provider}...")
         
-        # TIMEOUT DINÂMICO AUMENTADO (Prompts complexos exigem mais tempo na GPU local/Ollama)
         tm = 300 if key in ["predictive", "ops", "improvement", "market", "qa", "triage"] else 60
         text = ""
+        usage = {}
         
         if self.provider == "gemini":
-            text = self.call_gemini(prompt)
+            text, usage = self.call_gemini(prompt)
         elif self.provider == "anthropic":
-            text = self.call_anthropic(prompt)
+            text, usage = self.call_anthropic(prompt)
         else:
-            # Tenta Ollama primeiro
+            # Ollama
             text = self.call_ollama_custom(prompt, timeout=tm)
+            usage = {"input_tokens": 0, "output_tokens": 0} # Ollama API local não costuma retornar uso
             
-            # FALLBACK AUTOMÁTICO PARA CLOUD (Se configurado e falhar localmente)
             if "Erro" in text or "Timeout" in text or len(text) < 10:
                 log.warning(f"Ollama falhou para {key}. Tentando Fallback via Nuvem...")
                 if smd_config.ANTHROPIC_API_KEY:
-                    log.info("Usando Fallback: Anthropic (Claude)")
-                    text = self.call_anthropic(prompt)
+                    log.info("Usando Fallback: Anthropic")
+                    text, usage = self.call_anthropic(prompt)
                 elif smd_config.GEMINI_API_KEY:
                     log.info("Usando Fallback: Gemini")
-                    text = self.call_gemini(prompt)
-                else:
-                    log.error("Nenhuma chave de nuvem disponível para Fallback.")
-            
-        return self.get_structured_result(key, text, ctx)
+                    text, usage = self.call_gemini(prompt)
+        
+        return self.get_structured_result(key, text, usage, ctx)

@@ -310,8 +310,33 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
   .exec-label { font-family:var(--ft); font-size:10px; font-weight:700; letter-spacing:0.1em; color:var(--muted); text-transform:uppercase; margin-bottom:8px; }
   .exec-val { font-size:26px; font-weight:700; color:#fff; }
   .exec-sub { font-size:11px; color:var(--muted); margin-top:4px; }
-  .exec-good { color:#34d399; } .exec-warn { color:#fbbf24; } .exec-crit { color:#f87171; }
+  /* ── AI GOVERNANCE & HITL ── */
+  .ai-card { position:relative; transition:all 0.2s ease; border:1px solid rgba(255,255,255,0.05); }
+  .ai-card:hover { transform:translateY(-2px); border-color:rgba(167,139,250,0.3); box-shadow:0 8px 24px rgba(0,0,0,0.3); }
+  .ai-card.approved { border-left:4px solid #34d399 !important; background:linear-gradient(145deg, rgba(52,211,153,0.05), rgba(13,36,56,1)); }
+  .ai-card.rejected { border-left:4px solid #f87171 !important; opacity:0.7; }
+  .ai-card.pending { border-left:4px solid #fbbf24 !important; }
+  
+  .ai-badge { position:absolute; top:-8px; right:10px; font-size:8px; font-weight:800; padding:2px 8px; border-radius:10px; text-transform:uppercase; letter-spacing:0.05em; box-shadow:0 2px 8px rgba(0,0,0,0.5); z-index:2; }
+  .ai-badge.approved { background:#34d399; color:#064e3b; }
+  .ai-badge.rejected { background:#f87171; color:#7f1d1d; }
+  .ai-badge.pending  { background:#fbbf24; color:#78350f; }
+
+  .ai-gov-panel { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:16px; margin:16px 0; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+  .ai-gov-info { flex:1; }
+  .ai-gov-title { font-family:var(--ft); font-size:10px; font-weight:700; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:4px; }
+  .ai-gov-desc { font-size:11px; color:var(--text); line-height:1.5; }
+  .ai-gov-btns { display:flex; gap:10px; }
+  .gov-btn { padding:8px 16px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s; border:1px solid transparent; display:flex; align-items:center; gap:8px; }
+  .btn-approve { background:#064e3b; color:#34d399; border-color:#34d39944; }
+  .btn-approve:hover { background:#065f46; border-color:#34d399; }
+  .btn-reject { background:#450a0a; color:#f87171; border-color:#f8717144; }
+  .btn-reject:hover { background:#7f1d1d; border-color:#f87171; }
+  .btn-reset { background:transparent; color:var(--muted); border-color:var(--border); }
+  
+  .ai-usage-tag { font-size:9px; color:var(--dim); background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,0.1); }
 </style>
+
 </head>
 <body>
 
@@ -377,6 +402,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--f)}
       </div>
       <div style="display:flex;align-items:center;gap:12px">
       <div style="font-size:9px;color:var(--muted)" id="ai-last-run">Ultima execucao: carregando...</div>
+      <button onclick="exportAIDecisions()" style="padding:5px 12px;background:#064e3b;border:1px solid #34d399;border-radius:6px;color:#34d399;font-size:9px;font-family:var(--ft);font-weight:700;letter-spacing:.08em;cursor:pointer">💾 SINCRONIZAR GOVERNANÇA (HITL)</button>
       <button onclick="showRunInstructions()" style="padding:5px 12px;background:#1a0d2e;border:1px solid #7c3aed;border-radius:6px;color:#c4b5fd;font-size:9px;font-family:var(--ft);font-weight:700;letter-spacing:.08em;cursor:pointer">&#9654; EXECUTAR AGENTES</button>
     </div>
     </div>
@@ -728,6 +754,7 @@ var ASSIGNED_STATUS = {
 
 //  PERFORMANCE: lazy panel tracking + debounce 
 var _builtPanels = {};
+var _TAB_SYNC = {}; // Rastreia o estado de renderização por View/Sev
 var _refreshTimer = null;
 
 //  CHART.JS datalabels plugin 
@@ -1944,12 +1971,15 @@ function doRefresh() {
     SEVS.forEach(function(sev) {
       try {
         var isActive = (activeSev === sev && !activeView);
-        if (isActive || _builtPanels[sev]) {
+        if (isActive) {
+          // Se já renderizou neste ciclo de filtro, pula
+          if (_TAB_SYNC[sev]) return;
+
           buildBar(sev, 'bar-'+sev);
           buildLine(sev, 'ln-'+sev);
           buildBacklog(sev, 'bk-'+sev);
           buildRC(sev, 'rc-'+sev);
-          try { buildAssigned && buildAssigned(sev, 'ass-'+sev); } catch(e) { console.warn('buildAssigned error:',e.message); }
+          try { if (window.buildAssigned) buildAssigned(sev, 'ass-'+sev); } catch(e) {}
           if (sev === 'incident') { 
             try { buildSLAMini('sla-mini-incident'); } catch(e) {}
             try { buildIncKPIs(); } catch(e) {}
@@ -1962,6 +1992,7 @@ function doRefresh() {
             try { buildTimesheetKPI(sev,'ts-'+sev); } catch(e) {}
             try { buildStaffKPI(sev,'ts-staff-chart-'+sev); } catch(e) {}
           }
+          _TAB_SYNC[sev] = Date.now();
           _builtPanels[sev] = true;
         }
       } catch (err) {
@@ -1969,11 +2000,15 @@ function doRefresh() {
       }
     });
 
-    if (activeView === 'hoje')       try { buildHoje(); } catch(e) { console.error(e); }
-    if (activeView === 'ai')         try { buildAICards(); buildAIPanel(); } catch(e) { console.error(e); }
-    if (activeView === 'timesheet')  try { buildTimesheet(); } catch(e) { console.error(e); }
-    if (activeView === 'simulador')  try { buildSimulador(); } catch(e) { console.error(e); }
-    if (activeView === 'cliente')    try { buildCliente(); } catch(e) { console.error(e); }
+    if (activeView && !_TAB_SYNC[activeView]) {
+      var v = activeView;
+      if (v === 'hoje')       try { buildHoje(); } catch(e) {}
+      if (v === 'ai')         try { buildAICards(); buildAIPanel(); } catch(e) {}
+      if (v === 'timesheet')  try { buildTimesheet(); } catch(e) {}
+      if (v === 'simulador')  try { buildSimulador(); } catch(e) {}
+      if (v === 'cliente')    try { buildCliente(); } catch(e) {}
+      _TAB_SYNC[v] = Date.now();
+    }
     
     try { buildKPI(); } catch(e) {}
     try { buildRange(); } catch(e) {}
@@ -1992,6 +2027,7 @@ function doRefresh() {
 }
 
 function refreshAll() {
+  _TAB_SYNC = {}; // Invalida cache de renderização para todas as abas
   clearTimeout(_refreshTimer);
   _refreshTimer = setTimeout(doRefresh, 80);
 }
@@ -2517,31 +2553,13 @@ document.getElementById('nav').addEventListener('click', function(e) {
   if (t.dataset.sev) {
     activeSev = t.dataset.sev; activeView = null;
     var p = document.getElementById('panel-'+t.dataset.sev); if (p) p.classList.add('active');
-    if (!_builtPanels[activeSev]) {
-      console.log('[NAV] Building panels for:', activeSev);
-      buildBar(activeSev,'bar-'+activeSev); buildLine(activeSev,'ln-'+activeSev);
-      try { buildBacklog(activeSev,'bk-'+activeSev); } catch(e) { console.warn('buildBacklog:',e.message); }
-      try { buildRC(activeSev,'rc-'+activeSev); } catch(e) { console.warn('buildRC:',e.message); }
-      try { buildAssigned(activeSev,'ass-'+activeSev); } catch(e) { console.warn('buildAssigned error:',e.message); }
-      if (activeSev === 'incident') { buildSLAMini('sla-mini-incident'); buildIncKPIs(); }
-      if (['incident','user_request','problem'].indexOf(activeSev) >= 0) { 
-        buildTimesheetKPI(activeSev, 'ts-' + activeSev); 
-        buildStaffKPI(activeSev, 'ts-staff-chart-' + activeSev); 
-      }
-      _builtPanels[activeSev] = true;
-    }
   } else {
     activeView = t.dataset.view;
     var p2 = document.getElementById('panel-'+t.dataset.view); if (p2) p2.classList.add('active');
-    if (t.dataset.view === 'config') buildConfig();
-    if (t.dataset.view === 'sla')    buildSLA();
-    if (t.dataset.view === 'ai')         { buildAICards(); buildAIPanel(); }
-    if (t.dataset.view === 'comp')       buildComparativo();
-    if (t.dataset.view === 'hoje')       buildHoje();
-    if (t.dataset.view === 'timesheet')  buildTimesheet();
-    if (t.dataset.view === 'simulador')  buildSimulador();
-    if (t.dataset.view === 'cliente')    buildCliente();
   }
+  
+  // Delegar renderização ao doRefresh (Lazy)
+  doRefresh();
   
   // Controle de visibilidade da aba Simulador
   var simTab = document.querySelector('.t-sim');
@@ -3031,6 +3049,23 @@ function genMarketRealData(kpi) {
 
 
 
+// ── AI CURATION STATE (HITL) ──
+var _AI_DECISIONS = (function(){
+  try { return JSON.parse(localStorage.getItem('smd_ai_decisions') || '{}'); } catch(e) { return {}; }
+})();
+
+function saveAIDecisions() {
+  localStorage.setItem('smd_ai_decisions', JSON.stringify(_AI_DECISIONS));
+}
+
+function toggleAIApproval(key, status) {
+  if (_AI_DECISIONS[key] === status) delete _AI_DECISIONS[key];
+  else _AI_DECISIONS[key] = status;
+  saveAIDecisions();
+  buildAICards();
+  renderAIDetail(key);
+}
+
 function buildAICards() {
   var c = document.getElementById('ai-cards'); if (!c) return;
   var kpi = getAIKpis();
@@ -3077,6 +3112,11 @@ function buildAICards() {
     var isOk     = (status === 'ok');
     var isReady  = !isOk;
     var hs       = ai.health_score || {};
+    
+    // Decisão de curadoria (HITL)
+    var govStatus = _AI_DECISIONS[key] || (ai.approved ? 'approved' : 'pending');
+    var govLabel = {approved:'Aprovado', rejected:'Rejeitado', pending:'Pendente'}[govStatus];
+
     // Para agente ops: usar kpi.health_score do projeto selecionado
     var realHS   = (key==='ops' && kpi && kpi.health_score!==undefined) ? kpi.health_score : null;
     var score    = realHS!==null ? realHS : (ai.quality_score || hs.value || 0);
@@ -3093,8 +3133,11 @@ function buildAICards() {
       ? (score ? score + (key==='qa'?'/100':'') : label)
       : label;
 
-    return '<div class="ai-card' + (isSel?' ai-sel':'') + (isReady?' ai-card-pending':'') + '"' +
+    var govBadge = isOk ? '<span class="ai-badge ' + govStatus + '">' + govLabel + '</span>' : '';
+
+    return '<div class="ai-card ' + govStatus + (isSel?' ai-sel':'') + (isReady?' ai-card-pending':'') + '"' +
       ' onclick="selectAI(\'' + key + '\')" style="' + (isReady?'opacity:.5;cursor:default':'cursor:pointer') + '">' +
+      govBadge +
       '<div style="display:flex;align-items:center;justify-content:space-between">' +
         '<div class="ai-agent-name">' + meta.icon + ' ' + meta.name + '</div>' +
         '<span class="ai-status-dot ' + status + '"></span>' +
@@ -3109,6 +3152,7 @@ function buildAICards() {
     '</div>';
   }).join('');
 }
+
 
 function selectAI(key) {
   var ai = getPI()[key] || {};
@@ -3165,6 +3209,26 @@ function renderAIDetail(key) {
   html += '<div class="ai-section">';
   html += '<div class="ai-section-title">Resumo Executivo</div>';
   html += '<div class="ai-summary">' + (ai.executive_summary||'Sem dados disponíveis') + '</div>';
+
+  // GOVERNANCE & CURATION PANEL (HITL)
+  if (ai.status === 'ok') {
+    var govStatus = _AI_DECISIONS[key] || (ai.approved ? 'approved' : 'pending');
+    var usage = ai.usage_stats || {};
+    var costText = usage.cost_usd ? (' | Cost: $' + usage.cost_usd.toFixed(4)) : '';
+    var usageText = usage.provider ? (usage.provider + ' (' + (usage.input_tokens + usage.output_tokens) + ' tokens' + costText + ')') : 'Local / Cache';
+
+    html += '<div class="ai-gov-panel">';
+    html += '<div class="ai-gov-info">';
+    html += '<div class="ai-gov-title">Governança & Curadoria Humana</div>';
+    html += '<div class="ai-gov-desc">Este insight requer revisão antes de ser publicado oficialmente.</div>';
+    html += '<div style="margin-top:8px" class="ai-usage-tag">' + usageText + '</div>';
+    html += '</div>';
+    html += '<div class="ai-gov-btns">';
+    html += '<button class="gov-btn btn-reject" onclick="toggleAIApproval(\'' + key + '\', \'rejected\')">' + (govStatus==='rejected'?'&#10005; Rejeitado':'Rejeitar') + '</button>';
+    html += '<button class="gov-btn btn-approve" onclick="toggleAIApproval(\'' + key + '\', \'approved\')">' + (govStatus==='approved'?'&#10003; Aprovado':'Aprovar') + '</button>';
+    html += '</div>';
+    html += '</div>';
+  }
   // Reasoning button — only shown if field exists
   if (ai.reasoning && ai.reasoning.trim().length > 5) {
     var rId = 'reasoning-' + key;
@@ -7446,7 +7510,34 @@ function renderClientBkChart(sev, rcCount, cliCount, rcIds, cliIds) {
   };
 }
 
+
+function exportAIDecisions() {
+  const decisions = JSON.parse(localStorage.getItem('smd_ai_decisions') || '{}');
+  if (Object.keys(decisions).length === 0) {
+    alert('Nenhuma decisão de curadoria encontrada para exportar.');
+    return;
+  }
+
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(decisions, null, 2));
+  const downloadAnchorNode = document.createElement('a');
+  downloadAnchorNode.setAttribute("href",     dataStr);
+  downloadAnchorNode.setAttribute("download", "smd_ai_decisions.json");
+  document.body.appendChild(downloadAnchorNode);
+  downloadAnchorNode.click();
+  downloadAnchorNode.remove();
+
+  alert('Decisões exportadas para smd_ai_decisions.json!\n\nAgora execute o seguinte comando no terminal para persistir no data.js:\n\npython smd_sync_approvals.py');
+}
+
+function showSyncCommand() {
+  alert('Comando para sincronizar curadoria:\n\npython smd_sync_approvals.py\n\nCertifique-se de ter exportado suas decisões antes.');
+}
+
+// Inicialização de Decisões
+var _AI_DECISIONS = JSON.parse(localStorage.getItem('smd_ai_decisions') || '{}');
+
 </script>
+
 
 
 <!-- RODAPÉ DE DIAGNÓSTICO -->

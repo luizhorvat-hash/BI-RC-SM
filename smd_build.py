@@ -87,18 +87,23 @@ def get_resource_grade_map():
         log.error(f"Erro ao carregar Resource Level: {e}")
         return {}
 
-def parse_timesheet_tab(path, tickets_df=None):
-    """Lê o arquivo XLS/XML de timesheet e gera agregação por projeto/ano/mês para a aba dedicada."""
+def parse_timesheet_unified(path, tickets_df=None):
+    """
+    Versão unificada e otimizada de parsing de Timesheet.
+    Lê o arquivo uma única vez e gera:
+    1. Agregação por Projeto/Ano/Mês (Dashboard Tab)
+    2. Agregação por Ticket ID (Visão Granular)
+    """
     if not path or not path.exists():
-        log.warning(f"Arquivo de timesheet não encontrado para a aba: {path}")
-        return {}
+        log.warning(f"Arquivo de timesheet não encontrado: {path}")
+        return {}, {}
 
-    log.info(f"Gerando dados da aba Timesheet de {path.name}...")
+    log.info(f"Iniciando parsing unificado de Timesheet: {path.name}...")
     import pandas as pd
     from collections import defaultdict
     import re
 
-    # Mapa de info dos tickets (prioridade e severidade)
+    # 1. Preparar mapas de apoio
     ticket_info_map = {}
     if tickets_df is not None:
         for _, r in tickets_df.iterrows():
@@ -108,397 +113,158 @@ def parse_timesheet_tab(path, tickets_df=None):
                 tk_id = str(int(pd.to_numeric(tk_raw, errors='coerce')))
                 ticket_info_map[tk_id] = {
                     "pr": str(r.get('Priority', 'P4')).strip(),
-                    "sv": str(r.get('Severity', 'incident')).strip()
+                    "sv": str(r.get('Severity', 'incident')).strip(),
+                    "prj": smd_config.TIMESHEET_PROJECT_MAP.get(str(r.get('Project Name', 'Other')).strip(), str(r.get('Project Name', 'Other')).strip()),
+                    "st": str(r.get('Status', 'New')).strip(),
+                    "iv": str(r.get('Invoice', '')).strip()
                 }
             except: continue
 
-    # acumuladores: [prj][year][month] → dicts
     grade_map = get_resource_grade_map()
-    acc = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {
+
+    # 2. Acumuladores
+    acc_tab = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {
         "total_h": 0.0, "total_days": 0.0, "overtime_h": 0.0,
-        "staff": defaultdict(float),
-        "tasks": defaultdict(float),
-        "subs":  defaultdict(float),
+        "staff": defaultdict(float), "tasks": defaultdict(float), "subs":  defaultdict(float),
         "by_priority": defaultdict(lambda: {"md": 0.0, "tix": defaultdict(float)}),
         "by_sev_prio": defaultdict(lambda: defaultdict(lambda: {"md": 0.0, "tix": set()})),
-        "weekly": defaultdict(float),
-        "grades": defaultdict(float),
+        "weekly": defaultdict(float), "grades": defaultdict(float),
         "staff_detailed": defaultdict(lambda: {"h": 0.0, "d": 0.0, "sub": "", "grade": ""}),
     })))
+    acc_gran = {}
 
-    def process_row(row_data, acc):
+    def process_row_unified(row_data):
         prj_ts = row_data.get(1, "") or ""
         task   = row_data.get(3, "") or ""
         staff  = row_data.get(6, "") or ""
         week_s = row_data.get(7, "") or ""
         sub    = row_data.get(23, "") or ""
-        # Coluna 19 costuma ter IDs de tickets nos comentários
         ref_col = str(row_data.get(19, ""))
 
         try:
-            wk_h  = float(row_data.get(21) or 0)
-            wk_d  = float(row_data.get(22) or 0)
-            sat_h = float(row_data.get(15) or 0)
-            sun_h = float(row_data.get(17) or 0)
-            
-            if math.isnan(wk_h): wk_h = 0
-            if math.isnan(wk_d): wk_d = 0
-            if math.isnan(sat_h): sat_h = 0
-            if math.isnan(sun_h): sun_h = 0
-        except (ValueError, TypeError):
-            return
-
-        if wk_h <= 0 or not prj_ts or not staff:
-            return
+            wk_h = float(row_data.get(21) or 0)
+            if math.isnan(wk_h) or wk_h <= 0 or not prj_ts or not staff: return
+        except: return
 
         prj_ts_clean = str(prj_ts).strip()
         dash_prj = smd_config.TIMESHEET_PROJECT_MAP.get(prj_ts_clean, prj_ts_clean)
 
         try:
-            if isinstance(week_s, str):
-                dt = datetime.fromisoformat(week_s[:10])
-            else:
-                dt = week_s
-            
-            if pd.isnull(dt) or not isinstance(dt, (datetime, date)):
-                return
-                
-            d_year  = str(dt.year)
-            d_month = f"{dt.month:02d}"
-            d_week  = f"{dt.year}-W{dt.isocalendar()[1]:02d}"
-        except Exception:
-            return
+            dt = datetime.fromisoformat(week_s[:10]) if isinstance(week_s, str) else week_s
+            if pd.isnull(dt) or not isinstance(dt, (datetime, date)): return
+        except: return
 
-        # Busca Career Grade
         s_norm = normalize_name(staff)
-        grade = grade_map.get(s_norm)
-        if not grade:
-            parts = s_norm.split()
-            if len(parts) > 1:
-                grade = grade_map.get(f"{parts[0]} {parts[-1]}", "N/A")
-            else:
-                grade = "N/A"
+        grade = grade_map.get(s_norm, "N/A")
 
-        # Match Ticket ID para Prioridade e Severidade
-        priority = "N/A"
-        severity = "N/A"
         search_text = f"{ref_col} {task}"
         ids_found = re.findall(r'(\d{4,7})', search_text)
+        
+        tid_match, t_meta = None, None
         if ids_found:
             for tid in ids_found:
                 if tid in ticket_info_map:
-                    priority = ticket_info_map[tid]["pr"]
-                    severity = ticket_info_map[tid]["sv"]
+                    tid_match = tid
+                    t_meta = ticket_info_map[tid]
                     break
 
-        # Itera sobre os dias da semana
         day_indices = [9, 10, 11, 13, 14, 15, 17]
         for idx, i in enumerate(day_indices):
             h = row_data.get(i, 0)
             try:
                 h = float(h or 0)
                 if math.isnan(h) or h <= 0: continue
-            except (ValueError, TypeError):
-                continue
+            except: continue
             
-            day_offset = idx
-            day_date = dt + timedelta(days=day_offset)
-            
-            dy  = str(day_date.year)
-            dm  = f"{day_date.month:02d}"
-            dw  = f"{day_date.year}-W{day_date.isocalendar()[1]:02d}"
-            
+            day_date = dt + timedelta(days=idx)
+            dy, dm = str(day_date.year), f"{day_date.month:02d}"
+            dw, mk = f"{dy}-W{day_date.isocalendar()[1]:02d}", f"{dy}-{dm}"
             d_md = h / 8.0
             is_overtime = (i >= 15)
 
             for prj in [dash_prj, "Todos"]:
-                b = acc[prj][dy][dm]
-                b["total_h"]    += h
-                b["total_days"] += d_md
-                if is_overtime:
-                    b["overtime_h"] += h
+                b = acc_tab[prj][dy][dm]
+                b["total_h"] += h; b["total_days"] += d_md
+                if is_overtime: b["overtime_h"] += h
+                b["staff"][staff] += h; b["tasks"][task] += h; b["subs"][sub] += h
                 
-                b["staff"][staff]   += h
-                b["tasks"][task]    += h
-                b["subs"][sub]      += h
+                priority = t_meta["pr"] if t_meta else "N/A"
+                severity = t_meta["sv"] if t_meta else "N/A"
                 
-                # MDs por prioridade e ticket
                 bp = b["by_priority"][priority]
                 bp["md"] += d_md
-                if priority != "N/A" and ids_found:
-                    # Tenta achar qual ticket dos encontrados gerou esta prioridade
-                    matched_tid = None
-                    for tid in ids_found:
-                        ti = ticket_info_map.get(tid)
-                        if ti and ti.get("pr") == priority:
-                            matched_tid = tid
-                            break
-                    if not matched_tid: matched_tid = ids_found[0]
-                    bp["tix"][matched_tid] += d_md
-                    
-                    # Médias por Severidade e Prioridade
+                if tid_match:
+                    bp["tix"][tid_match] += d_md
                     if severity != "N/A":
                         sp = b["by_sev_prio"][severity][priority]
-                        sp["md"] += d_md
-                        sp["tix"].add(matched_tid)
+                        sp["md"] += d_md; sp["tix"].add(tid_match)
 
-                b["weekly"][dw]       += h
-                b["grades"][grade]    += d_md
-                
+                b["weekly"][dw] += h; b["grades"][grade] += d_md
                 sd = b["staff_detailed"][staff]
-                sd["h"] += h
-                sd["d"] += d_md
-                if sub: sd["sub"] = sub
-                sd["grade"] = grade
+                sd["h"] += h; sd["d"] += d_md; sd["sub"] = sub; sd["grade"] = grade
 
-    # --- LEITURA DOS DADOS ---
+            if tid_match:
+                if tid_match not in acc_gran:
+                    acc_gran[tid_match] = {'prj': t_meta['prj'], 'sv': t_meta['sv'], 'pr': t_meta['pr'], 'st': t_meta['st'], 'iv': t_meta['iv'], 'periods': {}}
+                p = acc_gran[tid_match]['periods'].setdefault(mk, {'h': 0, 'd': 0, 'staff': {}})
+                p['h'] += h; p['d'] += d_md
+                p['staff'][staff] = p['staff'].get(staff, 0) + h
+
     if path.suffix.lower() == ".xlsx":
         try:
-            # Tenta localizar a aba de dados brutos 'Report'
             xl = pd.ExcelFile(path)
             sheet = 'Report' if 'Report' in xl.sheet_names else xl.sheet_names[0]
-            log.info(f"Lendo aba '{sheet}' de {path.name}")
             df_ts = pd.read_excel(xl, sheet_name=sheet, header=None)
-            for i, row in df_ts.iterrows():
-                # No Pandas, row[0] é a primeira coluna. Nosso process_row espera 0-based agora se simplificarmos.
-                # Mas para manter compatibilidade com o XML, vamos mapear idx direto.
-                row_dict = {idx: val for idx, val in enumerate(row)}
-                process_row(row_dict, acc)
-        except Exception as e:
-            log.error(f"Erro ao ler XLSX via Pandas: {e}")
-            return {}
+            for _, row in df_ts.iterrows():
+                process_row_unified({idx: val for idx, val in enumerate(row)})
+        except Exception as e: log.error(f"Erro XLSX unificado: {e}")
     else:
-        # Tenta ler como XML Spreadsheet 2003
         try:
             ns_tag = '{urn:schemas-microsoft-com:office:spreadsheet}'
             ns = {'ss': 'urn:schemas-microsoft-com:office:spreadsheet'}
-            context = ET.iterparse(str(path), events=('end',))
-            for event, elem in context:
+            for event, elem in ET.iterparse(str(path), events=('end',)):
                 if elem.tag == f'{ns_tag}Row':
-                    cells_raw = elem.findall(f'{ns_tag}Cell', ns)
-                    if not cells_raw:
-                        elem.clear(); continue
-                    row_data = {}
-                    cur_idx = 1
-                    for cell in cells_raw:
+                    cells = elem.findall(f'{ns_tag}Cell', ns)
+                    row_data = {}; cur_idx = 1
+                    for cell in cells:
                         idx_attr = cell.get(f'{ns_tag}Index')
                         if idx_attr: cur_idx = int(idx_attr)
                         d = cell.find(f'{ns_tag}Data', ns)
                         row_data[cur_idx] = d.text if d is not None else None
                         cur_idx += 1 + int(cell.get(f'{ns_tag}MergeAcross', 0))
+                    process_row_unified(row_data)
                     elem.clear()
-                    process_row(row_data, acc)
-        except Exception as e:
-            log.warning(f"Parser XML falhou ({e}), tentando via Pandas/Openpyxl...")
-            try:
-                df = pd.read_excel(path, header=None)
-                for _, row in df.iterrows():
-                    row_data = {i+1: val for i, val in enumerate(row)}
-                    process_row(row_data, acc)
-            except Exception as e2:
-                log.error(f"Falha total ao ler Timesheet: {e2}")
-                return {}
+        except Exception as e: log.error(f"Erro XML unificado: {e}")
 
-
-    # Converter defaultdicts para dicts serializáveis
-    result = {}
-    for prj, years in acc.items():
-        result[prj] = {}
+    result_tab = {}
+    for prj, years in acc_tab.items():
+        result_tab[prj] = {}
         for yr, months in years.items():
-            result[prj][yr] = {}
+            result_tab[prj][yr] = {}
             for mo, b in months.items():
                 headcount = len(b["staff"])
-                top_staff = sorted(
-                    [{"name": n, "h": round(h, 1)} for n, h in b["staff"].items()],
-                    key=lambda x: -x["h"])[:8]
-                top_tasks = sorted(
-                    [{"task": t, "h": round(h, 1)} for t, h in b["tasks"].items()],
-                    key=lambda x: -x["h"])[:8]
+                top_staff = sorted([{"name": n, "h": round(h, 1)} for n, h in b["staff"].items()], key=lambda x: -x["h"])[:8]
+                top_tasks = sorted([{"task": t, "h": round(h, 1)} for t, h in b["tasks"].items()], key=lambda x: -x["h"])[:8]
                 by_sub = {s: round(h, 1) for s, h in sorted(b["subs"].items(), key=lambda x: -x[1])}
                 by_priority = []
                 for p_name, p_data in b["by_priority"].items():
-                    tix_list = sorted(
-                        [{"id": tid, "md": round(m, 2)} for tid, m in p_data["tix"].items()],
-                        key=lambda x: -x["md"]
-                    )
-                    by_priority.append({
-                        "name": p_name, 
-                        "d": round(p_data["md"], 2),
-                        "tix": tix_list
-                    })
+                    by_priority.append({"name": p_name, "d": round(p_data["md"], 2), "tix": sorted([{"id": tid, "md": round(m, 2)} for tid, m in p_data["tix"].items()], key=lambda x: -x["md"])})
                 by_priority.sort(key=lambda x: x["name"])
-
-                # Médias por Severidade e Prioridade (preparação para o frontend)
-                by_sev_prio = {}
-                for sv, prios in b["by_sev_prio"].items():
-                    by_sev_prio[sv] = {}
-                    for pr, data in prios.items():
-                        by_sev_prio[sv][pr] = {
-                            "md": round(data["md"], 2),
-                            "n": len(data["tix"])
-                        }
-
-                weekly = [{"week": w, "h": round(h, 1)}
-                          for w, h in sorted(b["weekly"].items())]
-
+                by_sev_prio = {sv: {pr: {"md": round(d["md"], 2), "n": len(d["tix"])} for pr, d in prios.items()} for sv, prios in b["by_sev_prio"].items()}
+                weekly = [{"week": w, "h": round(h, 1)} for w, h in sorted(b["weekly"].items())]
                 by_grade = {g: round(d, 2) for g, d in sorted(b["grades"].items(), key=lambda x: -x[1])}
-
-                # Detalhes por grade
                 grade_details = {}
                 for name, d in b["staff_detailed"].items():
-                    g = d["grade"]
-                    if g not in grade_details: grade_details[g] = []
-                    grade_details[g].append({
-                        "name": name, "sub": d["sub"], 
-                        "h": round(d["h"], 1), "d": round(d["d"], 2)
-                    })
-                for g in grade_details:
-                    grade_details[g].sort(key=lambda x: -x["d"], reverse=True)
-
-                avg_h = round(b["total_h"] / headcount, 1) if headcount else 0
-                result[prj][yr][mo] = {
-                    "total_h":    round(b["total_h"], 1),
-                    "total_days": round(b["total_days"], 1),
-                    "overtime_h": round(b["overtime_h"], 1),
-                    "headcount":  headcount,
-                    "avg_h_per_staff": avg_h,
-                    "top_staff":  top_staff,
-                    "top_tasks":  top_tasks,
-                    "by_subsidiary": by_sub,
-                    "by_career_grade": by_grade,
-                    "grade_details": grade_details,
-                    "by_priority": by_priority,
-                    "by_sev_prio": by_sev_prio,
-                    "weekly": weekly,
+                    grade_details.setdefault(d["grade"], []).append({"name": name, "sub": d["sub"], "h": round(d["h"], 1), "d": round(d["d"], 2)})
+                for g in grade_details: grade_details[g].sort(key=lambda x: -x["d"], reverse=True)
+                result_tab[prj][yr][mo] = {
+                    "total_h": round(b["total_h"], 1), "total_days": round(b["total_days"], 1), "overtime_h": round(b["overtime_h"], 1),
+                    "headcount": headcount, "avg_h_per_staff": round(b["total_h"] / headcount, 1) if headcount else 0,
+                    "top_staff": top_staff, "top_tasks": top_tasks, "by_subsidiary": by_sub, "by_career_grade": by_grade,
+                    "grade_details": grade_details, "by_priority": by_priority, "by_sev_prio": by_sev_prio, "weekly": weekly,
                 }
-
-    log.info(f"Aba Timesheet: {len(result)} projetos, anos={sorted({yr for p in result.values() for yr in p})}")
-    return result
-
-def parse_timesheet(path, tickets_df):
-    """Lê o arquivo XLS (XML) de timesheet e gera mapeamento granular D.timesheet."""
-    if not path:
-        log.warning("Caminho de timesheet não fornecido.")
-        return {}
-    if not path.exists():
-        log.warning(f"Arquivo de timesheet não encontrado: {path}")
-        return {}
-
-    log.info(f"Processando timesheet estrito (ID-based) de {path}...")
-    import pandas as pd
-    try:
-        # Usar header=4 para pegar os nomes das colunas reais (Row 4)
-        df_ts = pd.read_excel(path, sheet_name='Report', header=4)
-        
-        # Mapa de tickets {id: {sv, pr, prj}}
-        ticket_map = {}
-        for _, r in tickets_df.iterrows():
-            tk_raw = r.get('Ticket')
-            if pd.isna(tk_raw): continue
-            tk_id = str(int(pd.to_numeric(tk_raw, errors='coerce')))
-            ticket_map[tk_id] = {
-                'sv': str(r.get('Severity', 'incident')).lower().replace(' ', '_'),
-                'prj': smd_config.TIMESHEET_PROJECT_MAP.get(str(r.get('Project Name', 'Other')).strip(), str(r.get('Project Name', 'Other')).strip()),
-                'pr': str(r.get('Priority', 'P4')).strip(),
-                'st': str(r.get('Status', 'New')).strip(),
-                'iv': str(r.get('Invoice', '')).strip()
-            }
-
-        ts_final = {} # { tid: { prj, sv, pr, iv, months: { "Y-M": hours }, staff: { name: hours } } }
-        ns = {'ss': 'urn:schemas-microsoft-com:office:spreadsheet'}
-        stats = {"match_ticket": 0, "ignored": 0}
-
-        def process_ts_row(row_data):
-            nonlocal stats
-            try:
-                # Acessar colunas por posição física (0-based)
-                # 1=Project, 6=Staff, 7=Week, 19=Ticket(Comments), 21=Hours, 22=Days
-                try:
-                    # Garantir que row_data seja uma Series para usar iloc
-                    if not isinstance(row_data, pd.Series):
-                        row_data = pd.Series(row_data)
-                        
-                    hc = row_data.iloc[21]
-                    dc = row_data.iloc[22]
-                    hours = float(hc) if hc is not None and not pd.isnull(hc) else 0
-                    days  = float(dc) if dc is not None and not pd.isnull(dc) else 0
-                    
-                    if math.isnan(hours): hours = 0
-                    if math.isnan(days): days = 0
-                    
-                    if hours <= 0 and days <= 0: return
-
-                    staff_name = str(row_data.iloc[6]) if not pd.isnull(row_data.iloc[6]) else "Unknown"
-                    desc_col   = str(row_data.iloc[3]) if not pd.isnull(row_data.iloc[3]) else ""
-                    ref_col    = str(row_data.iloc[19]) if not pd.isnull(row_data.iloc[19]) else ""
-                    week_val   = row_data.iloc[7]
-                    
-                    # 1. Match Ticket ID (Coluna 19 contém o ID no campo Comments)
-                    tid_col    = str(row_data.iloc[19]) if not pd.isnull(row_data.iloc[19]) else ""
-                    search_text = f"{tid_col} {desc_col}"
-                    ids_found = re.findall(r'(\d{4,7})', search_text)
-                except Exception as ex:
-                    # Se der erro de índice em alguma linha malformada, apenas ignora
-                    return
-                
-                t_meta = None
-                tid_match = None
-                if ids_found:
-                    for tid in ids_found:
-                        if tid in ticket_map:
-                            t_meta = ticket_map[tid]
-                            tid_match = tid
-                            break
-                
-                if not t_meta:
-                    stats["ignored"] += 1
-                    return
-
-                # 2. Determinar Período (Ano-Mes)
-                try: 
-                    dt = week_val
-                    mk = f"{dt.year}-{dt.month:02d}"
-                except: 
-                    mk = datetime.now().strftime("%Y-%m")
-
-                # 3. Agrupar
-                if tid_match not in ts_final:
-                    ts_final[tid_match] = {
-                        'prj': t_meta['prj'],
-                        'sv': t_meta['sv'],
-                        'pr': t_meta['pr'],
-                        'st': t_meta['st'],
-                        'iv': t_meta['iv'],
-                        'periods': {}
-                    }
-                
-                entry = ts_final[tid_match]
-                if mk not in entry['periods']:
-                    entry['periods'][mk] = {'h': 0, 'd': 0, 'staff': {}}
-                
-                p = entry['periods'][mk]
-                p['h'] += hours
-                p['d'] += (hours / 8.0) # Força consistência com a regra de 8h/MD
-                p['staff'][staff_name] = p['staff'].get(staff_name, 0) + hours
-                stats["match_ticket"] += 1
-            except: pass
-
-        # --- PROCESSAMENTO ---
-        # df_ts já foi carregado com header=4 (nomes de colunas na Row 4)
-        for _, row in df_ts.iterrows():
-            process_ts_row(row)
-
-        log.info(f"Timesheet granular concluído: {len(ts_final)} tickets vinculados. Status: {stats}")
-        return ts_final
-
-    except Exception as e:
-        log.error(f"Falha ao processar timesheet: {e}")
-        return {}
-
-        return ts_final
-    except Exception as e:
-        log.error(f"Erro ao processar timesheet granular: {e}")
-        return {}
+    log.info(f"Timesheet unificado: {len(result_tab)} projetos processados.")
+    return result_tab, acc_gran
 
 # ── PROCESSAMENTO DE TICKETS ──────────────────────────────────────────────────
 def process_tickets_data(csv_override=None):
@@ -711,8 +477,6 @@ def process_tickets_data(csv_override=None):
             cur, prev = comp[sv][k]["cur"], comp[sv][k]["prev"]
             comp[sv][k]["var"] = round((cur-prev)/prev*100,1) if prev>0 else None
 
-    ts_path = get_ts_path()
-    timesheet = parse_timesheet(ts_path, df)
 
     mttr_stats = {}
     inc_df = df[df["Severity"] == "incident"].copy()
@@ -785,7 +549,7 @@ def process_tickets_data(csv_override=None):
              f"{sum(len(p['incidents']) for p in problems_idx.values())} incidents linkados")
 
     D = {"monthly": monthly, "daily": daily, "backlog": backlog, "sla": sla, "rc": rc_dist, "summary": summary, "comp": comp,
-         "ym": {y:sorted(list(m)) for y,m in ym.items()}, "projects": summary["projects"], "timesheet": timesheet,
+         "ym": {y:sorted(list(m)) for y,m in ym.items()}, "projects": summary["projects"],
          "generated_at": today.strftime("%Y-%m-%d %H:%M"), "mttr_stats": mttr_stats,
          "problems": problems_idx, "staff": staff_data}
     T = {"fields": TF, "rows": rows_out, "idx": idx_out}
@@ -861,9 +625,10 @@ def run_pipeline(skip_agents=False, csv_override=None):
         except Exception as ge: 
             log.error(f"Erro geral no motor de IA: {ge}")
     
-    # Timesheet por projeto/ano/mês (aba dedicada)
+    # Timesheet unificado (Aba Resumo + Granular por Ticket)
     ts_path = get_ts_path()
-    timesheet_tab = parse_timesheet_tab(ts_path, df_raw)
+    timesheet_tab, timesheet_granular = parse_timesheet_unified(ts_path, df_raw)
+    D["timesheet"] = timesheet_granular
     
     # Restauração do KPI de Oncall
     oncall_data = {}

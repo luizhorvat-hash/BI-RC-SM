@@ -83,4 +83,19 @@ MTTR_BENCHMARK_H = {
     "P3": 24,  # 1 dia (Média)
     "P4": 48   # 2 dias (Baixa)
 }
-SLA_AVAILABILITY_TARGET = 99.5
+# --- CONFIGURAÇÕES DE CUSTO (FINOPS) ---
+AI_COST_TABLE = {
+    "gemini": {
+        "input_1m": 0.10,   # USD por 1M tokens
+        "output_1m": 0.40
+    },
+    "anthropic": {
+        "input_1m": 0.25,
+        "output_1m": 1.25
+    },
+    "ollama": {
+        "input_1m": 0.0,
+        "output_1m": 0.0
+    }
+}
+
