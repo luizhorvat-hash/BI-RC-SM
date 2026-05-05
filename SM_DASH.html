@@ -2047,6 +2047,7 @@ function doRefresh() {
       if (v === 'timesheet')  try { buildTimesheet(); } catch(e) {}
       if (v === 'simulador')  try { buildSimulador(); } catch(e) {}
       if (v === 'cliente')    try { buildCliente(); } catch(e) {}
+      if (v === 'config')     try { buildConfig(); } catch(e) {}
       if (v === 'comp_timesheet') try { buildComparativoTimesheet(); } catch(e) {}
       if (v === 'exec_summary') try { buildExecutiveSummary(); } catch(e) {}
       _TAB_SYNC[v] = Date.now();
@@ -2103,6 +2104,70 @@ function updateBadge() {
   // Chip do projeto
   var chip = document.getElementById('chip-prj');
   if (chip) chip.textContent = selProject ? selProject.split(' ').slice(0,3).join(' ') : 'Todos';
+}
+
+// ── CONFIG TAB ──────────────────────────────────────────────────
+function buildConfig() {
+  refreshCFG();
+  var cfg = CFG;
+  
+  // SLA Table
+  var slaBody = document.getElementById('cfg-sla-body');
+  if (slaBody) {
+    slaBody.innerHTML = ['P1','P2','P3','P4'].map(function(p) {
+      var s = cfg.sla[p] || {min:0, target:0};
+      return '<tr>' +
+        '<td><strong>'+p+'</strong></td>' +
+        '<td><input type="number" class="cfginp" id="cfg-sla-'+p+'-min" value="'+s.min+'"></td>' +
+        '<td><input type="number" class="cfginp" id="cfg-sla-'+p+'-tgt" value="'+s.target+'"></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  // Ranges Table
+  var rngBody = document.getElementById('cfg-rng-body');
+  if (rngBody) {
+    rngBody.innerHTML = cfg.ranges.map(function(r, i) {
+      return '<tr>' +
+        '<td><input type="number" class="cfginp" id="cfg-rng-'+i+'-min" value="'+r.min+'"></td>' +
+        '<td><input type="number" class="cfginp" id="cfg-rng-'+i+'-max" value="'+r.max+'"></td>' +
+        '<td><input type="number" step="0.01" class="cfginp" id="cfg-rng-'+i+'-mds" value="'+r.effort_mds+'"></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  // General config
+  var noUpd = document.getElementById('cfg-no-upd');
+  if (noUpd) noUpd.value = cfg.no_upd || 7;
+}
+
+function applyConfig() {
+  var prj = selProject || 'Todos';
+  var cfg = _loadProjectCFG(prj);
+
+  // Read SLA
+  ['P1','P2','P3','P4'].forEach(function(p) {
+    cfg.sla[p].min = parseInt(document.getElementById('cfg-sla-'+p+'-min').value) || 0;
+    cfg.sla[p].target = parseInt(document.getElementById('cfg-sla-'+p+'-tgt').value) || 0;
+  });
+
+  // Read Ranges
+  for (var i=0; i<cfg.ranges.length; i++) {
+    cfg.ranges[i].min = parseInt(document.getElementById('cfg-rng-'+i+'-min').value) || 0;
+    cfg.ranges[i].max = parseInt(document.getElementById('cfg-rng-'+i+'-max').value) || 0;
+    cfg.ranges[i].effort_mds = parseFloat(document.getElementById('cfg-rng-'+i+'-mds').value) || 0;
+  }
+
+  // Read Aging
+  cfg.no_upd = parseInt(document.getElementById('cfg-no-upd').value) || 7;
+
+  // Save
+  _saveProjectCFG(prj, cfg);
+  
+  // Feedback e Refresh
+  alert('Configurações para "' + prj + '" aplicadas com sucesso!');
+  refreshCFG();
+  refreshAll();
 }
 
 function renderYears() {
