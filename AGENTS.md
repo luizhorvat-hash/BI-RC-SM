@@ -4,7 +4,11 @@
 temperature 0.1
 Este arquivo define a governança e os papéis dos agentes de Inteligência Artificial utilizados no ecossistema **Service Management Dashboard (SMD)**.
 
+> [!IMPORTANT]
+> Este projeto opera sob o [Protocolo VLAEG](file:///c:/Dashboard/protocolo_vlaeg.md) (**V**isão, **L**iderança, **A**gilidade, **E**xecução e **G**overnança). Toda a atuação dos agentes deve estar alinhada a estes pilares estratégicos.
+
 ---
+
 
 ## 1. Diretrizes Gerais
 
