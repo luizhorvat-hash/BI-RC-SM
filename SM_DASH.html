@@ -347,18 +347,59 @@ html,body{background:var(--bg-grad);color:var(--text);font-family:var(--f);min-h
     .orb-1 {background:#FF6B00;opacity:0.08;}
     .orb-2 {background:#0066FF;opacity:0.05;}
   }
+
+/* --- NOVO LAYOUT CLAUDE DESIGN --- */
+html,body { overflow: hidden; }
+.app-layout { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+.sidebar { width: 200px; background: var(--glass-surf); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; padding: 24px 0; z-index: 200; flex-shrink: 0; box-shadow: 4px 0 24px var(--glass-shadow); }
+.sidebar .logo { padding: 0 20px; margin-bottom: 32px; font-size: 16px; color: var(--text); }
+.sidebar .nav { display: flex; flex-direction: column; border: none; background: transparent; padding: 0; overflow-y: auto; overflow-x: hidden; }
+.sidebar .ntab { padding: 12px 20px; border-radius: 0; border: none; border-left: 4px solid transparent; margin-bottom: 4px; font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: normal; color: var(--muted); white-space: normal; cursor: pointer; transition: all 0.2s; }
+.sidebar .ntab:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+.sidebar .ntab.active { background: rgba(255,255,255,0.08); box-shadow: inset 20px 0 20px -20px rgba(0,0,0,0.2); font-size: 13px; color: var(--text); }
+.main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+.main-content .hdr { background: transparent; backdrop-filter: none; border-bottom: none; box-shadow: none; padding: 24px 32px 12px 32px; height: auto; position: relative; }
+.panels-container { padding: 0 12px 24px 12px; display: flex; flex-direction: column; flex: 1; }
+/* --------------------------------- */
 </style>
+
 
 </head>
 <body>
 <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
 
-<div class="hdr">
-  <div class="logo"><div class="dot"></div>SERVICE MANAGEMENT DASHBOARD</div>
-  <div class="hchips"><span class="chip" id="chip-prj">-</span><span class="chip">27/03/2026</span></div>
-</div>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="logo"><div class="dot"></div>Retail Consult</div>
+    <div class="nav" id="nav">
+      <div class="ntab t-hoje active" data-view="hoje">&#128197; Hoje</div>
+      <div class="ntab t-inc" data-sev="incident">Incident</div>
+      <div class="ntab t-ur"  data-sev="user_request">User Request</div>
+      <div class="ntab t-prb" data-sev="problem">Problem</div>
+      <div class="ntab t-cr"  data-sev="change_request">Change Request</div>
+      <div class="ntab t-int" data-sev="internal">Internal</div>
+      <div class="ntab t-attn" data-view="attn">&#9888; Atencao</div>
+      <div class="ntab t-cfg"  data-view="config">&#9881; Config</div>
+      <div class="ntab t-ai" data-view="ai">&#129302; AI Insights</div>
+      <div class="ntab t-cmp" data-view="comp">&#128200; Comparativo</div>
+      <div class="ntab t-cli" data-view="cliente">&#128200; Cliente</div>
+      <div class="ntab t-ts"  data-view="timesheet">&#128336; Timesheet</div>
+      <div class="ntab t-comp-ts" data-view="comp_timesheet">&#128203; Comparativo TS</div>
+      <div class="ntab t-exec" data-view="exec_summary">&#128196; Resumo Executivo</div>
+      <div class="ntab t-sim" data-view="simulador">&#128202; Simulador</div>
+    </div>
+  </aside>
+  
+  <main class="main-content">
+    <div class="hdr">
+      <div>
+        <div style="font-family:var(--ft);font-size:18px;font-weight:700;color:var(--text);letter-spacing:0.05em">EXECUTIVE DASHBOARD</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Service Management Analytics</div>
+      </div>
+      <div class="hchips"><span class="chip" id="chip-prj">-</span><span class="chip">27/03/2026</span></div>
+    </div>
 
-<div class="fbar">
+    <div class="fbar">
   <span class="fl">Project</span>
   <div class="prj-wrap">
     <select class="prj-sel" id="prj-sel" title="Selecione o Projeto"></select>
@@ -381,23 +422,7 @@ html,body{background:var(--bg-grad);color:var(--text);font-family:var(--f);min-h
 </div>
 
 <button id="export-fab" onclick="exportSummary()" title="Exportar resumo do dia">&#128438; Exportar</button>
-<div class="nav" id="nav">
-  <div class="ntab t-hoje active" data-view="hoje">&#128197; Hoje</div>
-  <div class="ntab t-inc" data-sev="incident">Incident</div>
-  <div class="ntab t-ur"  data-sev="user_request">User Request</div>
-  <div class="ntab t-prb" data-sev="problem">Problem</div>
-  <div class="ntab t-cr"  data-sev="change_request">Change Request</div>
-  <div class="ntab t-int" data-sev="internal">Internal</div>
-  <div class="ntab t-attn" data-view="attn">&#9888; Atencao</div>
-  <div class="ntab t-cfg"  data-view="config">&#9881; Config</div>
-  <div class="ntab t-ai" data-view="ai">&#129302; AI Insights</div>
-  <div class="ntab t-cmp" data-view="comp">&#128200; Comparativo</div>
-  <div class="ntab t-cli" data-view="cliente">&#128200; Cliente</div>
-  <div class="ntab t-ts"  data-view="timesheet">&#128336; Timesheet</div>
-  <div class="ntab t-comp-ts" data-view="comp_timesheet">&#128203; Comparativo TS</div>
-  <div class="ntab t-exec" data-view="exec_summary">&#128196; Resumo Executivo</div>
-  <div class="ntab t-sim" data-view="simulador">&#128202; Simulador</div>
-</div>
+<div class="panels-container">
 
 <div id="panel-hoje" class="panel active"></div>
 <div id="panel-incident"      class="panel"></div>
@@ -968,10 +993,10 @@ function buildBar(sev, cid) {
   if (charts['bar-'+sev]) charts['bar-'+sev].destroy();
   var ctx = document.getElementById(cid); if (!ctx) return;
   var ch = new Chart(ctx.getContext('2d'), {
-    type: 'bar',
+    type: 'line',
     data: {labels: labels, datasets: [
-      {label:'Abertos', data:opened, backgroundColor:'#FF6B00', borderRadius:4, barPercentage:.45, order:2},
-      {label:'Fechados',data:closed, backgroundColor:'#CF0A2C', borderRadius:4, barPercentage:.45, order:2},
+      {label:'Abertos', data:opened, borderColor:'#FF6B00', backgroundColor:'rgba(255,107,0,0.1)', borderWidth:3, fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#FF6B00', pointHoverRadius:6},
+      {label:'Fechados',data:closed, borderColor:'#CF0A2C', backgroundColor:'rgba(207,10,44,0.05)', borderWidth:3, fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#CF0A2C', pointHoverRadius:6},
       {label:'Media 3m A',data:avgO,type:'line',borderColor:'rgba(255,107,0,.45)',backgroundColor:'transparent',pointRadius:0,borderWidth:1.5,borderDash:[4,3],order:1,tension:.4},
       {label:'Media 3m F',data:avgC,type:'line',borderColor:'rgba(207,10,44,.45)',backgroundColor:'transparent',pointRadius:0,borderWidth:1.5,borderDash:[4,3],order:1,tension:.4}
     ]},
@@ -1012,8 +1037,8 @@ function buildLine(sev, cid) {
   var ch = new Chart(ctx.getContext('2d'), {
     type: 'line',
     data: {labels: labels, datasets: [
-      {label:'Abertos',data:op,borderColor:'#FF6B00',backgroundColor:'rgba(255,107,0,.08)',fill:true,pointBackgroundColor:'#FF6B00',pointRadius:4,pointHoverRadius:6,borderWidth:2,tension:.3},
-      {label:'Fechados',data:cl,borderColor:'#CF0A2C',backgroundColor:'rgba(207,10,44,.05)',fill:true,pointBackgroundColor:'#CF0A2C',pointRadius:4,pointHoverRadius:6,borderWidth:2,tension:.3,borderDash:[4,3]}
+      {label:'Abertos',data:op,borderColor:'#FF6B00',backgroundColor:'rgba(255,107,0,.08)',fill:true,pointBackgroundColor:'#FF6B00',pointRadius:4,pointHoverRadius:6,borderWidth:3,tension:.4},
+      {label:'Fechados',data:cl,borderColor:'#CF0A2C',backgroundColor:'rgba(207,10,44,.05)',fill:true,pointBackgroundColor:'#CF0A2C',pointRadius:4,pointHoverRadius:6,borderWidth:3,tension:.4,borderDash:[4,3]}
     ]},
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18,right:8}},
       plugins:{legend:{display:false},tooltip:{backgroundColor:'#0B1F2C',borderColor:'#1a3a50',borderWidth:1,titleColor:'#94a3b8',bodyColor:'#f1f5f9',padding:10,callbacks:{title:function(i){return 'Dia '+i[0].label;},label:function(c){return ' '+c.dataset.label+': '+c.parsed.y;}}}},
@@ -7903,5 +7928,6 @@ function strPrj(s) { return String(s || '').split(' ')[0].toLowerCase(); }
   </div>
 </div>
 
+</div></main></div>
 </body>
 </html>
