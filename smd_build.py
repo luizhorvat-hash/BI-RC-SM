@@ -459,7 +459,7 @@ def process_tickets_data(csv_override=None):
         else:
             rc_dist[sv] = {"N/A": {"count": int(len(sub)), "pct": 100.0, "ids": sub["Ticket"].dropna().astype(int).tolist()}}
 
-    summary = {"total_registered": int(len(df)), "total_open": int(df["Is_Open"].sum()), "projects": sorted(df["Project Name"].dropna().unique().tolist())}
+    summary = {"total_registered": int(len(df)), "total_open": int(df["Is_Open"].sum()), "projects": sorted(list(set(smd_config.TIMESHEET_PROJECT_MAP.get(str(p).strip(), str(p).strip()) for p in df["Project Name"].dropna().unique())))}
     for sv in SEVS:
         sub = df[df["Severity"]==sv]
         summary[sv] = {"registered":len(sub), "closed":int(sub["Is_Closed"].sum()), "open":int(sub["Is_Open"].sum())}
