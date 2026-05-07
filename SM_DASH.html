@@ -4095,35 +4095,10 @@
         function panelHTML(sev) {
           var isSLASev = (sev === 'incident');
           var comp = D.comp[sev] || {};
-          // Comp badge: re-calculated from monthly ids filtered by project+month
-          function compCount(sev, year, month, which) {
-            var k = year + '-' + String(month).padStart(2, '0');
-            var entry = (D.monthly[sev] || {})[k];
-            if (!entry) return 0;
-            var ids = which === 'open' ? (entry.o_ids || []) : (entry.c_ids || []);
-            if (!selProject) return ids.length;
-            return ids.filter(function (tid) { var t = getTix(tid); return t && t.prj === selProject; }).length;
-          }
-          function cBadge(type) {
-            // Use selected year/month or default to current (2026-03) vs previous (2026-02)
-            var curY = selYear ? +selYear : 2026;
-            var curM = selMonth ? +selMonth : 3;
-            var prevM = curM > 1 ? curM - 1 : 12;
-            var prevY = curM > 1 ? curY : curY - 1;
-            var cur = compCount(sev, curY, curM, type === 'ab' ? 'open' : 'close');
-            var prev = compCount(sev, prevY, prevM, type === 'ab' ? 'open' : 'close');
-            var varPct = prev > 0 ? Math.round((cur - prev) / prev * 1000) / 10 : null;
-            var col = type === 'ab' ? '#FF6B00' : '#CF0A2C';
-            var mLabel = selYear && selMonth ? (MPT[curM] + '/' + curY) : ('Mar/' + curY);
-            var pLabel = MPT[prevM] + '/' + (prevY === curY ? String(prevY).slice(2) : prevY);
-            return '<div class="ci"><div class="ci-lbl">' + (type === 'ab' ? 'Abertos' : 'Fechados') + ' em ' + mLabel + '</div>' +
-              '<div class="ci-vals"><span class="ci-cur" style="color:' + col + '">' + cur + '</span>' +
-              '<span class="ci-prev">vs ' + prev + ' (' + pLabel + ') ' + varBadge(varPct, type === 'ab') + '</span></div></div>';
-          }
+
           var hasRC = Object.keys(D.rc[sev] || {}).length > 0;
           return (isSLASev ? '<div class="cb" style="margin-bottom:0"><div class="cbt" style="margin-bottom:10px">SLA — Incidents PRD | Clique para detalhes</div><div id="sla-mini-' + sev + '"></div></div>' : '') +
             _renderCountrySection(selProject || 'Todos os Projetos', selYear, selMonth) +
-            '<div class="crow">' + cBadge('ab') + cBadge('cl') + '</div>' +
             '<div class="r2">' +
             '<div class="cb"><div class="cbt">Abertos e Fechados por Mes</div><div class="cbp" id="bar-p-' + sev + '"></div>' +
             '<div class="leg">' +
