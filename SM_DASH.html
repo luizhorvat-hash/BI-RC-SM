@@ -2431,11 +2431,13 @@
     }
 
     .sidebar.collapsed {
-      width: 0;
-      padding: 0;
+      width: 0 !important;
+      min-width: 0 !important;
+      padding: 0 !important;
       opacity: 0;
       pointer-events: none;
       border-right: none;
+      overflow: hidden;
     }
 
     .toggle-sidebar {
@@ -4401,10 +4403,10 @@
           }
         }
 
-        function toggleSidebar() {
+        window.toggleSidebar = function() {
           var s = document.querySelector('.sidebar');
+          if (!s) return;
           s.classList.toggle('collapsed');
-          // Trigger a window resize to fix charts if needed
           setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 310);
         }
 
