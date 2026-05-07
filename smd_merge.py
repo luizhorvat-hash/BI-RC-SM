@@ -213,35 +213,42 @@ def merge_files(csv_list: list[dict], existing_file: Path = None) -> object:
     merged = pd.concat(frames, ignore_index=True)
     log.info(f"\nTotal bruto (histórico + novos): {len(merged)} linhas")
 
-    # 4. Remover duplicatas pelo número do ticket (manter a exportação mais RECENTE e com DADOS)
-    # Primeiro garantimos que Ticket é string para comparação
-    merged['Ticket'] = merged['Ticket'].astype(str)
+    # 4. Remover duplicatas pelo número do ticket (manter a exportação mais COMPLETA e RECENTE)
+    # Primeiro garantimos que Ticket é string para comparação e removemos zeros à esquerda
+    merged['Ticket'] = merged['Ticket'].astype(str).str.lstrip('0')
     
-    # Garantir que a coluna MD's existe para a ordenação
-    if "MD's" not in merged.columns:
-        merged["MD's"] = None
+    # Garantir que as colunas críticas existam para a ordenação
+    for col in ["MD's", "assigned", "Summary"]:
+        if col not in merged.columns:
+            merged[col] = None
 
-    # Criar uma coluna auxiliar para priorizar quem tem MD's preenchido
-    # Substituímos NaN/vazio por algo menor que qualquer MD real (ex: -1)
+    # Criar colunas auxiliares de prioridade
     def md_to_num(v):
         try:
             return float(str(v).replace(',', '.')) if pd.notna(v) and str(v).strip() != "" else -1.0
         except:
             return -1.0
-    
-    merged['_md_priority'] = merged["MD's"].apply(md_to_num)
+            
+    merged['_has_assigned'] = merged['assigned'].apply(lambda x: 1 if pd.notna(x) and str(x).strip() != "" and str(x).lower() != 'nan' else 0)
+    merged['_has_summary']  = merged['Summary'].apply(lambda x: 1 if pd.notna(x) and str(x).strip() != "" else 0)
+    merged['_md_priority']  = merged["MD's"].apply(md_to_num)
     
     # Ordenar por:
-    # 1. Prioridade de dados (tem MD > não tem MD)
-    # 2. Data de exportação (mais recente)
-    merged = merged.sort_values(['Ticket', '_md_priority', '_export_date'], ascending=[True, False, False])
+    # 1. Tem analista atribuído? (Prioridade máxima)
+    # 2. Tem resumo/summary?
+    # 3. Tem MD's > 0?
+    # 4. Data de exportação (mais recente)
+    merged = merged.sort_values(
+        ['Ticket', '_has_assigned', '_has_summary', '_md_priority', '_export_date'], 
+        ascending=[True, False, False, False, False]
+    )
     
     before_dedup = len(merged)
-    # Mantemos o primeiro (maior prioridade e mais recente)
+    # Mantemos o primeiro (mais completo e mais recente)
     merged = merged.drop_duplicates(subset=['Ticket'], keep='first')
     
     # Remover colunas auxiliares
-    merged = merged.drop(columns=['_export_date', '_md_priority'])
+    merged = merged.drop(columns=['_export_date', '_has_assigned', '_has_summary', '_md_priority'])
     
     # Voltar a ordem por ID de ticket (crescente)
     merged['_tk_num'] = pd.to_numeric(merged['Ticket'], errors='coerce')

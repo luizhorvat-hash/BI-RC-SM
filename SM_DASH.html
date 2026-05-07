@@ -2555,6 +2555,12 @@
         <span class="fl">Ano</span>
         <div class="pg" id="yrs"></div>
         <div class="fdiv"></div>
+        <span class="fl">Pais</span>
+        <div class="prj-wrap">
+          <select class="prj-sel" id="country-sel" title="Selecione o Pais"></select>
+          <span class="prj-arrow">&#9662;</span>
+        </div>
+        <div class="fdiv"></div>
         <span class="fl">Mes</span>
         <div class="pg" id="mos"></div>
         <span class="fbadge" id="fbadge">Todos os dados</span>
@@ -2825,10 +2831,13 @@
         // ── PROJECT-AWARE COUNTING ───────────────────────────────────────
         // Filter ids array to only those belonging to selProject (or all if null)
         function filterByProject(ids) {
-          if (!selProject) return ids;
+          if (!selProject && !selCountry) return ids;
           return (ids || []).filter(function (tid) {
             var t = getTix(tid);
-            return t && t.prj === selProject;
+            if (!t) return false;
+            if (selProject && t.prj !== selProject) return false;
+            if (selCountry && t.co !== selCountry) return false;
+            return true;
           });
         }
 
@@ -2936,7 +2945,7 @@
         var ATTN_ICONS = { backlog_aging: '!', sla_breach: 'X', open_gt_close: '^', rc_client_dominant: '@' };
         var ATTN_EMOJIS = { backlog_aging: '&#9201;', sla_breach: '&#128308;', open_gt_close: '&#128200;', rc_client_dominant: '&#128100;', kpi_alert: '&#128680;' };
 
-        var selProject = null, selYear = null, selMonth = null;
+        var selProject = null, selYear = null, selMonth = null, selCountry = null;
         var activeSev = null, activeView = null;
         var charts = {};
         window._tsPrioDetails = {}; // Global store for drill-down data
@@ -3121,6 +3130,10 @@
                 var tk = getTix(t.tid);
                 if (tk && tk.prj !== selProject) return false;
               }
+              if (selCountry) {
+                var tk = getTix(t.tid);
+                if (tk && tk.Country !== selCountry) return false;
+              }
               return true;
             });
             if (!tix.length) { result[pri] = null; return; }
@@ -3143,6 +3156,7 @@
               var t = getTix(tid);
               if (!t) return true;
               if (selProject && t.prj !== selProject) return false;
+              if (selCountry && t.co !== selCountry) return false;
               if (selYear && t.y_o !== +selYear) return false;
               if (selMonth && t.m_o !== +selMonth) return false;
               return true;
@@ -3374,11 +3388,12 @@
           var _bk = D.backlog[sev] || { rc: { total: 0, sem_upd: 0, tickets: [] }, client: { total: 0, sem_upd: 0, tickets: [] } };
           // Filter backlog tickets by project
           function filterBKTickets(list) {
-            if (!selProject && !selYear && !selMonth) return list;
+            if (!selProject && !selYear && !selMonth && !selCountry) return list;
             return list.filter(function (t) {
               var tx = getTix(t.ticket);
               if (!tx) return true;
               if (selProject && tx.prj !== selProject) return false;
+              if (selCountry && tx.co !== selCountry) return false;
               // Filtro por ano/mês da abertura do ticket
               if (selYear && tx.y_o !== +selYear) return false;
               if (selMonth && tx.m_o !== +selMonth) return false;
@@ -3571,6 +3586,7 @@
           for (var i = 0; i < _ROWS.length; i++) {
             var row = _ROWS[i];
             if (selProject && row[prj_i] !== selProject) continue;
+            if (selCountry && row[_TF.indexOf('co')] !== selCountry) continue;
             var st = row[st_i];
             if (CLOSED_ST[st]) continue;
             if (MY_BK[st]) metrics.backlog_rc++;
@@ -3673,7 +3689,13 @@
           if (!entry) return 0;
           var ids = which === 'open' ? (entry.o_ids || []) : (entry.c_ids || []);
           if (!selProject) return ids.length;
-          return ids.filter(function (tid) { var t = getTix(tid); return t && t.prj === selProject; }).length;
+          return ids.filter(function (tid) { 
+            var t = getTix(tid); 
+            if (!t) return false;
+            if (selProject && t.prj !== selProject) return false;
+            if (selCountry && t.co !== selCountry) return false;
+            return true;
+          }).length;
         }
 
         function buildKPI() {
@@ -3711,6 +3733,7 @@
             var sv = r[sv_i];
             if (!BK_SEVS[sv]) continue;
             if (selProject && r[prj_i] !== selProject) continue;
+            if (selCountry && r[_TF.indexOf('co')] !== selCountry) continue;
 
             var st = r[st_i];
 
@@ -4049,6 +4072,7 @@
           var hasRC = Object.keys(D.rc[sev] || {}).length > 0;
           return (isSLASev ? '<div class="cb" style="margin-bottom:0"><div class="cbt" style="margin-bottom:10px">SLA — Incidents PRD | Clique para detalhes</div><div id="sla-mini-' + sev + '"></div></div>' : '') +
             (sev === 'incident' ? '<div id="ai-inc-summary" style="margin-bottom:14px"></div>' : '') +
+            _renderCountrySection(selProject || 'Todos os Projetos', selYear, selMonth) +
             '<div class="crow">' + cBadge('ab') + cBadge('cl') + '</div>' +
             '<div class="r2">' +
             '<div class="cb"><div class="cbt">Abertos e Fechados por Mes</div><div class="cbp" id="bar-p-' + sev + '"></div>' +
@@ -4362,6 +4386,7 @@
           for (var i = 0; i < _ROWS.length; i++) {
             var r = _ROWS[i];
             if (selProject && r[prj_i] !== selProject) continue;
+            if (selCountry && r[_TF.indexOf('co')] !== selCountry) continue;
             if (selYear && r[y_o_i] !== +selYear) continue;
             if (selMonth && r[m_o_i] !== selMonth) continue;
             total++;
@@ -4512,7 +4537,6 @@
         function initProjects() {
           var sel = document.getElementById('prj-sel');
           var projects = (D.projects || []).slice().sort();
-          // Se selProject atual nao existe na lista (ex: mudou CSV), reseta
           if (selProject && projects.indexOf(selProject) === -1) selProject = null;
 
           sel.innerHTML = '<option value="">Todos os Projetos</option>' +
@@ -4524,10 +4548,40 @@
             selProject = sel.value || null;
             _builtPanels = {}; _mwCache = {};
             refreshCFG();
+            initCountries(); // Atualiza lista de países para o projeto
             renderYears(); renderMonths(); refreshAll();
             if (activeView === 'config') buildConfig();
             var chip = document.getElementById('chip-prj');
             if (chip) chip.textContent = selProject || 'Todos';
+          };
+        }
+
+        function initCountries() {
+          var sel = document.getElementById('country-sel');
+          if (!sel) return;
+          
+          var countriesSet = {};
+          var co_i = _TF.indexOf('co');
+          var prj_i = _TF.indexOf('prj');
+          
+          _ROWS.forEach(function(r) {
+            if (selProject && r[prj_i] !== selProject) return;
+            var co = r[co_i];
+            if (co && co !== 'nan') countriesSet[co] = true;
+          });
+          
+          var countries = Object.keys(countriesSet).sort();
+          if (selCountry && countries.indexOf(selCountry) === -1) selCountry = null;
+          
+          sel.innerHTML = '<option value="">Todos os Países</option>' +
+            countries.map(function(c) {
+              return '<option value="' + c + '" ' + (selCountry === c ? 'selected' : '') + '>' + c + '</option>';
+            }).join('');
+            
+          sel.onchange = function() {
+            selCountry = sel.value || null;
+            _builtPanels = {}; _mwCache = {};
+            refreshAll();
           };
         }
 
@@ -4544,6 +4598,7 @@
         function buildIncKPIs() {
           var inc_all = _ROWS.filter(function (r) {
             if (selProject && r[_TF.indexOf('prj')] !== selProject) return false;
+            if (selCountry && r[_TF.indexOf('co')] !== selCountry) return false;
             if (selYear && r[_TF.indexOf('y_o')] !== +selYear) return false;
             if (selMonth && r[_TF.indexOf('m_o')] !== selMonth) return false;
             return r[_TF.indexOf('sv')] === 'incident';
@@ -4990,6 +5045,7 @@
           var p = document.getElementById('panel-' + sev); if (p) p.innerHTML = panelHTML(sev);
         });
         initProjects();
+        initCountries();
         renderYears();
         renderMonths();
         // ── Auto-selecionar ano e mês corrente ou último disponível ──
@@ -6434,6 +6490,7 @@
             var row = _ROWS[i];
             if (row[sv_i] !== sev) continue;
             if (selProject && row[prj_i] !== selProject) continue;
+            if (selCountry && row[_TF.indexOf('co')] !== selCountry) continue;
             var name = (row[ass_i] && row[ass_i] !== 'nan') ? row[ass_i] : null;
             if (!name) continue;
             total[name] = (total[name] || 0) + 1;
@@ -6823,6 +6880,7 @@
             var row = _ROWS[i], sv = row[sv_i];
             if (!openedToday[sv]) continue;
             if (selProject && row[prj_i] !== selProject) continue;
+            if (selCountry && row[_TF.indexOf('Country')] !== selCountry) continue;
             if (row[y_o_i] === _ty && row[m_o_i] === _tm && row[d_o_i] === _td) openedToday[sv].push(row[k_i]);
             if (row[y_c_i] === _ty && row[m_c_i] === _tm && row[d_c_i] === _td) closedToday[sv].push(row[k_i]);
             if (!CLOSED_ST[row[st_i]]) {
@@ -9368,6 +9426,40 @@
             '</div>';
         }
 
+        function _renderCountrySection(prj, y, m) {
+          var co_i = _TF.indexOf('co'), prj_i = _TF.indexOf('prj'), st_i = _TF.indexOf('st');
+          var y_o_i = _TF.indexOf('y_o'), m_o_i = _TF.indexOf('m_o');
+          var stats = {};
+          
+          _ROWS.forEach(function(r) {
+            if (prj !== 'Todos os Projetos' && r[prj_i] !== prj) return;
+            if (y && r[y_o_i] !== +y) return;
+            if (m && r[m_o_i] !== m) return;
+            
+            var co = r[co_i] || 'N/A';
+            if (co === 'nan' || !co.trim()) co = 'N/A';
+            if (!stats[co]) stats[co] = { total: 0, open: 0, closed: 0 };
+            
+            stats[co].total++;
+            if (r[st_i] === 'closed' || r[st_i] === 'resolved') stats[co].closed++;
+            else stats[co].open++;
+          });
+          
+          var sorted = Object.entries(stats).sort((a,b) => b[1].total - a[1].total);
+          if (sorted.length <= 1 && sorted[0] && sorted[0][0] === 'N/A') return '';
+          
+          return '<div style="margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap">' +
+            sorted.map(function(e) {
+              var name = e[0], d = e[1];
+              return '<div class="tip" data-tip="Volumetria total para ' + name + ' no periodo selecionado" style="background:var(--glass-card);padding:12px 20px;border-radius:12px;border:1px solid var(--glass-border);min-width:140px;flex:1">' +
+                '<div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700">' + name + '</div>' +
+                '<div style="font-size:22px;font-weight:700;margin-top:4px;color:var(--text)">' + d.total + '</div>' +
+                '<div style="font-size:10px;color:var(--dim);margin-top:2px"><span style="color:var(--open)">' + d.open + ' abertos</span> | <span style="color:var(--closed)">' + d.closed + ' fechados</span></div>' +
+                '</div>';
+            }).join('') +
+            '</div>';
+        }
+
         function _renderInsightsRow(prj, y, m) {
           var rr = getResolutionRate(prj, y, m);
           var ftf = getFirstTimeFixRate(prj, y, m);
@@ -9505,6 +9597,7 @@
             '<div style="width:24px;height:24px;background:#a78bfa;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px">&#128270;</div>' +
             'PROBLEM MANAGEMENT' +
             '</div>' +
+            _renderCountrySection(prj, y, m) +
             '<div class="exec-grid" style="margin-bottom:12px">' +
             kpiCard('COBERTURA DE CAUSA RAIZ', cov.pct + '%',
               cov.linked + ' de ' + cov.total + ' incidents com problem associado', covCol,
@@ -9716,12 +9809,24 @@
             if (entry) {
               var oids = entry.o_ids || [];
               var cids = entry.c_ids || [];
-              if (prj === 'Todos os Projetos') {
+              if (prj === 'Todos os Projetos' && !selCountry) {
                 open += oids.length;
                 closed += cids.length;
               } else {
-                open += oids.filter(id => { var t = getTix(id); return t && t.prj === prj; }).length;
-                closed += cids.filter(id => { var t = getTix(id); return t && t.prj === prj; }).length;
+                open += oids.filter(id => { 
+                  var t = getTix(id); 
+                  if (!t) return false;
+                  if (prj !== 'Todos os Projetos' && t.prj !== prj) return false;
+                  if (selCountry && t.co !== selCountry) return false;
+                  return true;
+                }).length;
+                closed += cids.filter(id => { 
+                  var t = getTix(id); 
+                  if (!t) return false;
+                  if (prj !== 'Todos os Projetos' && t.prj !== prj) return false;
+                  if (selCountry && t.co !== selCountry) return false;
+                  return true;
+                }).length;
               }
             }
           });
