@@ -2427,6 +2427,36 @@
       z-index: 200;
       flex-shrink: 0;
       box-shadow: 4px 0 24px var(--glass-shadow);
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s, padding 0.3s;
+    }
+
+    .sidebar.collapsed {
+      width: 0;
+      padding: 0;
+      opacity: 0;
+      pointer-events: none;
+      border-right: none;
+    }
+
+    .toggle-sidebar {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      transition: all 0.2s;
+      margin-right: 10px;
+    }
+
+    .toggle-sidebar:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
     }
 
     .sidebar .logo {
@@ -2537,10 +2567,13 @@
 
     <main class="main-content">
       <div class="hdr">
-        <div>
-          <div style="font-family:var(--ft);font-size:18px;font-weight:700;color:var(--text);letter-spacing:0.05em">
-            EXECUTIVE DASHBOARD</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:4px">Service Management Analytics</div>
+        <div style="display:flex;align-items:center">
+          <button class="toggle-sidebar" onclick="toggleSidebar()" title="Recolher/Expandir Menu">&#9776;</button>
+          <div>
+            <div style="font-family:var(--ft);font-size:18px;font-weight:700;color:var(--text);letter-spacing:0.05em">
+              EXECUTIVE DASHBOARD</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">Service Management Analytics</div>
+          </div>
         </div>
         <div class="hchips"><span class="chip" id="chip-prj">-</span><span class="chip">27/03/2026</span></div>
       </div>
@@ -4366,6 +4399,13 @@
             console.error('Erro Critico no Refresh:', globalErr);
             var st = document.getElementById('diag-status'); if (st) { st.textContent = 'Status: ERRO'; st.style.color = '#f87171'; }
           }
+        }
+
+        function toggleSidebar() {
+          var s = document.querySelector('.sidebar');
+          s.classList.toggle('collapsed');
+          // Trigger a window resize to fix charts if needed
+          setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 310);
         }
 
         function refreshAll() {
