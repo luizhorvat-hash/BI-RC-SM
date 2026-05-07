@@ -2464,8 +2464,14 @@
     .sidebar .logo {
       padding: 0 20px;
       margin-bottom: 32px;
-      font-size: 16px;
-      color: var(--text);
+      display: flex;
+      align-items: center;
+    }
+
+    .sidebar .logo img {
+      max-width: 140px;
+      height: auto;
+      filter: drop-shadow(0 0 4px rgba(255,107,0,0.1));
     }
 
     .sidebar .nav {
@@ -2546,7 +2552,7 @@
   <div class="app-layout">
     <aside class="sidebar">
       <div class="logo">
-        <div class="dot"></div>Retail Consult
+        <img src="libraries/retail-logo.svg" alt="Retail Consult">
       </div>
       <div class="nav" id="nav">
         <div class="ntab t-hoje active" data-view="hoje">&#128197; Hoje</div>
