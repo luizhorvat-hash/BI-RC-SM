@@ -4122,7 +4122,6 @@
           }
           var hasRC = Object.keys(D.rc[sev] || {}).length > 0;
           return (isSLASev ? '<div class="cb" style="margin-bottom:0"><div class="cbt" style="margin-bottom:10px">SLA — Incidents PRD | Clique para detalhes</div><div id="sla-mini-' + sev + '"></div></div>' : '') +
-            (sev === 'incident' ? '<div id="ai-inc-summary" style="margin-bottom:14px"></div>' : '') +
             _renderCountrySection(selProject || 'Todos os Projetos', selYear, selMonth) +
             '<div class="crow">' + cBadge('ab') + cBadge('cl') + '</div>' +
             '<div class="r2">' +
@@ -4172,8 +4171,6 @@
 
         //  INCIDENT ANALYTICS (MODERN) 
         function buildAIPanel() {
-          var c = document.getElementById('ai-inc-summary'); if (!c) return;
-          if (activeSev !== 'incident') { c.innerHTML = ''; return; }
 
           var insights = getPI();
           var ops = insights.ops || 'Analisando operações...';
@@ -4740,19 +4737,6 @@
           var top_apps = Object.keys(appCnt).map(function (k) { return { app: k, count: appCnt[k] } }).sort(function (a, b) { return b.count - a.count }).slice(0, 5);
           var top_rct = Object.keys(rctCnt).map(function (k) { return { rct: k, count: rctCnt[k] } }).sort(function (a, b) { return b.count - a.count }).slice(0, 6);
 
-          // Renderização do IA Summary
-          var iaPanel = document.getElementById('ai-inc-summary');
-          if (iaPanel) {
-            var ai = getPI().ops || {};
-            var health = ai.health_score || { value: 0, label: '-', color: 'gray' };
-            iaPanel.innerHTML = '<div class="cb" style="background:rgba(167,139,250,0.05);border-color:rgba(167,139,250,0.2)">' +
-              '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
-              '<div class="cbt" style="color:#a78bfa">&#129302; IA Incident Diagnosis</div>' +
-              '<div class="ai-verdict ' + (health.label || 'PENDENTE') + '">' + (health.label || 'ANALISANDO') + ' (' + health.value + ')</div>' +
-              '</div>' +
-              '<div style="font-size:11px;line-height:1.6;color:var(--text)">' + (ai.executive_summary || 'Backlog de incidentes sob análise da IA...') + '</div>' +
-              '</div>';
-          }
 
           // Renderização KPI Strip
           var strip = document.getElementById('inc-kpi-strip');
