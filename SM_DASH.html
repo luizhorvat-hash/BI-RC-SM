@@ -4434,29 +4434,13 @@
         //  FILTERS 
         function updateBadge() {
           var el = document.getElementById('fbadge');
-
-          // Count tickets matching current filters
-          var prj_i = _TF.indexOf('prj');
-          var y_o_i = _TF.indexOf('y_o');
-          var m_o_i = _TF.indexOf('m_o');
-          var total = 0;
-          for (var i = 0; i < _ROWS.length; i++) {
-            var r = _ROWS[i];
-            if (selProject && r[prj_i] !== selProject) continue;
-            if (selCountry && r[_TF.indexOf('co')] !== selCountry) continue;
-            if (selYear && r[y_o_i] !== +selYear) continue;
-            if (selMonth && r[m_o_i] !== selMonth) continue;
-            total++;
-          }
-
-          // Badge text: period + count
-          var period = '';
-          if (selYear && selMonth) period = MPT[selMonth] + '/' + selYear;
-          else if (selYear) period = 'Ano ' + selYear;
-          else period = 'Todos os dados';
-
-          var countStr = total > 0 ? (' — ' + total + ' ticket' + (total !== 1 ? 's' : '')) : '';
-          el.textContent = period + countStr;
+          if (!el) return;
+          var last = getLastDataDate();
+          var mNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+          var m = mNames[last.m-1] || '--';
+          var y = last.y || '----';
+          el.innerHTML = '<span style="color:var(--muted);margin-right:8px;font-size:8px;letter-spacing:0.05em">BASE ATUALIZADA:</span>' + m + '/' + y;
+        }
 
           // Chip do projeto
           var chip = document.getElementById('chip-prj');
