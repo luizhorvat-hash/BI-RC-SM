@@ -2797,6 +2797,7 @@
 
       <div id="panel-timesheet" class="panel"></div>
       <div id="panel-simulador" class="panel"></div>
+    </div> <!-- panels-container -->
 
       <div class="mbg" id="modal">
         <div class="modal">
@@ -4434,18 +4435,20 @@
         //  FILTERS 
         function updateBadge() {
           var el = document.getElementById('fbadge');
-          if (!el) return;
-          var last = getLastDataDate();
-          var mNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-          var m = mNames[last.m-1] || '--';
-          var y = last.y || '----';
-          el.innerHTML = '<span style="color:var(--muted);margin-right:8px;font-size:8px;letter-spacing:0.05em">BASE ATUALIZADA:</span>' + m + '/' + y;
-        }
-
+          if (el) {
+            var last = getLastDataDate();
+            var mNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+            var m = mNames[last.m-1] || '--';
+            var y = last.y || '----';
+            el.innerHTML = '<span style="color:var(--muted);margin-right:8px;font-size:8px;letter-spacing:0.05em">BASE ATUALIZADA:</span>' + m + '/' + y;
+          }
           // Chip do projeto
           var chip = document.getElementById('chip-prj');
-          if (chip) chip.textContent = selProject ? selProject.split(' ').slice(0, 3).join(' ') : 'Todos';
+          if (chip) {
+            chip.textContent = selProject ? selProject.split(' ').slice(0, 3).join(' ') : 'Todos';
+          }
         }
+
 
         // ── CONFIG TAB ──────────────────────────────────────────────────
         function buildConfig() {
@@ -10776,9 +10779,7 @@
         </div>
       </div>
 
-  </div>
-  </main>
-  </div>
+  </main> <!-- main-content -->
+  </div> <!-- app-layout -->
 </body>
-
 </html>
