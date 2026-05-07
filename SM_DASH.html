@@ -2577,7 +2577,11 @@
             <div style="font-size:11px;color:var(--muted);margin-top:4px">Service Management Analytics</div>
           </div>
         </div>
-        <div class="hchips"><span class="chip" id="chip-prj">-</span><span class="chip">27/03/2026</span></div>
+        <div class="hchips">
+          <span class="chip" id="chip-prj">-</span>
+          <span class="chip">v2.3</span>
+          <span class="chip" id="chip-date">--/--/----</span>
+        </div>
       </div>
 
       <div class="fbar">
@@ -2829,6 +2833,17 @@
         var _ROWS = _TR.rows || [];
         var _IDX = _TR.idx || {};
         var _MEMO = {};
+
+        function initHeaderDate() {
+          var el = document.getElementById('chip-date');
+          if (el) {
+            var d = new Date();
+            var day = String(d.getDate()).padStart(2, '0');
+            var mon = String(d.getMonth() + 1).padStart(2, '0');
+            el.textContent = day + '/' + mon + '/' + d.getFullYear();
+          }
+        }
+        initHeaderDate();
 
         var _DATA_STATUS = {
           loaded: !!(window.SMD_DATA_D && window.SMD_DATA_T),
@@ -4509,6 +4524,7 @@
           // Feedback e Refresh
           alert('Configurações para "' + prj + '" aplicadas com sucesso!');
           refreshCFG();
+          initHeaderDate();
           refreshAll();
         }
 
@@ -10669,7 +10685,7 @@
         <div id="diag-status">Status: Carregando...</div>
         <div id="diag-rows">Tickets: -</div>
         <div id="diag-date">Último dado: -</div>
-        <div style="margin-left:auto;color:#475569">Dashboard v1.2 Stabilization Mode</div>
+        <div style="margin-left:auto;color:#475569">Dashboard v2.3 Stable Mode</div>
       </div>
 
       <!-- HOW TO RUN AGENTS MODAL -->
