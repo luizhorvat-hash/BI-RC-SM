@@ -4128,7 +4128,6 @@
               ? '<div class="cb" style="padding:8px 4px"><div id="inc-kpi-strip"></div></div>' +
               '<div id="inc-oncall-detail" style="display:none"></div>' +
               '<div class="r2">' +
-              '<div class="cb"><div class="cbt" style="margin-bottom:10px">MTTR vs Benchmark (Config)</div><div id="inc-mttr"></div></div>' +
               '<div class="cb"><div class="cbt" style="margin-bottom:10px">Aging Heatmap</div><div id="inc-aging"></div></div>' +
               '</div>' +
               '<div class="r2">' +
@@ -4646,7 +4645,7 @@
           console.log('[buildIncKPIs] Filtered:', { all: inc_all.length, closed: inc_closed.length, open: inc_open.length, project: selProject, year: selYear, month: selMonth });
 
           if (inc_all.length === 0) {
-            var containers = ['inc-kpi-strip', 'inc-mttr', 'inc-aging', 'inc-apps', 'inc-rct'];
+            var containers = ['inc-kpi-strip', 'inc-aging', 'inc-apps', 'inc-rct'];
             containers.forEach(function (id) {
               var el = document.getElementById(id);
               if (el) el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--dim);font-size:11px;border:1px dashed var(--border);border-radius:8px">Sem dados de incidentes para os filtros selecionados (' + (selProject || 'Todos') + ').</div>';
@@ -4759,22 +4758,6 @@
               '</div>';
           }
 
-          // MTTR Chart
-          var elM = document.getElementById('inc-mttr');
-          if (elM) {
-            elM.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px;padding:4px 0">' +
-              ['P1', 'P2', 'P3', 'P4'].map(function (p) {
-                var m = mttr[p] || {};
-                var maxVal = Math.max(m.median_h || 0, m.benchmark_h || 1);
-                var ourW = Math.round((m.median_h || 0) / maxVal * 95), bchW = Math.round((m.benchmark_h || 1) / maxVal * 95);
-                var col = m.median_h <= m.benchmark_h ? '#34d399' : (m.median_h <= m.benchmark_h * 2 ? '#fbbf24' : '#f87171');
-                return '<div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:11px;font-weight:700">' + p + '</span>' +
-                  '<span style="font-size:11px;color:' + col + ';font-weight:700">' + m.median_h + 'h <small style="color:var(--dim);font-weight:400">vs ' + m.benchmark_h + 'h</small></span></div>' +
-                  '<div style="position:relative;height:8px;background:var(--border);border-radius:4px">' +
-                  '<div style="position:absolute;height:8px;width:' + ourW + '%;background:' + col + ';border-radius:4px"></div>' +
-                  '<div style="position:absolute;top:-2px;height:12px;width:2px;background:#fff;left:' + bchW + '%;box-shadow:0 0 4px #fff"></div></div></div>';
-              }).join('') + '</div>';
-          }
 
           // Aging Heatmap
           var elA = document.getElementById('inc-aging');
