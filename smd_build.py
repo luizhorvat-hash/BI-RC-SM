@@ -502,6 +502,27 @@ def process_tickets_data(csv_override=None):
         for _, r in g.iterrows():
             staff_data[admin]["projects"].add(r["Project Name"])
             staff_data[admin]["sevs"][r["Severity"]] += 1
+
+    # --- MONTHLY ANALYSIS (Budget vs Volume) ---
+    # Necessário para o Resumo Executivo (ROI e Capacidade Preventiva)
+    monthly_analysis = {}
+    projects_list = ["Todos"] + sorted(df["Project Name"].dropna().unique().tolist())
+    for prj in projects_list:
+        monthly_analysis[prj] = {}
+        df_p = df if prj == "Todos" else df[df["Project Name"] == prj]
+        if df_p.empty: continue
+        
+        # Agrupar abertos e fechados por mês
+        df_p_o = df_p[df_p["Opening Date"].notna()].copy()
+        df_p_o["y_m"] = df_p_o["Opening Date"].dt.strftime("%Y-%m")
+        df_p_c = df_p[df_p["Is_Closed"] & df_p["Close Date"].notna()].copy()
+        df_p_c["y_m"] = df_p_c["Close Date"].dt.strftime("%Y-%m")
+        
+        all_months = sorted(list(set(df_p_o["y_m"].unique().tolist() + df_p_c["y_m"].unique().tolist())))
+        for mk in all_months:
+            opened = len(df_p_o[df_p_o["y_m"] == mk])
+            closed = len(df_p_c[df_p_c["y_m"] == mk])
+            monthly_analysis[prj][mk] = {"open": int(opened), "closed": int(closed)}
             
     # Carga: Tickets abertos (por quem está atribuído)
     open_mask = df["Is_Open"] & df["assigned"].notna()
@@ -551,7 +572,7 @@ def process_tickets_data(csv_override=None):
     D = {"monthly": monthly, "daily": daily, "backlog": backlog, "sla": sla, "rc": rc_dist, "summary": summary, "comp": comp,
          "ym": {y:sorted(list(m)) for y,m in ym.items()}, "projects": summary["projects"],
          "generated_at": today.strftime("%Y-%m-%d %H:%M"), "mttr_stats": mttr_stats,
-         "problems": problems_idx, "staff": staff_data}
+         "problems": problems_idx, "staff": staff_data, "monthly_analysis": monthly_analysis}
     T = {"fields": TF, "rows": rows_out, "idx": idx_out}
     return D, T, df
 

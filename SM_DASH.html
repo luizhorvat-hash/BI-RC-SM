@@ -2560,9 +2560,7 @@
         <div class="ntab t-inc" data-sev="incident">Incident</div>
         <div class="ntab t-ur" data-sev="user_request">User Request</div>
         <div class="ntab t-prb" data-sev="problem">Problem</div>
-        <div class="ntab t-cr" data-sev="change_request">Change Request</div>
         <div class="ntab t-int" data-sev="internal">Internal</div>
-        <div class="ntab t-attn" data-view="attn">&#9888; Atencao</div>
         <div class="ntab t-cfg" data-view="config">&#9881; Config</div>
         <div class="ntab t-ai" data-view="ai">&#129302; AI Insights</div>
         <div class="ntab t-cmp" data-view="comp">&#128200; Comparativo</div>
@@ -2630,7 +2628,6 @@
         <div id="panel-incident" class="panel"></div>
         <div id="panel-user_request" class="panel"></div>
         <div id="panel-problem" class="panel"></div>
-        <div id="panel-change_request" class="panel"></div>
         <div id="panel-internal" class="panel"></div>
         <div id="panel-cliente" class="panel"></div>
 
@@ -2747,12 +2744,6 @@
 
       <!-- SLA Detail removido daqui para ser exibido no modal global -->
 
-      <div id="panel-attn" class="panel">
-        <div class="cb">
-          <div class="cbt" style="margin-bottom:14px">Pontos de Atencao</div>
-          <div class="attn-list" id="attn-list"></div>
-        </div>
-      </div>
 
       <div id="panel-config" class="panel">
         <div class="cb">
@@ -2888,13 +2879,15 @@
 
         // ── PROJECT-AWARE COUNTING ───────────────────────────────────────
         // Filter ids array to only those belonging to selProject (or all if null)
-        function filterByProject(ids) {
-          if (!selProject && !selCountry) return ids;
+        function filterByProject(ids, sev) {
+          if (!selProject && !selCountry && !(sev === 'user_request')) return ids;
           return (ids || []).filter(function (tid) {
             var t = getTix(tid);
             if (!t) return false;
             if (selProject && t.prj !== selProject) return false;
             if (selCountry && t.co !== selCountry) return false;
+            // Regra: Na aba UR, excluir aplicação 'Internal'
+            if (sev === 'user_request' && (t.ap === 'Internal' || t.ap === 'INTERNAL')) return false;
             return true;
           });
         }
@@ -2904,8 +2897,8 @@
           var md = D.monthly[sev] || {};
           var entry = md[key];
           if (!entry) return { opened: 0, closed: 0, o_ids: [], c_ids: [] };
-          var o_ids = filterByProject(entry.o_ids || []);
-          var c_ids = filterByProject(entry.c_ids || []);
+          var o_ids = filterByProject(entry.o_ids || [], sev);
+          var c_ids = filterByProject(entry.c_ids || [], sev);
           return {
             opened: o_ids.length,
             closed: c_ids.length,
@@ -2921,8 +2914,8 @@
           var result = { opened: {}, closed: {}, o_ids: {}, c_ids: {} };
           var allDays = new Set(Object.keys(dd.opened || {}).concat(Object.keys(dd.closed || {})));
           allDays.forEach(function (day) {
-            var oids = filterByProject((dd.o_ids || {})[day] || []);
-            var cids = filterByProject((dd.c_ids || {})[day] || []);
+            var oids = filterByProject((dd.o_ids || {})[day] || [], sev);
+            var cids = filterByProject((dd.c_ids || {})[day] || [], sev);
             if (oids.length > 0) { result.opened[day] = oids.length; result.o_ids[day] = oids; }
             if (cids.length > 0) { result.closed[day] = cids.length; result.c_ids[day] = cids; }
           });
@@ -2998,7 +2991,7 @@
 
         var MPT = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
         var SEVS = ['incident', 'user_request', 'problem', 'change_request', 'internal'];
-        var SEV_LBL = { incident: 'Incident', user_request: 'User Request', problem: 'Problem', change_request: 'Change Request', internal: 'Internal' };
+        var SEV_LBL = { incident: 'Incident', user_request: 'User Request', problem: 'Problem', internal: 'Internal' };
         var RC_COL = { Client: '#60a5fa', RC: '#FF6B00', 'Problem Analysis': '#a78bfa', Oracle: '#fbbf24', Outros: '#94a3b8' };
         var ATTN_ICONS = { backlog_aging: '!', sla_breach: 'X', open_gt_close: '^', rc_client_dominant: '@' };
         var ATTN_EMOJIS = { backlog_aging: '&#9201;', sla_breach: '&#128308;', open_gt_close: '&#128200;', rc_client_dominant: '&#128100;', kpi_alert: '&#128680;' };
@@ -3773,56 +3766,75 @@
             waiting_client_tst_inst: 1, waiting_for_prioritization: 1, waiting_oracle_feedback: 1
           };
           var CLOSED_ST = { closed: 1, resolved: 1 };
-          var BK_SEVS = { incident: 1, user_request: 1, problem: 1, change_request: 1 };
+          var BK_SEVS = { incident: 1, user_request: 1, problem: 1 };
+          var ap_i = _TF.indexOf('ap');
 
           var isHoje = (activeView === 'hoje');
           var _now = new Date();
           var _ty = _now.getFullYear(), _tm = _now.getMonth() + 1, _td = _now.getDate();
 
+          // Determinar ano e mês de referência para os cartões de comparação
+          // Se houver filtro, usa o filtro. Se não, usa o mês atual.
+          var refY = selYear ? +selYear : _ty;
+          var refM = selMonth ? +selMonth : _tm;
+
           // Per-severity counters
           var cnts = {
             incident: { o: 0, c: 0 }, user_request: { o: 0, c: 0 }, problem: { o: 0, c: 0 },
-            change_request: { o: 0, c: 0 }
+            change_request: { o: 0, c: 0 }, internal: { o: 0, c: 0 }
           };
           var bkTotal = { o: 0, c: 0 };
 
           for (var i = 0; i < _ROWS.length; i++) {
             var r = _ROWS[i];
             var sv = r[sv_i];
-            if (!BK_SEVS[sv]) continue;
+            if (!BK_SEVS[sv] && sv !== 'internal') continue;
             if (selProject && r[prj_i] !== selProject) continue;
             if (selCountry && r[_TF.indexOf('co')] !== selCountry) continue;
 
-            var st = r[st_i];
+            // Regra UR: Excluir aplicação 'Internal' dos cálculos operacionais
+            if (sv === 'user_request' && (r[ap_i] === 'Internal' || r[ap_i] === 'INTERNAL')) continue;
 
             if (isHoje) {
-              // ABA-HOJ: usar somente dados do dia corrente
-              var openedToday = (r[y_o_i] === _ty && r[m_o_i] === _tm && r[d_o_i] === _td);
-              var closedToday = (r[y_c_i] === _ty && r[m_c_i] === _tm && r[d_c_i] === _td);
-              if (openedToday && OPEN_ST[st] && cnts[sv]) { cnts[sv].o++; bkTotal.o++; }
-              if (closedToday && CLOSED_ST[st] && cnts[sv]) { cnts[sv].c++; bkTotal.c++; }
+              var openedToday = (r[y_o_i] == _ty && r[m_o_i] == _tm && r[d_o_i] == _td);
+              var closedToday = (r[y_c_i] == _ty && r[m_c_i] == _tm && r[d_c_i] == _td);
+              if (openedToday && cnts[sv]) { cnts[sv].o++; if (sv !== 'internal') bkTotal.o++; }
+              if (closedToday && cnts[sv]) { cnts[sv].c++; if (sv !== 'internal') bkTotal.c++; }
             } else {
-              // Outras abas: respeitar filtros ANO/MES
-              if (selYear && r[y_o_i] !== +selYear) continue;
-              if (selMonth && r[m_o_i] !== selMonth) continue;
-              if (OPEN_ST[st] && cnts[sv]) { cnts[sv].o++; bkTotal.o++; }
-              if (CLOSED_ST[st] && cnts[sv]) { cnts[sv].c++; bkTotal.c++; }
+              // Outras abas: Contagem baseada estritamente nas datas de abertura e fechamento
+              var isOpenedInPeriod = (selYear ? r[y_o_i] == selYear : true) && (selMonth ? r[m_o_i] == selMonth : true);
+
+              // Fechados: Prioriza Resolved Date (r[6]) e exige status de conclusão
+              var yc = r[y_c_i], mc = r[m_c_i];
+              if (r[6] && r[6].length >= 7) {
+                yc = parseInt(r[6].substring(0, 4));
+                mc = parseInt(r[6].substring(5, 7));
+              }
+              var isClosedInPeriod = (selYear ? yc == selYear : true) && (selMonth ? mc == selMonth : true);
+              var isEffectivelyClosed = (r[st_i] === 'closed' || r[st_i] === 'resolved');
+
+              // Filtro de Integridade: Para PRB, ignorar tickets abertos em anos anteriores (legados)
+              // para não inflar a vazão mensal com encerramentos administrativos de backlog antigo.
+              var isLegacy = (sv === 'problem' && r[y_o_i] < refY); 
+
+              if (isOpenedInPeriod && cnts[sv]) { cnts[sv].o++; if (sv !== 'internal') bkTotal.o++; }
+              if (isClosedInPeriod && isEffectivelyClosed && !isLegacy && cnts[sv]) { cnts[sv].c++; if (sv !== 'internal') bkTotal.c++; }
             }
           }
 
-          // Throughput: open/closed * 100 (%)
+          // Throughput: Fechados / Abertos * 100 (%) - Modelo de Eficiência
           function throughput(o, c) {
-            if (c === 0 && o === 0) return null;
-            if (c === 0) return o > 0 ? 999 : 0;
-            return Math.round(o / c * 100);
+            if (o === 0 && c === 0) return null;
+            if (o === 0) return c > 0 ? 999 : 0;
+            return Math.round(c / o * 100);
           }
           function tpColor(pct) {
             if (pct === null) return '#94a3b8';
-            return pct <= 100 ? '#34d399' : '#f87171';  // <= 100% verde, > 100% vermelho
+            return pct >= 100 ? '#34d399' : '#f87171';
           }
           function tpDisplay(pct) {
             if (pct === null) return 'N/D';
-            if (pct === 999) return 'Crit.'; // Substitui infinito por sinal de atenção
+            if (pct === 999) return '>100%';
             return pct + '%';
           }
 
@@ -3831,25 +3843,21 @@
           var prbTP = throughput(cnts.problem.o, cnts.problem.c);
           var bkTP = throughput(bkTotal.o, bkTotal.c);
 
-          // Comparativo mês vs mês anterior (só quando não é ABA-HOJ)
-          // KPI Abertos/Fechados: SEMPRE mês corrente vs anterior (ignora filtro de mês)
-          var curY = _ty;
-          var curM = _tm;
-          var prevM = curM > 1 ? curM - 1 : 12;
-          var prevY = curM > 1 ? curY : curY - 1;
+          // Comparativo mês vs mês anterior baseado no mês de referência (refM)
+          var prevM = refM > 1 ? refM - 1 : 12;
+          var prevY = refM > 1 ? refY : refY - 1;
 
-          var abCur = compCount(activeSev, curY, curM, 'open');
+          var abCur = compCount(activeSev, refY, refM, 'open');
           var abPrev = compCount(activeSev, prevY, prevM, 'open');
-          var clCur = compCount(activeSev, curY, curM, 'close');
+          var clCur = compCount(activeSev, refY, refM, 'close');
           var clPrev = compCount(activeSev, prevY, prevM, 'close');
+          
           var abVar = abPrev > 0 ? Math.round((abCur - abPrev) / abPrev * 1000) / 10 : null;
           var clVar = clPrev > 0 ? Math.round((clCur - clPrev) / clPrev * 1000) / 10 : null;
 
-          var mLabel = MPT[curM] + '/' + curY;
-          var pLabel = MPT[prevM] + (prevY !== curY ? '/' + prevY : '');
+          var mLabel = MPT[refM] + '/' + refY;
+          var pLabel = MPT[prevM] + (prevY !== refY ? '/' + prevY : '');
 
-          // abVar: mais abertos que mês anterior = ruim = vermelho
-          // clVar: mais fechados que mês anterior = bom = verde
           function varColor(v, moreIsBad) {
             if (v === null || isNaN(v)) return '#94a3b8';
             if (v === 0) return '#94a3b8';
@@ -3861,33 +3869,33 @@
             {
               lbl: 'INC Throughput', val: tpDisplay(incTP), col: tpColor(incTP),
               sub: 'Abertos: ' + cnts.incident.o + ' | Fechados: ' + cnts.incident.c,
-              tip: 'Abertos ÷ Fechados × 100.\nVerde ≤ 100%: fechamentos superam aberturas.\nVermelho > 100%: backlog crescendo.\nFiltros: projeto, ano, mês.'
+              tip: 'Eficiência de Vazão: Fechados ÷ Abertos × 100.\nVerde ≥ 100%: produtividade atende ou supera a demanda.\nVermelho < 100%: demanda maior que a vazão (backlog crescendo).\nFiltros: projeto, ano, mês.'
             },
             {
               lbl: 'UR Throughput', val: tpDisplay(urTP), col: tpColor(urTP),
               sub: 'Abertos: ' + cnts.user_request.o + ' | Fechados: ' + cnts.user_request.c,
-              tip: 'Abertos ÷ Fechados × 100 para User Requests.\nVerde ≤ 100%: fechamentos superam aberturas.\nVermelho > 100%: backlog crescendo.\nFiltros: projeto, ano, mês.'
+              tip: 'Eficiência de Vazão: Fechados ÷ Abertos × 100 para User Requests.\nVerde ≥ 100%: produtividade atende ou supera a demanda.\nVermelho < 100%: demanda maior que a vazão (backlog crescendo).\nFiltros: projeto, ano, mês.'
             },
             {
               lbl: 'PRB Throughput', val: tpDisplay(prbTP), col: tpColor(prbTP),
               sub: 'Abertos: ' + cnts.problem.o + ' | Fechados: ' + cnts.problem.c,
-              tip: 'Abertos ÷ Fechados × 100 para Problems.\nVerde ≤ 100%: fechamentos superam aberturas.\nVermelho > 100%: backlog crescendo.\nFiltros: projeto, ano, mês.'
+              tip: 'Eficiência de Vazão: Fechados ÷ Abertos × 100 para Problems.\nVerde ≥ 100%: produtividade atende ou supera a demanda.\nVermelho < 100%: demanda maior que a vazão (backlog crescendo).\nFiltros: projeto, ano, mês.'
             },
             {
               lbl: 'Backlog Throughput', val: tpDisplay(bkTP), col: tpColor(bkTP),
               sub: 'Abertos: ' + bkTotal.o + ' | Fechados: ' + bkTotal.c,
-              tip: 'Throughput consolidado: INC + UR + PRB + CR.\nAbertos ÷ Fechados × 100.\nVerde ≤ 100%: volume sob controle.\nFiltros: projeto, ano, mês.'
+              tip: 'Eficiência de Vazão consolidada: INC + UR + PRB.\nFechados ÷ Abertos × 100.\nVerde ≥ 100%: volume sob controle.\nFiltros: projeto, ano, mês.'
             },
             {
               lbl: 'Abertos ' + periodLabel,
-              val: abVar !== null ? (abVar > 0 ? '+' : '') + abVar + '%' : (isHoje ? abCur : 'N/D'),
+              val: abVar !== null ? (abVar > 0 ? '+' : '') + abVar + '%' : (isHoje ? abCur : abCur),
               col: isHoje ? '#60a5fa' : varColor(abVar, true),
               sub: isHoje ? 'total hoje' : (pLabel + ': ' + abPrev + ' ' + varBadge(abPrev, true)),
               tip: 'Tickets abertos no período filtrado\n(status em aberto: assigned, waiting, etc).\nVariação % em relação ao mês anterior.\nVerde = redução. Vermelho = aumento.'
             },
             {
               lbl: 'Fechados ' + periodLabel,
-              val: clVar !== null ? (clVar > 0 ? '+' : '') + clVar + '%' : (isHoje ? clCur : 'N/D'),
+              val: clVar !== null ? (clVar > 0 ? '+' : '') + clVar + '%' : (isHoje ? clCur : clCur),
               col: isHoje ? '#a78bfa' : varColor(clVar, false),
               sub: isHoje ? 'total hoje' : (pLabel + ': ' + clPrev + ' ' + varBadge(clPrev, false)),
               tip: 'Tickets fechados/resolved no período filtrado.\nVariação % em relação ao mês anterior.\nVerde = aumento de fechamentos.\nVermelho = queda nos fechamentos.'
@@ -8392,6 +8400,162 @@
           'Analista Exemplo L2': 146.50
         };
 
+
+        function buildComparativoTimesheet() {
+          var c = document.getElementById('panel-comp_timesheet'); if (!c) return;
+          var prj = selProject || 'Todos';
+          var src = _tsData[prj] || _tsData['Todos'] || {};
+          
+          var histData = [];
+          var allPeriods = [];
+          Object.keys(src).forEach(function(yr) {
+            Object.keys(src[yr]).forEach(function(mo) {
+              allPeriods.push({ yr: yr, mo: mo, key: yr + '-' + mo });
+            });
+          });
+          allPeriods.sort(function(a, b) { return a.key.localeCompare(b.key); });
+          
+          allPeriods.forEach(function(p) {
+            var b = src[p.yr][p.mo];
+            histData.push({
+              label: p.key,
+              md: b.total_days || 0,
+              grades: b.by_career_grade || {}
+            });
+          });
+
+          // 1. Gráfico de Evolução Mensal (MDs)
+          var ctxHist = document.getElementById('ts-hist-chart');
+          if (ctxHist) {
+            ctxHist.innerHTML = '<canvas id="canvas-ts-hist"></canvas>';
+            new Chart(document.getElementById('canvas-ts-hist'), {
+              type: 'bar',
+              data: {
+                labels: histData.map(function(d) { return d.label; }),
+                datasets: [{
+                  label: 'Man-Days Consumidos',
+                  data: histData.map(function(d) { return d.md; }),
+                  backgroundColor: 'rgba(96, 165, 250, 0.6)',
+                  borderColor: '#60a5fa',
+                  borderWidth: 1,
+                  borderRadius: 4
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                  legend: { display: false },
+                  tooltip: {
+                    callbacks: {
+                      label: function(ctx) { return ctx.parsed.y.toFixed(2) + ' MDs'; }
+                    }
+                  }
+                },
+                scales: {
+                  y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                  x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+                }
+              }
+            });
+          }
+
+          // 2. Gráfico de Mix de Senioridade (Grades)
+          var ctxGrade = document.getElementById('ts-grade-trend');
+          if (ctxGrade) {
+            ctxGrade.innerHTML = '<canvas id="canvas-ts-grade"></canvas>';
+            var allGrades = new Set();
+            histData.forEach(function(d) { Object.keys(d.grades).forEach(function(g) { allGrades.add(g); }); });
+            var sortedGrades = Array.from(allGrades).sort();
+            
+            var gradeDatasets = sortedGrades.map(function(g, i) {
+              var colors = ['#60a5fa', '#fb923c', '#f87171', '#a78bfa', '#34d399', '#fbbf24'];
+              return {
+                label: 'Grade ' + g,
+                data: histData.map(function(d) { return d.grades[g] || 0; }),
+                borderColor: colors[i % colors.length],
+                backgroundColor: colors[i % colors.length] + '22',
+                fill: true,
+                tension: 0.4
+              };
+            });
+
+            new Chart(document.getElementById('canvas-ts-grade'), {
+              type: 'line',
+              data: {
+                labels: histData.map(function(d) { return d.label; }),
+                datasets: gradeDatasets
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                  legend: { 
+                    position: 'bottom', 
+                    labels: { color: '#94a3b8', boxWidth: 12, font: { size: 10 }, padding: 15 } 
+                  } 
+                },
+                scales: {
+                  y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                  x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+                }
+              }
+            });
+          }
+
+          // 3. Resumo MoM (Delta)
+          var trendCont = document.getElementById('ts-cat-trend');
+          if (trendCont) {
+            var html = '';
+            var current = histData[histData.length - 1];
+            var previous = histData[histData.length - 2];
+            
+            if (current && previous) {
+              var diff = current.md - previous.md;
+              var pct = previous.md > 0 ? (diff / previous.md * 100).toFixed(1) : '0';
+              var color = diff > 0 ? '#f87171' : '#34d399';
+              var icon = diff > 0 ? '&#9650;' : '&#9660;';
+              
+              html += '<div class="cb" style="flex:1;min-width:200px;padding:15px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05)">' +
+                      '<div style="font-size:10px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">Variação Mensal Esforço</div>' +
+                      '<div style="font-size:22px;font-weight:800;color:'+color+'">'+icon+' '+Math.abs(pct)+'%</div>' +
+                      '<div style="font-size:11px;color:var(--dim);margin-top:4px">'+ (diff > 0 ? 'Aumento' : 'Redução') + ' de ' + Math.abs(diff).toFixed(1) + ' MDs</div>' +
+                      '</div>';
+                      
+              // Delta HC
+              var hcCur = Object.keys(src[allPeriods[allPeriods.length-1].yr][allPeriods[allPeriods.length-1].mo].staff || {}).length;
+              var hcPrev = Object.keys(src[allPeriods[allPeriods.length-2].yr][allPeriods[allPeriods.length-2].mo].staff || {}).length;
+              var hcDiff = hcCur - hcPrev;
+              var hcCol = hcDiff >= 0 ? '#60a5fa' : '#f87171';
+              
+              html += '<div class="cb" style="flex:1;min-width:200px;padding:15px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05)">' +
+                      '<div style="font-size:10px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">Tendência de Headcount</div>' +
+                      '<div style="font-size:22px;font-weight:800;color:'+hcCol+'">&#128101; '+(hcDiff >= 0 ? '+' : '')+hcDiff+'</div>' +
+                      '<div style="font-size:11px;color:var(--dim);margin-top:4px">Variação de recursos ativos no mês</div>' +
+                      '</div>';
+            }
+
+            // Headcount Total
+            if (current) {
+                var hc = Object.keys(src[allPeriods[allPeriods.length-1].yr][allPeriods[allPeriods.length-1].mo].staff || {}).length;
+                html += '<div class="cb" style="flex:1;min-width:200px;padding:15px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05)">' +
+                      '<div style="font-size:10px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">Headcount Atual</div>' +
+                      '<div style="font-size:22px;font-weight:800;color:#a78bfa">&#128100; '+hc+'</div>' +
+                      '<div style="font-size:11px;color:var(--dim);margin-top:4px">Recursos alocados em ' + current.label + '</div>' +
+                      '</div>';
+            }
+
+            trendCont.innerHTML = html;
+          }
+
+          // Header stats
+          var momCont = document.getElementById('ts-comp-mom');
+          if (momCont && histData.length > 0) {
+              var totalMD = histData.reduce(function(acc, d) { return acc + d.md; }, 0);
+              momCont.innerHTML = '<span style="font-size:11px;color:var(--muted);background:rgba(255,255,255,0.05);padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.1)">Consumo Histórico Acumulado: <b style="color:#fff">' + totalMD.toFixed(1) + ' MDs</b></span>';
+          }
+        }
+
         function buildSimulador() {
           var c = document.getElementById('panel-simulador'); if (!c) return;
           var prj = selProject || 'Farmacia Arrocha';
@@ -8696,9 +8860,11 @@
           return out;
         }
         // Filtra incidents do problem por projeto (mesmo critério das outras abas).
+
         function _filterIncs(incs, prj) {
           if (prj === 'Todos os Projetos') return incs || [];
-          return (incs || []).filter(function (i) { return i.prj === prj; });
+          var target = strPrj(prj);
+          return (incs || []).filter(function (i) { return strPrj(i.prj) === target; });
         }
 
         // Cobertura: % incidents com Problem vinculado (no período + projeto)
@@ -9872,15 +10038,20 @@
             if (entry) {
               var oids = entry.o_ids || [];
               var cids = entry.c_ids || [];
-              if (prj === 'Todos os Projetos') {
-                open += oids.length; closed += cids.length;
-                o_ids_all = oids; c_ids_all = cids;
-              } else {
-                var f_o = oids.filter(id => { var t = getTix(id); return t && t.prj === prj; });
-                var f_c = cids.filter(id => { var t = getTix(id); return t && t.prj === prj; });
-                open += f_o.length; closed += f_c.length;
-                o_ids_all = f_o; c_ids_all = f_c;
-              }
+              
+              var filterFn = function (id) {
+                var t = getTix(id);
+                if (!t) return false;
+                if (prj !== 'Todos os Projetos' && t.prj !== prj) return false;
+                // Excluir Internal de UR
+                if (targetSev === 'user_request' && (t.ap === 'Internal' || t.ap === 'INTERNAL')) return false;
+                return true;
+              };
+
+              var f_o = oids.filter(filterFn);
+              var f_c = cids.filter(filterFn);
+              open += f_o.length; closed += f_c.length;
+              o_ids_all = f_o; c_ids_all = f_c;
             }
             data.unshift({ label: MPT[curM] + '/' + String(curY).slice(2), open: open, closed: closed, y: curY, m: curM, o_ids: o_ids_all, c_ids: c_ids_all });
             curM--;
@@ -9899,10 +10070,13 @@
               var p = r[pr_idx] || 'P4';
               if (!counts.hasOwnProperty(p)) p = 'P4';
               var tid = r[_TF.indexOf('k')];
-              if (prj !== 'Todos os Projetos') {
-                var tprj = r[_TF.indexOf('prj')];
-                if (tprj !== prj) continue;
-              }
+              
+              if (prj !== 'Todos os Projetos' && r[_TF.indexOf('prj')] !== prj) continue;
+              
+              // Excluir Internal de UR
+              var ap = r[_TF.indexOf('ap')];
+              if (sev === 'user_request' && (ap === 'Internal' || ap === 'INTERNAL')) continue;
+
               counts[p]++;
               ids[p].push(tid);
             }
@@ -10482,15 +10656,16 @@
           var prj_i = _TF.indexOf('prj'), yo_i = _TF.indexOf('y_o'), mo_i = _TF.indexOf('m_o');
           var st_i = _TF.indexOf('st'), sv_i = _TF.indexOf('sv'), md_i = _TF.indexOf('md');
           
-          rows.forEach(function (r) {
-            var matchPeriod = (r[yo_i] === year) && (month === 0 || r[mo_i] === month);
-            if (strPrj(r[prj_i]) === strPrj(prj) && matchPeriod) {
-              var mdVal = r[md_i] || 0;
-              var sev = String(r[sv_i] || '').toLowerCase();
-              var st = String(r[st_i] || '').toLowerCase();
-              
-              if (sev === 'problem' && closedStats.indexOf(st) === -1) {
-                activeProblemMD += mdVal;
+
+          Object.keys(D.problems || {}).forEach(function(pid) {
+            var p = D.problems[pid];
+            if (strPrj(p.prj) === strPrj(prj)) {
+              var st = String(p.status || '').toLowerCase();
+              // Problemas ativos (backlog de investigação)
+              if (closedStats.indexOf(st) === -1) {
+                var incs = p.incidents || [];
+                var inc_md = incs.reduce(function(s, i) { return s + (+i.md || 0); }, 0);
+                activeProblemMD += (+p.self_md || 0) + inc_md;
               }
             }
           });
