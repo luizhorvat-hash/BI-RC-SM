@@ -3,7 +3,10 @@ input/
 Resultados/
 builds/
 downloads/
+TS historico/
 data.js
+*.xlsx
+*.xls
 
 # Segredos e Configurações Locais
 .env

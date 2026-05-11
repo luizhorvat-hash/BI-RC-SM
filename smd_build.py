@@ -87,18 +87,56 @@ def get_resource_grade_map():
         log.error(f"Erro ao carregar Resource Level: {e}")
         return {}
 
-def parse_timesheet_unified(path, tickets_df=None):
+def _read_timesheet_file(path, row_processor):
+    """Lê um arquivo de timesheet (.xlsx ou .xls/xml) e chama row_processor para cada linha."""
+    if path.suffix.lower() == ".xlsx":
+        try:
+            xl = pd.ExcelFile(path)
+            sheet = 'Report' if 'Report' in xl.sheet_names else xl.sheet_names[0]
+            df_ts = pd.read_excel(xl, sheet_name=sheet, header=None)
+            for _, row in df_ts.iterrows():
+                row_processor({idx: val for idx, val in enumerate(row)})
+        except Exception as e:
+            log.error(f"Erro XLSX: {path.name} — {e}")
+    else:
+        try:
+            ns_tag = '{urn:schemas-microsoft-com:office:spreadsheet}'
+            ns = {'ss': 'urn:schemas-microsoft-com:office:spreadsheet'}
+            for event, elem in ET.iterparse(str(path), events=('end',)):
+                if elem.tag == f'{ns_tag}Row':
+                    cells = elem.findall(f'{ns_tag}Cell', ns)
+                    row_data = {}; cur_idx = 1
+                    for cell in cells:
+                        idx_attr = cell.get(f'{ns_tag}Index')
+                        if idx_attr: cur_idx = int(idx_attr)
+                        d = cell.find(f'{ns_tag}Data', ns)
+                        row_data[cur_idx] = d.text if d is not None else None
+                        cur_idx += 1 + int(cell.get(f'{ns_tag}MergeAcross', 0))
+                    row_processor(row_data)
+                    elem.clear()
+        except Exception as e:
+            log.error(f"Erro XML: {path.name} — {e}")
+
+
+def parse_timesheet_unified(paths, tickets_df=None):
     """
     Versão unificada e otimizada de parsing de Timesheet.
-    Lê o arquivo uma única vez e gera:
+    Aceita um Path único ou lista de Paths.
+    Lê os arquivos e gera:
     1. Agregação por Projeto/Ano/Mês (Dashboard Tab)
     2. Agregação por Ticket ID (Visão Granular)
     """
-    if not path or not path.exists():
-        log.warning(f"Arquivo de timesheet não encontrado: {path}")
+    # Normalizar entrada para lista
+    if isinstance(paths, Path):
+        paths = [paths]
+    elif paths is None:
+        paths = []
+    valid_paths = [p for p in paths if p and p.exists()]
+    if not valid_paths:
+        log.warning("Nenhum arquivo de timesheet válido para processar.")
         return {}, {}
 
-    log.info(f"Iniciando parsing unificado de Timesheet: {path.name}...")
+    log.info(f"Iniciando parsing unificado de Timesheet: {len(valid_paths)} arquivo(s)...")
     import pandas as pd
     from collections import defaultdict
     import re
@@ -210,31 +248,10 @@ def parse_timesheet_unified(path, tickets_df=None):
                 p['h'] += h; p['d'] += d_md
                 p['staff'][staff] = p['staff'].get(staff, 0) + h
 
-    if path.suffix.lower() == ".xlsx":
-        try:
-            xl = pd.ExcelFile(path)
-            sheet = 'Report' if 'Report' in xl.sheet_names else xl.sheet_names[0]
-            df_ts = pd.read_excel(xl, sheet_name=sheet, header=None)
-            for _, row in df_ts.iterrows():
-                process_row_unified({idx: val for idx, val in enumerate(row)})
-        except Exception as e: log.error(f"Erro XLSX unificado: {e}")
-    else:
-        try:
-            ns_tag = '{urn:schemas-microsoft-com:office:spreadsheet}'
-            ns = {'ss': 'urn:schemas-microsoft-com:office:spreadsheet'}
-            for event, elem in ET.iterparse(str(path), events=('end',)):
-                if elem.tag == f'{ns_tag}Row':
-                    cells = elem.findall(f'{ns_tag}Cell', ns)
-                    row_data = {}; cur_idx = 1
-                    for cell in cells:
-                        idx_attr = cell.get(f'{ns_tag}Index')
-                        if idx_attr: cur_idx = int(idx_attr)
-                        d = cell.find(f'{ns_tag}Data', ns)
-                        row_data[cur_idx] = d.text if d is not None else None
-                        cur_idx += 1 + int(cell.get(f'{ns_tag}MergeAcross', 0))
-                    process_row_unified(row_data)
-                    elem.clear()
-        except Exception as e: log.error(f"Erro XML unificado: {e}")
+    # Processar todos os arquivos (acumuladores compartilhados)
+    for file_path in valid_paths:
+        log.info(f"  Processando: {file_path.name}...")
+        _read_timesheet_file(file_path, process_row_unified)
 
     result_tab = {}
     for prj, years in acc_tab.items():
@@ -595,6 +612,111 @@ def check_ai_availability():
         return bool(key)
     return False
 
+# ── TIMESHEET HISTÓRICO (COLD DATA) ──────────────────────────────────────────────
+
+def build_timesheet_history():
+    """
+    Processa todos os .xlsx em 'TS historico/' e gera timesheet_history.json.
+    Deve ser executado uma única vez (ou quando os dados históricos mudarem).
+    """
+    hist_dir = smd_config.TS_HISTORY_DIR
+    if not hist_dir.exists():
+        log.error(f"Diretório não encontrado: {hist_dir}")
+        return False
+
+    files = sorted([f for f in hist_dir.iterdir() if f.suffix.lower() in ('.xlsx', '.xls') and f.is_file()])
+    if not files:
+        log.error(f"Nenhum arquivo .xlsx/.xls encontrado em {hist_dir}")
+        return False
+
+    log.info("=" * 60)
+    log.info("BUILD TIMESHEET HISTÓRICO")
+    log.info(f"Diretório: {hist_dir}")
+    log.info(f"Arquivos encontrados: {len(files)}")
+    for f in files:
+        log.info(f"  - {f.name} ({f.stat().st_size // 1024}kb)")
+    log.info("=" * 60)
+
+    # Carregar tickets.csv para metadados (prioridade, severidade, projeto)
+    _, _, df_raw = process_tickets_data()
+
+    # Processar todos os arquivos históricos com acumuladores compartilhados
+    hist_tab, hist_gran = parse_timesheet_unified(files, df_raw)
+
+    if not hist_tab:
+        log.error("Nenhum dado processado dos arquivos históricos.")
+        return False
+
+    # Salvar cache
+    cache = {
+        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "source_files": [f.name for f in files],
+        "tab": hist_tab,
+        "granular": hist_gran
+    }
+    cache_path = smd_config.TS_HISTORY_CACHE
+    cache_path.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
+    size_kb = cache_path.stat().st_size // 1024
+
+    # Estatísticas
+    n_projects = len([k for k in hist_tab if k != "Todos"])
+    n_tickets = len(hist_gran)
+    log.info(f"Cache histórico salvo: {cache_path} ({size_kb}kb)")
+    log.info(f"  Projetos: {n_projects} | Tickets com lançamento: {n_tickets}")
+    log.info("Build histórico concluído.")
+    return True
+
+
+def load_timesheet_history():
+    """Carrega o cache de timesheet histórico. Retorna (tab, granular) ou (None, None)."""
+    cache_path = smd_config.TS_HISTORY_CACHE
+    if not cache_path.exists():
+        return None, None
+
+    try:
+        cache = json.loads(cache_path.read_text(encoding="utf-8"))
+        n_files = len(cache.get("source_files", []))
+        log.info(f"Cache histórico carregado: {cache['generated_at']} | {n_files} arquivo(s) fonte")
+        return cache["tab"], cache["granular"]
+    except Exception as e:
+        log.error(f"Erro ao carregar cache histórico: {e}")
+        return None, None
+
+
+def merge_timesheet_data(hist_tab, hist_gran, cur_tab, cur_gran):
+    """
+    Combina dados históricos (cold) com dados do mês corrente (hot).
+    Não há sobreposição de meses entre os dois conjuntos.
+    Em caso de colisão, o dado corrente prevalece.
+    """
+    import copy
+
+    # Tab: deep merge por projeto → ano → mês
+    merged_tab = copy.deepcopy(hist_tab)
+    for prj, years in cur_tab.items():
+        if prj not in merged_tab:
+            merged_tab[prj] = years
+        else:
+            for yr, months in years.items():
+                if yr not in merged_tab[prj]:
+                    merged_tab[prj][yr] = months
+                else:
+                    merged_tab[prj][yr].update(months)
+
+    # Granular: merge por ticket_id, combinando periods
+    merged_gran = copy.deepcopy(hist_gran)
+    for tid, data in cur_gran.items():
+        if tid not in merged_gran:
+            merged_gran[tid] = data
+        else:
+            # Combinar periods (sem sobreposição de meses)
+            merged_gran[tid]['periods'].update(data['periods'])
+            # Atualizar status (corrente é mais recente)
+            merged_gran[tid]['st'] = data['st']
+
+    return merged_tab, merged_gran
+
+
 def run_pipeline(skip_agents=False, csv_override=None):
     """Executa a pipeline completa: Tickets -> AI -> Timesheet -> data.js"""
     log.info("=" * 60)
@@ -646,9 +768,18 @@ def run_pipeline(skip_agents=False, csv_override=None):
         except Exception as ge: 
             log.error(f"Erro geral no motor de IA: {ge}")
     
-    # Timesheet unificado (Aba Resumo + Granular por Ticket)
+    # Timesheet: Processar mês corrente + integrar histórico
     ts_path = get_ts_path()
     timesheet_tab, timesheet_granular = parse_timesheet_unified(ts_path, df_raw)
+
+    # Merge com dados históricos pré-computados (se existirem)
+    hist_tab, hist_gran = load_timesheet_history()
+    if hist_tab is not None:
+        timesheet_tab, timesheet_granular = merge_timesheet_data(
+            hist_tab, hist_gran, timesheet_tab, timesheet_granular
+        )
+        log.info("Dados históricos de timesheet integrados ao build.")
+
     D["timesheet"] = timesheet_granular
     
     # Restauração do KPI de Oncall
@@ -677,6 +808,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-agents", action="store_true", help="Pular execução da IA")
     parser.add_argument("--csv", type=str, help="Caminho para arquivo CSV customizado (ex: DOcs/Chanel.csv)")
+    parser.add_argument("--build-history", action="store_true", help="Processar timesheets históricos e gerar cache")
     args = parser.parse_args()
-    
-    run_pipeline(skip_agents=args.no_agents, csv_override=args.csv)
+
+    if args.build_history:
+        build_timesheet_history()
+    else:
+        run_pipeline(skip_agents=args.no_agents, csv_override=args.csv)

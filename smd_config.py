@@ -12,6 +12,10 @@ TICKETS_CSV = INPUT_DIR / "tickets.csv"
 DOWNLOADS_DIR = BASE_DIR / "downloads"
 DASHBOARD_HTML = BASE_DIR / "SM_DASH.html"
 DATA_JS = BASE_DIR / "data.js"
+
+# Timesheet Histórico (cold data)
+TS_HISTORY_DIR = BASE_DIR / "TS historico"
+TS_HISTORY_CACHE = INPUT_DIR / "timesheet_history.json"
 AGENTS_MD = BASE_DIR / "AGENTS.md"
 
 # Carregamento Simples de .env
@@ -70,7 +74,7 @@ if PROJECTS_CONFIG_FILE.exists():
 RESOURCE_LEVEL_FILE = BASE_DIR / "DOcs" / "Resource Level.xlsx"
 
 # Criar diretórios se não existirem
-for d in [INPUT_DIR, RESULTS_DIR, BUILDS_DIR, DOWNLOADS_DIR]:
+for d in [INPUT_DIR, RESULTS_DIR, BUILDS_DIR, DOWNLOADS_DIR, TS_HISTORY_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
 def get_env_var(name, default=None):
