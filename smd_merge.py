@@ -27,6 +27,7 @@ import os
 import re
 import sys
 import shutil
+import numpy as np
 import logging
 import argparse
 import smd_config
@@ -50,6 +51,12 @@ REQUIRED_COLS = [
 CSV_SEP      = ';'
 CSV_ENCODING = 'utf-8-sig'
 
+# Colunas que devem ser "fundidas" (se estiver vazio em uma, tenta pegar da outra)
+COALESCE_COLS = [
+    "MD's", "Opening Date", "Summary", "Application", "Status", "Resolution SLA", 
+    "Acknowledge SLA", "Problem", "assigned", "Priority", "Severity", "Environment"
+]
+
 # ── LOGGING ───────────────────────────────────────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
@@ -64,19 +71,15 @@ log = logging.getLogger(__name__)
 
 # ── FUNÇÕES ───────────────────────────────────────────────────────────────────
 
-def find_csv_files(source_dir: Path) -> list[dict]:
+def find_csv_files(source_dir: Path, is_volatile: bool = True) -> list[dict]:
     """
-    Varre source_dir e retorna lista de arquivos que batem com FILE_PATTERN ou formato simples.
-    Retorna: [{'path': Path, 'project': str, 'date': str}, ...]
+    Varre source_dir e retorna lista de arquivos que batem com os padrões.
+    Retorna: [{'path': Path, 'project': str, 'date': str, 'volatile': bool}, ...]
     """
     if not source_dir.exists():
-        log.error(f"Pasta não encontrada: {source_dir}")
+        log.warning(f"Pasta não encontrada: {source_dir}")
         return []
 
-    # Padrões de nome de arquivo do Mantis:
-    # 1. Incidents_Projeto_AAAA-MM-DD.csv (Padrão Completo)
-    # 2. Tickets_Projeto_AAAA-MM-DD.csv (Padrão Alternativo)
-    # 3. Projeto.csv (Padrão Simples)
     p_with_date = re.compile(r'^(?:Incidents_|Tickets_)?(.+?)_?(\d{4}-\d{2}-\d{2})\.csv$', re.IGNORECASE)
     p_simple    = re.compile(r'^(.+)\.csv$', re.IGNORECASE)
     
@@ -87,24 +90,20 @@ def find_csv_files(source_dir: Path) -> list[dict]:
         if not f.is_file():
             continue
         
-        # Ignorar arquivos de sistema ou o próprio tickets.csv de saída
         if f.name.lower() in ('tickets.csv', 'smd_merge.log', 'api_key.txt'):
             continue
 
-        # Tentar padrão com data (mais específico)
         m1 = p_with_date.match(f.name)
         if m1:
             project = m1.group(1).strip().strip('_')
             date    = m1.group(2)
-            found.append({'path': f, 'project': project, 'date': date})
+            found.append({'path': f, 'project': project, 'date': date, 'volatile': is_volatile})
             continue
             
-        # Tentar padrão simples (qualquer outro CSV)
         m2 = p_simple.match(f.name)
         if m2:
             project = m2.group(1).strip()
-            # Se já pegamos no padrão com data, o continue lá em cima evitou duplicar aqui
-            found.append({'path': f, 'project': project, 'date': today_str})
+            found.append({'path': f, 'project': project, 'date': today_str, 'volatile': is_volatile})
 
     return found
 
@@ -156,17 +155,20 @@ def backup_existing(output_file: Path, backup_dir: Path):
     log.info(f"Backup salvo: {dst}")
 
 
-def archive_files(csv_list: list[dict], source_dir: Path):
-    """Move arquivos processados para uma subpasta 'processed'."""
-    archive_dir = source_dir / "processed"
-    archive_dir.mkdir(parents=True, exist_ok=True)
-    
+def archive_files(csv_list: list[dict]):
+    """Move apenas arquivos voláteis para a subpasta 'processed' do seu diretório de origem."""
     for item in csv_list:
+        if not item.get('volatile', True):
+            continue
+            
         try:
             p = item['path']
+            archive_dir = p.parent / "processed"
+            archive_dir.mkdir(parents=True, exist_ok=True)
+            
             dst = archive_dir / p.name
             if dst.exists():
-                dst.unlink() # remover se já existir versão anterior
+                dst.unlink()
             shutil.move(str(p), str(dst))
             log.info(f"Arquivado: {p.name}")
         except Exception as e:
@@ -180,75 +182,67 @@ def merge_files(csv_list: list[dict], existing_file: Path = None) -> object:
     A prioridade é sempre o dado do arquivo com data de exportação mais recente.
     """
     import pandas as pd
-    frames = []
     
-    # 1. Carregar histórico existente (se houver)
-    if existing_file and existing_file.exists():
-        try:
-            df_old = pd.read_csv(existing_file, sep=CSV_SEP, encoding=CSV_ENCODING, low_memory=False)
-            df_old['_export_date'] = '1900-01-01' # data base para histórico antigo sem marcação
-            frames.append(df_old)
-            log.info(f"Histórico carregado: {len(df_old)} tickets")
-        except Exception as e:
-            log.error(f"Erro ao carregar histórico: {e}")
-
     # 2. Carregar novos arquivos
+    frames = []
     total_new_raw = 0
     for item in csv_list:
         ok, msg, df = validate_csv(item['path'], item['project'])
         if not ok:
-            log.error(f"  IGNORADO {item['path'].name}: {msg}")
+            log.warning(f"  PULADO: {msg}")
             continue
         
-        # Marcar com a data de exportação do nome do arquivo
-        df['_export_date'] = item['date']
+        df['_export_date'] = datetime.now()
+        df['_priority'] = 1  # Maior prioridade
         frames.append(df)
-        total_new_raw += len(df)
-        log.info(f"  OK  {item['path'].name}: {msg}")
+
+    # 3. Carregar arquivo existente (se houver) como base de BAIXA prioridade (ao final)
+    if existing_file and existing_file.exists():
+        try:
+            df_old = pd.read_csv(existing_file, sep=CSV_SEP, encoding=CSV_ENCODING, low_memory=False)
+            df_old['_export_date'] = datetime.fromtimestamp(existing_file.stat().st_mtime)
+            df_old['_priority'] = 2
+            frames.append(df_old)
+            log.info(f"Base antiga carregada: {len(df_old)} tickets (será usada apenas para preencher lacunas)")
+        except Exception as e:
+            log.error(f"Erro ao carregar base antiga: {e}")
 
     if not frames:
         return None
 
-    # 3. Concatenar tudo
+    # 4. Concatenar tudo (Novos Primeiro!)
     merged = pd.concat(frames, ignore_index=True)
-    log.info(f"\nTotal bruto (histórico + novos): {len(merged)} linhas")
+    log.info(f"\nTotal bruto para processamento: {len(merged)} linhas")
 
-    # 4. Remover duplicatas pelo número do ticket (manter a exportação mais COMPLETA e RECENTE)
-    # Primeiro garantimos que Ticket é string para comparação e removemos zeros à esquerda
+    # 4. Normalização PRÉ-CONSOLIDAÇÃO
+    log.info(f"Normalizando dados de {len(merged)} linhas...")
+    
+    # Datas
+    for date_col in ['Opening Date', 'Close Date', 'Last Updated Date', 'Date of Resolution']:
+        if date_col in merged.columns:
+            merged[date_col] = pd.to_datetime(merged[date_col], dayfirst=True, errors='coerce')
+            
+    # MD's (converter para float tratando a vírgula brasileira)
+    if "MD's" in merged.columns:
+        merged["MD's"] = pd.to_numeric(merged["MD's"].astype(str).str.replace(',', '.'), errors='coerce')
+
+    # 5. Consolidação Inteligente (Coalesce)
+    # Primeiro, normalizamos vazios e strings de espaço para NaN para que o .first() funcione
+    merged = merged.replace(r'^\s*$', np.nan, regex=True)
+    
+    # Ordenamos para que o dado de maior prioridade (1=Novo) e data mais recente fique no topo
+    merged = merged.sort_values(['_priority', '_export_date'], ascending=[True, False])
+    
+    # Agrupamos por Ticket e pegamos o primeiro valor NÃO NULO de cada coluna (Coalesce)
+    # Isso garante que se o arquivo novo vier com campos vazios (ex: MD's), ele busque no histórico.
+    before_dedup = len(merged)
     merged['Ticket'] = merged['Ticket'].astype(str).str.lstrip('0')
     
-    # Garantir que as colunas críticas existam para a ordenação
-    for col in ["MD's", "assigned", "Summary"]:
-        if col not in merged.columns:
-            merged[col] = None
-
-    # Criar colunas auxiliares de prioridade
-    def md_to_num(v):
-        try:
-            return float(str(v).replace(',', '.')) if pd.notna(v) and str(v).strip() != "" else -1.0
-        except:
-            return -1.0
-            
-    merged['_has_assigned'] = merged['assigned'].apply(lambda x: 1 if pd.notna(x) and str(x).strip() != "" and str(x).lower() != 'nan' else 0)
-    merged['_has_summary']  = merged['Summary'].apply(lambda x: 1 if pd.notna(x) and str(x).strip() != "" else 0)
-    merged['_md_priority']  = merged["MD's"].apply(md_to_num)
-    
-    # Ordenar por:
-    # 1. Tem analista atribuído? (Prioridade máxima)
-    # 2. Tem resumo/summary?
-    # 3. Tem MD's > 0?
-    # 4. Data de exportação (mais recente)
-    merged = merged.sort_values(
-        ['Ticket', '_has_assigned', '_has_summary', '_md_priority', '_export_date'], 
-        ascending=[True, False, False, False, False]
-    )
-    
-    before_dedup = len(merged)
-    # Mantemos o primeiro (mais completo e mais recente)
-    merged = merged.drop_duplicates(subset=['Ticket'], keep='first')
+    # Consolidar: o .first() do pandas em um dataframe ordenado pega o primeiro valor não-nulo
+    merged = merged.groupby('Ticket', as_index=False, sort=False).first()
     
     # Remover colunas auxiliares
-    merged = merged.drop(columns=['_export_date', '_has_assigned', '_has_summary', '_md_priority'])
+    merged = merged.drop(columns=['_export_date', '_priority'])
     
     # Voltar a ordem por ID de ticket (crescente)
     merged['_tk_num'] = pd.to_numeric(merged['Ticket'], errors='coerce')
@@ -256,7 +250,7 @@ def merge_files(csv_list: list[dict], existing_file: Path = None) -> object:
     merged = merged.drop(columns=['_tk_num'])
 
     dupes = before_dedup - len(merged)
-    log.info(f"Tickets atualizados/desduplicados: {dupes}")
+    log.info(f"Tickets consolidados (duplicatas fundidas): {dupes}")
     log.info(f"Total final consolidado: {len(merged)} tickets únicos")
 
     # Verificar projetos presentes
@@ -275,35 +269,40 @@ def save_output(df, output_file: Path):
     log.info(f"\nSalvo: {output_file} ({size_kb}kb)")
 
 
-def print_summary(csv_list: list[dict], source_dir: Path):
+def print_summary(csv_list: list[dict]):
     """Mostra resumo dos arquivos encontrados."""
     if not csv_list:
-        print("\n[X] Nenhum arquivo encontrado.")
-        print(f"   Pasta verificada: {source_dir}")
-        print(f"   Padrão esperado:  Incidents_<Projeto><AAAA-MM-DD>.csv")
-        print(f"   Exemplo:          Incidents_GDN2026-04-08.csv")
+        print("\n[X] Nenhum arquivo encontrado nas pastas configuradas.")
         return
 
-    print(f"\nArquivos encontrados em {source_dir}:\n")
-    print(f"  {'ARQUIVO':<45} {'PROJETO':<25} {'DATA'}")
+    print(f"\nArquivos encontrados:\n")
+    print(f"  {'ARQUIVO':<45} {'PROJETO':<25} {'TIPO'}")
     print(f"  {'-'*45} {'-'*25} {'-'*10}")
     for item in csv_list:
-        print(f"  {item['path'].name:<45} {item['project']:<25} {item['date']}")
+        tipo = "Volátil" if item.get('volatile') else "Histórico"
+        print(f"  {item['path'].name:<45} {item['project']:<25} {tipo}")
     print(f"\n  Total: {len(csv_list)} arquivo(s)")
 
 
 # ── MAIN ──────────────────────────────────────────────────────────────────────
 
-def run(source_dir: Path, dry_run: bool = False, auto: bool = False):
+def run(source_dir: Path = None, dry_run: bool = False, auto: bool = False):
     log.info("=" * 60)
     log.info("smd_merge.py — Início")
-    log.info(f"Pasta fonte:  {source_dir}")
     log.info(f"Arquivo saída: {OUTPUT_FILE}")
     log.info("=" * 60)
-
-    # 1. Encontrar arquivos
-    csv_list = find_csv_files(source_dir)
-    print_summary(csv_list, source_dir)
+ 
+    # 1. Encontrar arquivos (Downloads + Histórico)
+    csv_list = []
+    if source_dir:
+        # Se o usuário passou uma pasta via CLI, usamos apenas ela
+        csv_list.extend(find_csv_files(source_dir, is_volatile=True))
+    else:
+        # Padrão: buscar em downloads e em histórico
+        csv_list.extend(find_csv_files(SOURCE_DIR, is_volatile=True))
+        csv_list.extend(find_csv_files(smd_config.TT_HISTORY_DIR, is_volatile=False))
+        
+    print_summary(csv_list)
 
     if not csv_list:
         sys.exit(1)
@@ -320,10 +319,12 @@ def run(source_dir: Path, dry_run: bool = False, auto: bool = False):
         if OUTPUT_FILE.exists():
             size_kb = OUTPUT_FILE.stat().st_size // 1024
             print(f"  Arquivo atual: {size_kb}kb — será substituído (backup automático)")
-        resp = input("\n  Confirmar merge? [S/n]: ").strip().lower()
-        if resp not in ('', 's', 'sim', 'y', 'yes'):
-            print("  Cancelado.")
-            sys.exit(0)
+        
+        # if not skip_confirm:
+        #     conf = input(f"\n  Confirmar merge? [S/n]: ").strip().lower()
+        #     if conf != 's' and conf != '':
+        #         print("  Cancelado.")
+        #         return None, None
 
     # 4. Backup
     backup_existing(OUTPUT_FILE, BACKUP_DIR)
@@ -343,8 +344,8 @@ def run(source_dir: Path, dry_run: bool = False, auto: bool = False):
     # 7. Arquivamento
     if not dry_run:
         print(f"\n{'-'*60}")
-        log.info("Arquivando arquivos processados...")
-        archive_files(csv_list, source_dir)
+        log.info("Arquivando arquivos voláteis...")
+        archive_files(csv_list)
 
     print(f"\n{'-'*60}")
 
@@ -381,5 +382,5 @@ Padrão de nome aceito:
     p.add_argument('--source',   type=str,            help=f'Pasta fonte (padrão: {SOURCE_DIR})')
     args = p.parse_args()
 
-    source = Path(args.source) if args.source else SOURCE_DIR
+    source = Path(args.source) if args.source else None
     run(source_dir=source, dry_run=args.dry_run, auto=args.auto)

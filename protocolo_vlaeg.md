@@ -40,6 +40,11 @@ Execução trata da eficiência do dia a dia e da entrega técnica rigorosa.
 ## 5. ⚖️ G — Governança (Governance)
 Governança estabelece as regras do jogo, a conformidade e a integridade de tudo o que é produzido.
 
+- **Documentação de Decisões:** Cada mudança técnica deve ser justificada.
+- **Auditoria de Dados:** Logs detalhados em cada fase do merge/build.
+- **Padrão de Engenharia:** Toda execução técnica deve obedecer aos princípios de **Simplicidade** e **Mudança Cirúrgica** definidos no [GEMINI.md](file:///c:/Dashboard/GEMINI.md).
+- **Linhagem de Dados:** Rastreabilidade total desde o arquivo `.csv` de download até o `data.js`.
+
 *   **Objetivo:** Assegurar que os processos ITSM e os dados gerados sejam confiáveis e auditáveis.
 *   **Foco:** Qualidade dos dados, preenchimento correto de campos, conformidade com SLAs contratuais e segurança.
 *   **Agentes Relacionados:**

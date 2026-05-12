@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retail Consult - Executive Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0f1a;
+            --bg-2: #0d1422;
+            --sidebar: #0b1220;
+            --card-grad-1: rgba(30, 42, 66, 0.35);
+            --card-grad-2: rgba(12, 19, 33, 0.30);
+            --border: rgba(255, 255, 255, 0.08);
+            --rim: rgba(255, 255, 255, 0.18);
+            --primary: #f97316;
+            --primary-2: #fb923c;
+            --secondary: #60a5fa;
+            --secondary-2: #93c5fd;
+            --text: #ffffff;
+            --muted: #7d8aa0;
+            --muted-2: #a8b2c4;
+            --green: #22c55e;
+            --red: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body { height: 100%; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            letter-spacing: 0.1px;
+            position: relative;
+        }
+
+        /* ---------------- Glow Orbs (drive the glass effect) ---------------- */
+        .bg-orbs {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.55;
+        }
+        .orb-1 { width: 520px; height: 520px; top: -120px; left: 35%;
+                 background: radial-gradient(circle, #f97316 0%, transparent 65%); opacity: 0.32; }
+        .orb-2 { width: 600px; height: 600px; top: 25%; right: -160px;
+                 background: radial-gradient(circle, #3b82f6 0%, transparent 65%); opacity: 0.35; }
+        .orb-3 { width: 480px; height: 480px; bottom: -160px; left: 20%;
+                 background: radial-gradient(circle, #06b6d4 0%, transparent 65%); opacity: 0.28; }
+        .orb-4 { width: 420px; height: 420px; top: 55%; left: -100px;
+                 background: radial-gradient(circle, #8b5cf6 0%, transparent 65%); opacity: 0.22; }
+        .orb-5 { width: 360px; height: 360px; top: 5%; right: 30%;
+                 background: radial-gradient(circle, #fb923c 0%, transparent 65%); opacity: 0.20; }
+
+        aside, main { position: relative; z-index: 1; }
+
+        /* ---------------- Sidebar ---------------- */
+        aside {
+            width: 220px;
+            background: linear-gradient(180deg, #0c1322 0%, #090f1c 100%);
+            border-right: 1px solid var(--border);
+            padding: 32px 16px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 50px;
+            letter-spacing: -0.2px;
+            padding-left: 6px;
+        }
+
+        .logo-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fb923c, #f97316 60%, #ea580c);
+            box-shadow: 0 0 14px rgba(249, 115, 22, 0.55);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon::after {
+            content: '';
+            width: 10px; height: 10px;
+            border: 2px solid #fff;
+            border-right-color: transparent;
+            border-radius: 50%;
+            transform: rotate(35deg);
+        }
+
+        nav { display: flex; flex-direction: column; gap: 2px; }
+
+        nav li {
+            list-style: none;
+            padding: 11px 14px;
+            border-radius: 8px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 400;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        nav li svg { width: 17px; height: 17px; opacity: 0.55; transition: 0.2s; }
+
+        nav li:hover { color: #fff; background: rgba(255, 255, 255, 0.035); }
+        nav li:hover svg { opacity: 0.9; }
+
+        nav li.active {
+            color: #fff;
+            background: linear-gradient(90deg, rgba(249, 115, 22, 0.10), rgba(255,255,255,0.02) 80%);
+            font-weight: 500;
+        }
+        nav li.active::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 6px; bottom: 6px;
+            width: 2px;
+            background: var(--primary);
+            border-radius: 2px;
+            box-shadow: 0 0 8px var(--primary);
+        }
+        nav li.active svg { opacity: 1; color: var(--primary); }
+
+        /* ---------------- Main Content ---------------- */
+        main {
+            flex: 1;
+            padding: 38px 48px 50px;
+            overflow-y: auto;
+        }
+
+        header h1 {
+            font-size: 19px;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 32px;
+            color: #fff;
+            opacity: 0.95;
+        }
+
+        /* ---------------- Glass Card ---------------- */
+        .glass {
+            background:
+                linear-gradient(180deg, var(--card-grad-1) 0%, var(--card-grad-2) 100%);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 22px 24px;
+            box-shadow:
+                0 30px 60px rgba(0, 0, 0, 0.40),
+                inset 0 1px 0 rgba(255, 255, 255, 0.10),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* top-edge rim light — the signature "glass" reflection */
+        .glass::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 14%; right: 14%;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.40) 50%,
+                transparent 100%);
+            pointer-events: none;
+        }
+
+        /* subtle inner top sheen */
+        .glass::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 50%;
+            background: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.04) 0%,
+                transparent 100%);
+            pointer-events: none;
+            border-radius: 18px 18px 0 0;
+        }
+
+        .glass > * { position: relative; z-index: 1; }
+
+        .menu-dots {
+            position: absolute;
+            top: 22px; right: 22px;
+            width: 16px; height: 16px;
+            opacity: 0.35;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .menu-dots:hover { opacity: 0.7; }
+
+        /* ---------------- Layout ---------------- */
+        .top-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 22px;
+            margin-bottom: 22px;
+        }
+
+        .stat-card {
+            min-height: 138px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .stat-card .label {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: none;
+            letter-spacing: 0.2px;
+        }
+        .stat-card .value {
+            font-size: 34px;
+            font-weight: 300;
+            letter-spacing: -1.2px;
+            line-height: 1;
+        }
+        .stat-card .subtext {
+            color: var(--muted);
+            font-size: 10px;
+            margin-top: 2px;
+            opacity: 0.7;
+        }
+        .stat-card .trend {
+            float: right;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .glow-blue {
+            box-shadow:
+                0 0 60px rgba(59, 130, 246, 0.18),
+                0 30px 60px rgba(0, 0, 0, 0.40),
+                inset 0 1px 0 rgba(255, 255, 255, 0.10);
+        }
+        .glow-blue::before {
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(147, 197, 253, 0.55) 50%,
+                transparent 100%);
+        }
+        .glow-orange {
+            box-shadow:
+                0 0 60px rgba(249, 115, 22, 0.18),
+                0 30px 60px rgba(0, 0, 0, 0.40),
+                inset 0 1px 0 rgba(255, 255, 255, 0.10);
+        }
+        .glow-orange::before {
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(253, 186, 116, 0.55) 50%,
+                transparent 100%);
+        }
+
+        .main-row {
+            display: grid;
+            grid-template-columns: 1.7fr 1fr;
+            gap: 22px;
+            margin-bottom: 22px;
+        }
+
+        .title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .title-row h2 {
+            font-size: 15px;
+            font-weight: 500;
+            color: #fff;
+            letter-spacing: 0.1px;
+        }
+
+        .pill {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 5px 12px;
+            font-size: 10px;
+            color: var(--muted-2);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .pill svg { width: 9px; height: 9px; }
+
+        /* ---------------- Chart ---------------- */
+        .chart-wrap { padding: 0 4px; }
+        .chart-svg { width: 100%; height: 270px; margin-top: 6px; display: block; }
+        .grid-line { stroke: rgba(255, 255, 255, 0.04); stroke-width: 1; }
+        .axis-label {
+            fill: var(--muted);
+            font-size: 10px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+        }
+
+        /* ---------------- SLA Gauges ---------------- */
+        .sla-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 22px 14px;
+            margin-top: 10px;
+            padding: 6px 4px;
+        }
+
+        .gauge-box {
+            text-align: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .gauge-svg {
+            width: 86px;
+            height: 86px;
+            transform: rotate(-90deg);
+            filter: drop-shadow(0 0 6px rgba(249,115,22,0.18));
+        }
+        .gauge-svg circle {
+            fill: none;
+            stroke-width: 7;
+            stroke-linecap: round;
+        }
+        .gauge-track { stroke: rgba(255, 255, 255, 0.05); }
+        .gauge-bar  { stroke: var(--primary); transition: stroke-dashoffset 1s ease; }
+
+        .gauge-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            top: -4px;
+        }
+        .gauge-val {
+            font-size: 15px;
+            font-weight: 500;
+            color: #fff;
+            line-height: 1;
+        }
+        .gauge-mini {
+            font-size: 8px;
+            color: var(--muted);
+            margin-top: 2px;
+            letter-spacing: 0.4px;
+        }
+        .gauge-lbl {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        /* ---------------- Legend ---------------- */
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px 16px;
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 10.5px;
+            color: var(--muted-2);
+        }
+        .legend-mark {
+            width: 10px; height: 10px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        .legend-line {
+            width: 14px; height: 2px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        /* ---------------- Footer Row ---------------- */
+        .footer-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 22px;
+        }
+        .mini-spark {
+            width: 100%;
+            height: 44px;
+            margin-top: 14px;
+            display: block;
+        }
+
+        /* scrollbar */
+        main::-webkit-scrollbar { width: 6px; }
+        main::-webkit-scrollbar-track { background: transparent; }
+        main::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="orb orb-4"></div>
+        <div class="orb orb-5"></div>
+    </div>
+
+    <aside>
+        <div class="logo">
+            <div class="logo-icon"></div>
+            Retail Consult
+        </div>
+        <nav>
+            <li class="active">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                Home
+            </li>
+            <li>
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                Summary
+            </li>
+            <li>
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                Reports
+            </li>
+            <li>
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                Users
+            </li>
+        </nav>
+    </aside>
+
+    <main>
+        <header><h1>Executive Dashboard</h1></header>
+
+        <!-- EXECUTIVE SUMMARY (PADRONIZAÇÃO TESTE) -->
+        <h2 style="font-size: 14px; color: var(--muted); margin-bottom: 15px; font-weight: 500;">Resumo Executivo</h2>
+        <div class="top-row" style="margin-bottom: 40px;">
+            <div class="glass stat-card" style="box-shadow: 0 0 40px rgba(239, 68, 68, 0.12); border-top: 1px solid rgba(239, 68, 68, 0.3);">
+                <svg class="menu-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                <div>
+                    <span class="trend" style="color:var(--red)">▼ Alerta</span>
+                    <span class="label">VÍNCULO INC/PM</span>
+                </div>
+                <div class="value" style="color: var(--red);">75.0%</div>
+                <div class="subtext">Meta: 1 PM por Incidente</div>
+            </div>
+            <div class="glass stat-card" style="box-shadow: 0 0 40px rgba(249, 115, 22, 0.12); border-top: 1px solid rgba(249, 115, 22, 0.3);">
+                <svg class="menu-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                <div>
+                    <span class="trend" style="color:var(--primary)">! Crítico</span>
+                    <span class="label">AGILIDADE UR (4H)</span>
+                </div>
+                <div class="value" style="color: var(--primary);">0.0%</div>
+                <div class="subtext">User Requests no prazo</div>
+            </div>
+            <div class="glass stat-card" style="box-shadow: 0 0 40px rgba(34, 197, 94, 0.12); border-top: 1px solid rgba(34, 197, 94, 0.3);">
+                <svg class="menu-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                <div>
+                    <span class="trend" style="color:var(--green)">✔ OK</span>
+                    <span class="label">AGING CRÍTICO</span>
+                </div>
+                <div class="value" style="color: var(--green);">0</div>
+                <div class="subtext">Tickets parados > 3d</div>
+            </div>
+        </div>
+
+        <h2 style="font-size: 14px; color: var(--muted); margin-bottom: 15px; font-weight: 500;">Métricas de Incidente</h2>
+        <div class="top-row">
+            <div class="glass stat-card glow-blue">
+                <svg class="menu-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                <div>
+                    <span class="trend" style="color:var(--green)">▲ 12.3%</span>
+                    <span class="label">Open Tickets</span>
+                </div>
+                <div class="value">59</div>
+                <div class="subtext">Open Now</div>
+            </div>
+            <div class="glass stat-card glow-orange">
+                <svg class="menu-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                <div>
+                    <span class="trend" style="color:var(--primary-2)">▲ 2.5%</span>
+                    <span class="label">Average Resolution Time</span>
+                </div>
+                <div class="value">43h</div>
+                <div class="subtext">Main project</div>
+            </div>
+            <div class="glass stat-card">
+                <svg class="menu-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                <div>
+                    <span class="trend" style="color:var(--green)">▲ 10.1%</span>
+                    <span class="label">Customer Satisfaction</span>
+                </div>
+                <div class="value">53%</div>
+                <div class="subtext">Satisfaction</div>
+            </div>
+        </div>
+
+        <!-- MAIN ROW: chart + SLA -->
+        <div class="main-row">
+            <div class="glass chart-wrap">
+                <div class="title-row">
+                    <h2>Ticket volume</h2>
+                    <div class="pill">All Time
+                        <svg viewBox="0 0 12 12" fill="currentColor"><path d="M3 4.5l3 3 3-3z"/></svg>
+                    </div>
+                </div>
+                <svg class="chart-svg" viewBox="0 0 520 240" preserveAspectRatio="none">
+                    <!-- gridlines -->
+                    <line x1="34" y1="20"  x2="510" y2="20"  class="grid-line" />
+                    <line x1="34" y1="60"  x2="510" y2="60"  class="grid-line" />
+                    <line x1="34" y1="100" x2="510" y2="100" class="grid-line" />
+                    <line x1="34" y1="140" x2="510" y2="140" class="grid-line" />
+                    <line x1="34" y1="180" x2="510" y2="180" class="grid-line" />
+                    <line x1="34" y1="210" x2="510" y2="210" style="stroke:rgba(255,255,255,0.08);stroke-width:1" />
+
+                    <!-- y-axis -->
+                    <text x="6"  y="24"  class="axis-label">150</text>
+                    <text x="6"  y="64"  class="axis-label">125</text>
+                    <text x="6"  y="104" class="axis-label">100</text>
+                    <text x="14" y="144" class="axis-label">75</text>
+                    <text x="14" y="184" class="axis-label">50</text>
+                    <text x="20" y="214" class="axis-label">0</text>
+
+                    <defs>
+                        <linearGradient id="area-blue" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#60a5fa" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="#60a5fa" stop-opacity="0"/>
+                        </linearGradient>
+                        <linearGradient id="area-orange" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#f97316" stop-opacity="0.30"/>
+                            <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+                        </linearGradient>
+                        <linearGradient id="area-light" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%"   stop-color="#93c5fd" stop-opacity="0.22"/>
+                            <stop offset="100%" stop-color="#93c5fd" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+
+                    <!-- light blue (back) -->
+                    <path d="M34,210 L34,170 C90,150 130,170 180,130 C230,110 280,150 330,120 C380,100 430,130 510,90 L510,210 Z"
+                          fill="url(#area-light)" />
+
+                    <!-- main blue area -->
+                    <path d="M34,210 L34,150 C90,120 130,170 180,90 C230,130 280,80 330,100 C380,110 430,70 510,55 L510,210 Z"
+                          fill="url(#area-blue)" />
+
+                    <!-- orange area -->
+                    <path d="M34,210 L34,185 C90,160 130,195 180,140 C230,170 280,125 330,150 C380,170 430,130 510,115 L510,210 Z"
+                          fill="url(#area-orange)" />
+
+                    <!-- main blue line -->
+                    <path d="M34,150 C90,120 130,170 180,90 C230,130 280,80 330,100 C380,110 430,70 510,55"
+                          fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+                    <!-- light blue line -->
+                    <path d="M34,170 C90,150 130,170 180,130 C230,110 280,150 330,120 C380,100 430,130 510,90"
+                          fill="none" stroke="#93c5fd" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+
+                    <!-- orange dashed line -->
+                    <path d="M34,185 C90,160 130,195 180,140 C230,170 280,125 330,150 C380,170 430,130 510,115"
+                          fill="none" stroke="#fb923c" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round"/>
+
+                    <!-- x-axis -->
+                    <text x="42"  y="228" class="axis-label">Jan</text>
+                    <text x="120" y="228" class="axis-label">Feb</text>
+                    <text x="200" y="228" class="axis-label">Mar</text>
+                    <text x="280" y="228" class="axis-label">Apr</text>
+                    <text x="360" y="228" class="axis-label">May</text>
+                    <text x="440" y="228" class="axis-label">Jun</text>
+                    <text x="490" y="228" class="axis-label">Time</text>
+                </svg>
+
+                <div class="legend">
+                    <div class="legend-item"><div class="legend-mark" style="background:#60a5fa"></div> Ticket Volume</div>
+                    <div class="legend-item"><div class="legend-mark" style="background:#93c5fd"></div> Light Blues</div>
+                    <div class="legend-item"><div class="legend-line" style="background:#fb923c"></div> Date Series</div>
+                    <div class="legend-item"><div class="legend-mark" style="background:rgba(96,165,250,0.35)"></div> Volume Trend</div>
+                    <div class="legend-item"><div class="legend-mark" style="background:#f97316"></div> Medium Orange</div>
+                    <div class="legend-item"><div class="legend-line" style="background:#fb923c"></div> Medium Orders</div>
+                </div>
+            </div>
+
+            <div class="glass">
+                <div class="title-row">
+                    <h2>SLA Compliance</h2>
+                    <svg class="menu-dots" viewBox="0 0 24 24" fill="currentColor" style="position:static;opacity:0.35"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                </div>
+                <div class="sla-grid">
+                    <div class="gauge-box">
+                        <svg class="gauge-svg" viewBox="0 0 100 100">
+                            <circle class="gauge-track" cx="50" cy="50" r="42" />
+                            <circle class="gauge-bar"   cx="50" cy="50" r="42"
+                                    style="stroke-dasharray: 264; stroke-dashoffset: 16" />
+                        </svg>
+                        <div class="gauge-center">
+                            <div class="gauge-val">94%</div>
+                            <div class="gauge-mini">SLA Met</div>
+                        </div>
+                    </div>
+                    <div class="gauge-box">
+                        <svg class="gauge-svg" viewBox="0 0 100 100">
+                            <circle class="gauge-track" cx="50" cy="50" r="42" />
+                            <circle class="gauge-bar"   cx="50" cy="50" r="42"
+                                    style="stroke-dasharray: 264; stroke-dashoffset: 10; stroke: #e5e7eb" />
+                        </svg>
+                        <div class="gauge-center">
+                            <div class="gauge-val">96%</div>
+                            <div class="gauge-mini">SLA Met</div>
+                        </div>
+                    </div>
+                    <div class="gauge-box">
+                        <svg class="gauge-svg" viewBox="0 0 100 100">
+                            <circle class="gauge-track" cx="50" cy="50" r="42" />
+                            <circle class="gauge-bar"   cx="50" cy="50" r="42"
+                                    style="stroke-dasharray: 264; stroke-dashoffset: 16" />
+                        </svg>
+                        <div class="gauge-center">
+                            <div class="gauge-val">94%</div>
+                            <div class="gauge-mini">SLA Met</div>
+                        </div>
+                    </div>
+                    <div class="gauge-box">
+                        <svg class="gauge-svg" viewBox="0 0 100 100">
+                            <circle class="gauge-track" cx="50" cy="50" r="42" />
+                            <circle class="gauge-bar"   cx="50" cy="50" r="42"
+                                    style="stroke-dasharray: 264; stroke-dashoffset: 16" />
+                        </svg>
+                        <div class="gauge-center">
+                            <div class="gauge-val">94%</div>
+                            <div class="gauge-mini">SLA Met</div>
+                        </div>
+                    </div>
+                    <div class="gauge-box">
+                        <svg class="gauge-svg" viewBox="0 0 100 100">
+                            <circle class="gauge-track" cx="50" cy="50" r="42" />
+                            <circle class="gauge-bar"   cx="50" cy="50" r="42"
+                                    style="stroke-dasharray: 264; stroke-dashoffset: 61; stroke: #a8b2c4" />
+                        </svg>
+                        <div class="gauge-center">
+                            <div class="gauge-val">77%</div>
+                            <div class="gauge-mini">SLA Met</div>
+                        </div>
+                    </div>
+                    <div class="gauge-box">
+                        <svg class="gauge-svg" viewBox="0 0 100 100">
+                            <circle class="gauge-track" cx="50" cy="50" r="42" />
+                            <circle class="gauge-bar"   cx="50" cy="50" r="42"
+                                    style="stroke-dasharray: 264; stroke-dashoffset: 24" />
+                        </svg>
+                        <div class="gauge-center">
+                            <div class="gauge-val">91%</div>
+                            <div class="gauge-mini">SLA Met</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER ROW -->
+        <div class="footer-row">
+            <div class="glass stat-card">
+                <svg class="menu-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                <div>
+                    <span class="trend" style="color:var(--primary-2)">▼ 12%</span>
+                    <span class="label">Open Tickets</span>
+                </div>
+                <div class="value">35</div>
+                <svg class="mini-spark" viewBox="0 0 220 44" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="sp1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#f97316" stop-opacity="0.25"/>
+                            <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,38 C30,38 60,28 90,32 C120,36 150,16 220,22 L220,44 L0,44 Z" fill="url(#sp1)"/>
+                    <path d="M0,38 C30,38 60,28 90,32 C120,36 150,16 220,22"
+                          fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="glass stat-card">
+                <svg class="menu-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                <div>
+                    <span class="trend" style="color:var(--green)">▲ 18%</span>
+                    <span class="label">Average Resolution Time</span>
+                </div>
+                <div class="value">41.7h</div>
+                <svg class="mini-spark" viewBox="0 0 220 44" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="sp2" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.25"/>
+                            <stop offset="100%" stop-color="#60a5fa" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,32 C40,32 80,38 120,22 C160,8 200,36 220,38 L220,44 L0,44 Z" fill="url(#sp2)"/>
+                    <path d="M0,32 C40,32 80,38 120,22 C160,8 200,36 220,38"
+                          fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="glass stat-card">
+                <svg class="menu-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                <div>
+                    <span class="trend" style="color:var(--green)">▲ 30%</span>
+                    <span class="label">Customer Satisfaction</span>
+                </div>
+                <div class="value">87.3%</div>
+                <svg class="mini-spark" viewBox="0 0 220 44" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="sp3" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#22c55e" stop-opacity="0.22"/>
+                            <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,28 C40,28 80,12 120,22 C160,32 200,6 220,6 L220,44 L0,44 Z" fill="url(#sp3)"/>
+                    <path d="M0,28 C40,28 80,12 120,22 C160,32 200,6 220,6"
+                          fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

@@ -310,12 +310,16 @@ def process_tickets_data(csv_override=None):
     df["Priority"]  = col("Priority","P4").fillna("P4").astype(str).str.strip()
     df["Project Name"] = col("Project Name","Unknown").fillna("Unknown").astype(str).str.strip()
     
-    ts_cols = ["Opening Date", "Close Date", "Date of Resolution", "Last Updated Date"]
-    for c in ts_cols:
-        df[c] = pd.to_datetime(col(c), errors="coerce", format="ISO8601")
-        mask = df[c].isna() & col(c).notna()
-        if mask.any():
-            df.loc[mask, c] = pd.to_datetime(df.loc[mask, c].fillna(col(c)), errors="coerce", dayfirst=True)
+    date_cols = ["Opening Date", "Date of Resolution", "Close Date", "Last Updated Date"]
+    for col_name in date_cols:
+        if col_name in df.columns:
+            # Usamos dayfirst=True para suportar o formato DD/MM/YYYY do Mantis/Histórico
+            df[col_name] = pd.to_datetime(df[col_name], dayfirst=True, errors="coerce")
+            
+    # Auditando se ainda restam NaT em Opening Date (não deveriam para tickets válidos)
+    nats = df["Opening Date"].isna().sum()
+    if nats > 0:
+        log.warning(f"Aviso: {nats} tickets com 'Opening Date' inválido após conversão.")
 
     valid_dates = df["Opening Date"].dropna()
     if not valid_dates.empty:

@@ -18,28 +18,23 @@
     }
 
     :root {
-      --bg: #0B1F2C;
-      --bg-grad: radial-gradient(circle at top, #102638, var(--bg));
-      --surf: #132A3D;
-      --card: #18364F;
-      --glass-surf: rgba(19, 42, 61, 0.75);
-      --glass-card: rgba(24, 54, 79, 0.45);
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --glass-shadow: rgba(0, 0, 0, 0.25);
-      --border: #435363;
+      --bg: #0a0f1a;
+      --bg-2: #0d1422;
+      --card-grad-1: rgba(30, 42, 66, 0.35);
+      --card-grad-2: rgba(12, 19, 33, 0.30);
+      --border: rgba(255, 255, 255, 0.08);
+      --rim: rgba(255, 255, 255, 0.18);
       --text: #ffffff;
-      --muted: #C0CDD5;
+      --muted: #7d8aa0;
+      --muted-2: #a8b2c4;
       --dim: #7C98AB;
       --open: #FF6B00;
       --closed: #CF0A2C;
-      --green: #34d399;
+      --green: #22c55e;
       --amber: #FFBF3B;
       --orange: #FF9E16;
-      --red: #8B2332;
-      --blue: #7C98AB;
-      --purple: #a78bfa;
-      --f: 'Inter', Arial, sans-serif;
-      --ft: 'Inter', Arial, sans-serif;
+      --red: #ef4444;
+      --ft: 'Inter', sans-serif;
     }
 
     @media (prefers-color-scheme: light) {
@@ -63,11 +58,19 @@
 
     html,
     body {
-      background: var(--bg-grad);
+      background: var(--bg);
       color: var(--text);
-      font-family: var(--f);
-      min-height: 100vh
+      font-family: var(--ft);
+      min-height: 100vh;
+      overflow-x: hidden;
     }
+
+    /* --- BACKGROUND ORBS --- */
+    .bg-orbs { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.35; }
+    .orb-1 { width: 600px; height: 600px; top: -150px; left: 20%; background: radial-gradient(circle, rgba(249, 115, 22, 0.3) 0%, transparent 70%); }
+    .orb-2 { width: 700px; height: 700px; top: 15%; right: -200px; background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%); }
+    .orb-3 { width: 500px; height: 500px; bottom: -150px; left: 10%; background: radial-gradient(circle, rgba(6, 182, 212, 0.3) 0%, transparent 70%); }
 
     .hdr {
       background: var(--glass-surf);
@@ -449,6 +452,87 @@
 
     .panel.active {
       display: flex
+    }
+
+    /* --- PREMIUM GLASS DESIGN SYSTEM (GEMINI.md) --- */
+    .glass-card {
+      background: linear-gradient(180deg, var(--card-grad-1) 0%, var(--card-grad-2) 100%);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border-radius: 12px;
+      padding: 12px 16px; /* Compacto */
+      border: 1px solid var(--border);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 90px; /* Reduzido de 110px */
+      transition: all 0.3s ease;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+      overflow: hidden;
+    }
+
+    /* Top-edge rim light */
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 15%; right: 15%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.50) 50%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .glass-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.50);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .glow-green { box-shadow: 0 0 35px rgba(34, 197, 94, 0.15), 0 12px 30px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.10); }
+    .glow-orange { box-shadow: 0 0 35px rgba(249, 115, 22, 0.15), 0 12px 30px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.10); }
+    .glow-red { box-shadow: 0 0 35px rgba(239, 68, 68, 0.15), 0 12px 30px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.10); }
+
+    .card-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .card-status {
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-ok { color: var(--green); }
+    .status-alert { color: var(--orange); }
+    .status-crit { color: var(--red); }
+
+    .card-val {
+      font-size: 28px; /* Reduzido de 32px */
+      font-weight: 300;
+      font-family: 'Inter', sans-serif;
+      margin: 2px 0;
+      line-height: 1.1;
+      letter-spacing: -0.8px;
+    }
+
+    .card-sub {
+      font-size: 10px;
+      color: var(--muted);
+      opacity: 0.7;
+      font-weight: 400;
     }
 
     .r2 {
@@ -2221,90 +2305,6 @@
       color: #f87171;
     }
 
-    /* ── CFO EXECUTIVE SUMMARY (visual only) ────────────────────── */
-    #exec-summary-body {
-      position: relative;
-      background: linear-gradient(180deg, rgba(30, 42, 66, 0.35) 0%, rgba(12, 19, 33, 0.30) 100%) !important;
-      backdrop-filter: blur(40px) saturate(180%);
-      -webkit-backdrop-filter: blur(40px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.08) !important;
-      border-radius: 18px !important;
-      box-shadow:
-        0 30px 60px rgba(0, 0, 0, 0.40),
-        inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
-      overflow: hidden;
-    }
-    #exec-summary-body::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 14%; right: 14%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.40) 50%, transparent 100%);
-      pointer-events: none;
-      z-index: 2;
-    }
-    #exec-summary-body::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 35%;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%);
-      pointer-events: none;
-      border-radius: 18px 18px 0 0;
-      z-index: 0;
-    }
-    #exec-summary-body > * { position: relative; z-index: 1; }
-
-    /* glass-card já existe; reforçamos rim light e profundidade */
-    #exec-summary-body .glass-card {
-      position: relative;
-      background: linear-gradient(180deg, rgba(30, 42, 66, 0.45) 0%, rgba(12, 19, 33, 0.40) 100%) !important;
-      backdrop-filter: blur(20px) saturate(160%);
-      -webkit-backdrop-filter: blur(20px) saturate(160%);
-      border: 1px solid rgba(255, 255, 255, 0.08) !important;
-      border-radius: 14px !important;
-      box-shadow:
-        0 20px 40px rgba(0, 0, 0, 0.35),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      overflow: hidden;
-    }
-    #exec-summary-body .glass-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 16%; right: 16%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.30) 50%, transparent);
-      pointer-events: none;
-    }
-    #exec-summary-body .glass-card > * { position: relative; z-index: 1; }
-
-    /* Variantes de glow herdam cor no rim */
-    #exec-summary-body .glass-card.glow-green   { box-shadow: 0 0 40px rgba(34, 197, 94, 0.14), 0 20px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08); }
-    #exec-summary-body .glass-card.glow-green::before  { background: linear-gradient(90deg, transparent, rgba(134, 239, 172, 0.55) 50%, transparent); }
-    #exec-summary-body .glass-card.glow-orange  { box-shadow: 0 0 40px rgba(249, 115, 22, 0.16), 0 20px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08); }
-    #exec-summary-body .glass-card.glow-orange::before { background: linear-gradient(90deg, transparent, rgba(253, 186, 116, 0.60) 50%, transparent); }
-    #exec-summary-body .glass-card.glow-red     { box-shadow: 0 0 40px rgba(248, 113, 113, 0.18), 0 20px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08); }
-    #exec-summary-body .glass-card.glow-red::before    { background: linear-gradient(90deg, transparent, rgba(252, 165, 165, 0.60) 50%, transparent); }
-
-    /* Tabela MoM e bloco budget recebem aparência glass */
-    #exec-summary-body table {
-      background: rgba(15, 23, 42, 0.30) !important;
-      border-radius: 12px;
-      overflow: hidden;
-      backdrop-filter: blur(10px);
-    }
-
-    /* Tipografia executiva — UPPERCASE letter-spacing igual ao mockup */
-    #exec-summary-body h2 {
-      text-transform: uppercase;
-      letter-spacing: 2.5px;
-      font-weight: 400 !important;
-    }
-    #exec-summary-body h3 {
-      font-weight: 500 !important;
-      letter-spacing: 2px !important;
-    }
-
     /* ── Print / Export ──────────────────────────────────────────── */
     #export-fab {
       position: fixed;
@@ -2734,6 +2734,7 @@
   <div class="bg-orbs">
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
   </div>
 
   <div class="app-layout">
@@ -2922,7 +2923,7 @@
       <div id="panel-exec_summary" class="panel">
         <div style="max-width:1000px;margin:0 auto">
           <div id="exec-summary-body"
-            style="padding:40px;font-family:'Inter', sans-serif">
+            style="background:#0a1219;padding:40px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);box-shadow:0 20px 50px rgba(0,0,0,0.5);font-family:'Inter', sans-serif">
             <!-- Injetado via JS -->
           </div>
         </div>
@@ -10600,35 +10601,33 @@
                   const pct = totalTicketsAll > 0 ? (ap.total / totalTicketsAll * 100) : 0;
                   const bkRatio = ap.total > 0 ? ap.open / ap.total : 0;
                   const healthScore = Math.max(0, Math.min(100, Math.round(100 - bkRatio * 100 - (ap.p1p2 / (ap.total || 1)) * 50)));
-                  const hsColor = healthScore >= 70 ? '#34d399' : (healthScore >= 40 ? '#fbbf24' : '#f87171');
                   const hsLabel = healthScore >= 70 ? 'Saudável' : (healthScore >= 40 ? 'Atenção' : 'Crítico');
+                  const glowClass = healthScore >= 70 ? 'glow-green' : (healthScore >= 40 ? 'glow-orange' : 'glow-red');
                   const isConcentrated = pct > 30;
 
                   return `
-            <div style="background: rgba(15, 23, 42, 0.5); border-radius: 10px; padding: 18px; border: 1px solid ${isConcentrated ? 'rgba(248,113,113,0.3)' : 'rgba(255,255,255,0.05)'}; flex: 1; min-width: 0;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <div style="font-size: 13px; font-weight: 700; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">${i === 0 ? '🥇' : (i === 1 ? '🥈' : '🥉')} ${ap.app}</div>
-                <div style="font-size: 9px; font-weight: 700; color: ${hsColor}; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px;">${hsLabel} (${healthScore})</div>
+            <div class="glass-card ${glowClass}" style="flex: 1; min-width: 0; border-color: ${isConcentrated ? 'rgba(248,113,113,0.3)' : 'var(--border)'};">
+              <div class="card-hdr">
+                <div class="card-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">${i === 0 ? '🥇' : (i === 1 ? '🥈' : '🥉')} ${ap.app}</div>
+                <div class="card-status ${healthScore >= 70 ? 'status-ok' : (healthScore >= 40 ? 'status-alert' : 'status-crit')}">${hsLabel} (${healthScore})</div>
               </div>
               
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0;">
                 <div>
-                  <div style="font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">Volume</div>
-                  <div style="font-size: 16px; font-weight: 700; color: #f1f5f9; margin-top: 2px;">${ap.total} <span style="font-size: 10px; color: var(--muted); font-weight: 400;">(${pct.toFixed(0)}%)</span></div>
+                  <div style="font-size: 8px; color: var(--muted); text-transform: uppercase;">Volume</div>
+                  <div style="font-size: 14px; font-weight: 700; color: #f1f5f9;">${ap.total} <span style="font-size: 9px; color: var(--muted); font-weight: 400;">(${pct.toFixed(0)}%)</span></div>
                 </div>
                 <div>
-                  <div style="font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">Custo</div>
-                  <div style="font-size: 16px; font-weight: 700; color: #a78bfa; margin-top: 2px;">${ap.md.toFixed(1)} <span style="font-size: 10px; color: var(--muted); font-weight: 400;">MDs</span></div>
+                  <div style="font-size: 8px; color: var(--muted); text-transform: uppercase;">Custo</div>
+                  <div style="font-size: 14px; font-weight: 700; color: var(--purple);">${ap.md.toFixed(1)} <span style="font-size: 9px; color: var(--muted); font-weight: 400;">MD</span></div>
                 </div>
               </div>
               
-              <div style="display: flex; gap: 12px; font-size: 9px; color: var(--dim); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+              <div style="display: flex; gap: 10px; font-size: 8px; color: var(--dim); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;">
                 <span>P1/P2: <b style="color: ${ap.p1p2 > 0 ? '#fbbf24' : '#34d399'};">${ap.p1p2}</b></span>
                 <span>Aberto: <b>${ap.open}</b></span>
                 <span>Fechado: <b>${ap.closed}</b></span>
               </div>
-              
-              ${isConcentrated ? `<div style="margin-top: 10px; padding: 6px 10px; background: rgba(248,113,113,0.08); border-radius: 6px; font-size: 9px; color: #f87171;">⚠ Concentração de risco: ${pct.toFixed(0)}% do volume total</div>` : ''}
             </div>`;
                 }).join('');
 
@@ -10654,21 +10653,9 @@
         <p>🟢 <b>Saúde Financeira (${filterY}):</b> Eficiência global de <b style="color:${globalEff <= 100 ? '#34d399' : '#f87171'}">${globalEff.toFixed(1)}%</b> (${totalActual.toFixed(1)}/${totalExpected.toFixed(1)} MDs). Operação dentro da margem planejada.</p>
         <p style="margin-top:10px; margin-bottom:5px;"><b>Estabilidade de Volume (${filterY})</b></p>
         <div style="display:flex; gap:12px; margin-bottom:15px;">
-          <div style="flex:1; background:rgba(255,255,255,0.02); padding:10px 15px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
-             <div style="font-size:10px; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">Global (Inc + UR)</div>
-             <div style="font-size:16px; font-weight:700;">${stGlob.avg.toFixed(1)} <span style="font-size:10px; font-weight:normal; color:var(--dim);">/mês</span></div>
-             <div style="font-size:11px; color:var(--muted); margin-top:2px;">Volatilidade (CV): <b style="color:${stGlob.cv < 20 ? '#34d399' : (stGlob.cv < 40 ? '#fbbf24' : '#f87171')}">${stGlob.cv.toFixed(0)}%</b></div>
-          </div>
-          <div style="flex:1; background:rgba(255,255,255,0.02); padding:10px 15px; border-radius:6px; border:1px solid ${stInc.cv >= 30 ? 'rgba(248,113,113,0.3)' : 'rgba(255,255,255,0.05)'};">
-             <div style="font-size:10px; color:${stInc.cv >= 30 ? '#f87171' : 'var(--muted)'}; text-transform:uppercase; margin-bottom:4px;">Incidentes <span style="font-size:8px;">(Risco)</span></div>
-             <div style="font-size:16px; font-weight:700; color:${stInc.cv >= 30 ? '#f87171' : '#e2e8f0'};">${stInc.avg.toFixed(1)} <span style="font-size:10px; font-weight:normal; color:var(--dim);">/mês</span></div>
-             <div style="font-size:11px; color:var(--muted); margin-top:2px;">Volatilidade (CV): <b style="color:${stInc.cv < 20 ? '#34d399' : (stInc.cv < 30 ? '#fbbf24' : '#f87171')}">${stInc.cv.toFixed(0)}%</b></div>
-          </div>
-          <div style="flex:1; background:rgba(255,255,255,0.02); padding:10px 15px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
-             <div style="font-size:10px; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">Requisições <span style="font-size:8px;">(UR)</span></div>
-             <div style="font-size:16px; font-weight:700;">${stReq.avg.toFixed(1)} <span style="font-size:10px; font-weight:normal; color:var(--dim);">/mês</span></div>
-             <div style="font-size:11px; color:var(--muted); margin-top:2px;">Volatilidade (CV): <b style="color:${stReq.cv < 40 ? '#34d399' : '#fbbf24'}">${stReq.cv.toFixed(0)}%</b></div>
-          </div>
+          ${buildMatCard("Global (Inc + UR)", stGlob.avg.toFixed(1) + ` <span style="font-size:10px; font-weight:normal; color:var(--dim);">/mês</span>`, stGlob.cv < 20 ? '#34d399' : (stGlob.cv < 40 ? '#fbbf24' : '#f87171'), `Volatilidade (CV): ${stGlob.cv.toFixed(0)}%`)}
+          ${buildMatCard("Incidentes (Risco)", stInc.avg.toFixed(1) + ` <span style="font-size:10px; font-weight:normal; color:var(--dim);">/mês</span>`, stInc.cv < 20 ? '#34d399' : (stInc.cv < 30 ? '#fbbf24' : '#f87171'), `Volatilidade (CV): ${stInc.cv.toFixed(0)}%`)}
+          ${buildMatCard("Requisições (UR)", stReq.avg.toFixed(1) + ` <span style="font-size:10px; font-weight:normal; color:var(--dim);">/mês</span>`, stReq.cv < 40 ? '#34d399' : '#fbbf24', `Volatilidade (CV): ${stReq.cv.toFixed(0)}%`)}
         </div>
         
         <h3>2. Mês Corrente</h3>
@@ -10681,62 +10668,38 @@
         <p>🔍 <b>Root Cause Não Preenchida:</b> ${hygieneDetails.length > 0 ? `Tickets fechados sem Root Cause Source: ${hygieneDetails.join(', ')}. Ação necessária: documentar causa raiz antes do fechamento.` : '🟢 Todos os tickets fechados possuem Root Cause preenchida.'}</p>
         ${(() => {
           const idsEmpty = hygieneAlerts.rcEmptyClosed.map(a => a.tk);
-          const clickEmpty = idsEmpty.length > 0 ? `ondblclick='openModal("Governança", "Incident + PM sem RC", "incident", ${JSON.stringify(idsEmpty)}, "open")' style="background:rgba(248,113,113,0.05); padding:15px; border-radius:10px; border:1px solid #f87171; text-align:center; cursor:pointer;" title="Duplo clique para detalhar"` : `style="background:rgba(52,211,153,0.05); padding:15px; border-radius:10px; border:1px solid rgba(52,211,153,0.3); text-align:center;"`;
+          const clickEmpty = idsEmpty.length > 0 ? `ondblclick='openModal("Governança", "Incident + PM sem RC", "incident", ${JSON.stringify(idsEmpty)}, "open")' title="Duplo clique para detalhar" style="cursor:pointer;"` : '';
           const clrEmpty = idsEmpty.length > 0 ? '#f87171' : '#34d399';
           
           const idsPA = hygieneAlerts.rcPendingPA.map(a => a.tk);
-          const clickPA = idsPA.length > 0 ? `ondblclick='openModal("Governança", "Inc Aberto c/ PA e PM Fechado", "incident", ${JSON.stringify(idsPA)}, "open")' style="background:rgba(251,191,36,0.05); padding:15px; border-radius:10px; border:1px solid #fbbf24; text-align:center; cursor:pointer;" title="Duplo clique para detalhar"` : `style="background:rgba(52,211,153,0.05); padding:15px; border-radius:10px; border:1px solid rgba(52,211,153,0.3); text-align:center;"`;
+          const clickPA = idsPA.length > 0 ? `ondblclick='openModal("Governança", "Inc Aberto c/ PA e PM Fechado", "incident", ${JSON.stringify(idsPA)}, "open")' title="Duplo clique para detalhar" style="cursor:pointer;"` : '';
           const clrPA = idsPA.length > 0 ? '#fbbf24' : '#34d399';
 
           const idsNoPM = hygieneAlerts.incNoProblem.map(a => a.tk);
-          const clickNoPM = idsNoPM.length > 0 ? `ondblclick='openModal("Governança", "Incidentes sem PM", "incident", ${JSON.stringify(idsNoPM)}, "open")' style="background:rgba(248,113,113,0.05); padding:15px; border-radius:10px; border:1px solid #f87171; text-align:center; cursor:pointer;" title="Duplo clique para detalhar"` : `style="background:rgba(52,211,153,0.05); padding:15px; border-radius:10px; border:1px solid rgba(52,211,153,0.3); text-align:center;"`;
+          const clickNoPM = idsNoPM.length > 0 ? `ondblclick='openModal("Governança", "Incidentes sem PM", "incident", ${JSON.stringify(idsNoPM)}, "open")' title="Duplo clique para detalhar" style="cursor:pointer;"` : '';
           const clrNoPM = idsNoPM.length > 0 ? '#f87171' : '#34d399';
 
           const idsUE = hygieneAlerts.userError.list.map(a => a.tk);
-          const clickUE = idsUE.length > 0 ? `ondblclick='openModal("Governança", "Custo User Error", "incident", ${JSON.stringify(idsUE)}, "open")' style="background:rgba(251,191,36,0.05); padding:15px; border-radius:10px; border:1px solid #fbbf24; text-align:center; cursor:pointer;" title="Duplo clique para listar tickets de erro do usuário"` : `style="background:rgba(52,211,153,0.05); padding:15px; border-radius:10px; border:1px solid rgba(52,211,153,0.3); text-align:center;"`;
+          const clickUE = idsUE.length > 0 ? `ondblclick='openModal("Governança", "Custo User Error", "incident", ${JSON.stringify(idsUE)}, "open")' title="Duplo clique para listar tickets de erro do usuário" style="cursor:pointer;"` : '';
           const clrUE = idsUE.length > 0 ? '#fbbf24' : '#34d399';
 
           const idsNI = hygieneAlerts.notIdentified.map(a => a.tk);
-          const clickNI = idsNI.length > 0 ? `ondblclick='openModal("Governança", "RC Not Identified", "incident", ${JSON.stringify(idsNI)}, "open")' style="background:rgba(249,115,22,0.05); padding:15px; border-radius:10px; border:1px solid #f97316; text-align:center; cursor:pointer;" title="Duplo clique para auditar fuga de processo"` : `style="background:rgba(52,211,153,0.05); padding:15px; border-radius:10px; border:1px solid rgba(52,211,153,0.3); text-align:center;"`;
+          const clickNI = idsNI.length > 0 ? `ondblclick='openModal("Governança", "RC Not Identified", "incident", ${JSON.stringify(idsNI)}, "open")' title="Duplo clique para auditar fuga de processo" style="cursor:pointer;"` : '';
           const clrNI = idsNI.length > 0 ? '#f97316' : '#34d399';
 
           const idsPU = hygieneAlerts.pendingUser.list;
           const daysPU = hygieneAlerts.pendingUser.totalDays;
           const clrPU = idsPU.length > 0 ? '#fbbf24' : '#34d399';
-          const clickPU = `ondblclick='openModal("Governança", "Gargalo Pending User", "incident", ${JSON.stringify(idsPU)}, "open")' style="background:${idsPU.length > 0 ? 'rgba(251,191,36,0.05)' : 'rgba(52,211,153,0.05)'}; padding:15px; border-radius:10px; border:1px solid ${idsPU.length > 0 ? '#fbbf24' : 'rgba(52,211,153,0.3)'}; text-align:center; cursor:pointer;" title="Duplo clique para auditar gargalo no negócio"`;
+          const clickPU = idsPU.length > 0 ? `ondblclick='openModal("Governança", "Gargalo Pending User", "incident", ${JSON.stringify(idsPU)}, "open")' title="Duplo clique para auditar gargalo no negócio" style="cursor:pointer;"` : '';
 
           return `
           <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:15px 0;">
-            <div ${clickEmpty} onmouseover="if(${idsEmpty.length}>0) this.style.background='rgba(248,113,113,0.1)'" onmouseout="if(${idsEmpty.length}>0) this.style.background='rgba(248,113,113,0.05)'">
-               <div style="font-size:9px; color:${clrEmpty}; text-transform:uppercase; margin-bottom:10px;">Incident + Problem fechados sem RC</div>
-               <div style="font-size:20px; font-weight:700; color:${clrEmpty};">${idsEmpty.length}</div>
-               <div style="font-size:9px; color:var(--dim); margin-top:5px;">${idsEmpty.length > 0 ? 'Duplo clique para detalhar' : 'Nenhuma ocorrência'}</div>
-            </div>
-            <div ${clickPA} onmouseover="if(${idsPA.length}>0) this.style.background='rgba(251,191,36,0.1)'" onmouseout="if(${idsPA.length}>0) this.style.background='rgba(251,191,36,0.05)'">
-               <div style="font-size:9px; color:${clrPA}; text-transform:uppercase; margin-bottom:10px;">Inc Aberto (PA) e PM Fechado</div>
-               <div style="font-size:20px; font-weight:700; color:${clrPA};">${idsPA.length}</div>
-               <div style="font-size:9px; color:var(--dim); margin-top:5px;">${idsPA.length > 0 ? 'Duplo clique para detalhar' : 'Nenhuma ocorrência'}</div>
-            </div>
-            <div ${clickNoPM} onmouseover="if(${idsNoPM.length}>0) this.style.background='rgba(248,113,113,0.1)'" onmouseout="if(${idsNoPM.length}>0) this.style.background='rgba(248,113,113,0.05)'">
-               <div style="font-size:9px; color:${clrNoPM}; text-transform:uppercase; margin-bottom:10px;">Incidentes encerrados sem Problem</div>
-               <div style="font-size:20px; font-weight:700; color:${clrNoPM};">${idsNoPM.length}</div>
-               <div style="font-size:9px; color:var(--dim); margin-top:5px;">${idsNoPM.length > 0 ? 'Duplo clique para detalhar' : 'Nenhuma ocorrência'}</div>
-            </div>
-            <div ${clickUE} onmouseover="if(${idsUE.length}>0) this.style.background='rgba(251,191,36,0.1)'" onmouseout="if(${idsUE.length}>0) this.style.background='rgba(251,191,36,0.05)'">
-               <div style="font-size:9px; color:${clrUE}; text-transform:uppercase; margin-bottom:10px;">Falta de Treinamento (User Error)</div>
-               <div style="font-size:20px; font-weight:700; color:${clrUE};">${idsUE.length} <span style="font-size:11px; font-weight:400;">(${hygieneAlerts.userError.mds.toFixed(1)} MDs)</span></div>
-               <div style="font-size:9px; color:var(--dim); margin-top:5px;">${idsUE.length > 0 ? 'Custo invisível p/ o Negócio' : 'Nenhuma ocorrência'}</div>
-            </div>
-            <div ${clickNI} onmouseover="if(${idsNI.length}>0) this.style.background='rgba(249,115,22,0.1)'" onmouseout="if(${idsNI.length}>0) this.style.background='rgba(249,115,22,0.05)'">
-               <div style="font-size:9px; color:${clrNI}; text-transform:uppercase; margin-bottom:10px;">Falsa Causa Raiz ("Not Identified")</div>
-               <div style="font-size:20px; font-weight:700; color:${clrNI};">${idsNI.length}</div>
-               <div style="font-size:9px; color:var(--dim); margin-top:5px;">${idsNI.length > 0 ? 'Duplo clique p/ auditar analistas' : 'Nenhuma fuga identificada'}</div>
-            </div>
-            <div ${clickPU} onmouseover="if(${idsPU.length}>0) this.style.background='rgba(251,191,36,0.1)'" onmouseout="if(${idsPU.length}>0) this.style.background='rgba(251,191,36,0.05)'">
-               <div style="font-size:9px; color:${clrPU}; text-transform:uppercase; margin-bottom:10px;">Gargalo de Negócio (Pending User)</div>
-               <div style="font-size:20px; font-weight:700; color:${clrPU};">${idsPU.length} <span style="font-size:11px; font-weight:400;">(${daysPU} dias totais)</span></div>
-               <div style="font-size:9px; color:var(--dim); margin-top:5px;">${idsPU.length > 0 ? 'Aguardando ação do Cliente' : 'Fluxo fluindo normalmente'}</div>
-            </div>
+            ${buildMatCard("Incident + Problem fechados sem RC", idsEmpty.length, clrEmpty, idsEmpty.length > 0 ? 'Duplo clique para detalhar' : 'Nenhuma ocorrência', clickEmpty)}
+            ${buildMatCard("Inc Aberto (PA) e PM Fechado", idsPA.length, clrPA, idsPA.length > 0 ? 'Duplo clique para detalhar' : 'Nenhuma ocorrência', clickPA)}
+            ${buildMatCard("Incidentes encerrados sem Problem", idsNoPM.length, clrNoPM, idsNoPM.length > 0 ? 'Duplo clique para detalhar' : 'Nenhuma ocorrência', clickNoPM)}
+            ${buildMatCard("Falta de Treinamento (User Error)", idsUE.length + ` <span style="font-size:11px; font-weight:400;">(${hygieneAlerts.userError.mds.toFixed(1)} MDs)</span>`, clrUE, idsUE.length > 0 ? 'Custo invisível p/ o Negócio' : 'Nenhuma ocorrência', clickUE)}
+            ${buildMatCard("Falsa Causa Raiz ('Not Identified')", idsNI.length, clrNI, idsNI.length > 0 ? 'Duplo clique p/ auditar analistas' : 'Nenhuma fuga identificada', clickNI)}
+            ${buildMatCard("Gargalo de Negócio (Pending User)", idsPU.length + ` <span style="font-size:11px; font-weight:400;">(${daysPU} dias totais)</span>`, clrPU, idsPU.length > 0 ? 'Aguardando ação do Cliente' : 'Fluxo fluindo normalmente', clickPU)}
           </div>`;
         })()}
         
@@ -10810,13 +10773,36 @@
         }
 
         function buildMatCard(title, val, color, sub, clickStr) {
-          const ptr = clickStr ? 'cursor:pointer; transition:all 0.2s;' : '';
-          const hover = clickStr ? `onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(255,255,255,0.02)'"` : '';
-          return `<div ${clickStr || ''} ${hover} style="background:rgba(255,255,255,0.02); padding:15px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); text-align:center; ${ptr}" ${clickStr ? 'title="Duplo clique para detalhar"' : ''}>
-    <div style="font-size:9px; color:var(--muted); text-transform:uppercase; margin-bottom:10px;">${title}</div>
-    <div style="font-size:20px; font-weight:700; color:${color};">${val}</div>
-    <div style="font-size:9px; color:var(--dim); margin-top:5px;">${sub}</div>
-  </div>`;
+          let statusLabel = 'OK';
+          let statusIcon = '✔';
+          let statusClass = 'status-ok';
+          let glowClass = 'glow-green';
+          
+          const col = String(color).toLowerCase();
+          if (col === '#f87171' || col === 'var(--red)' || col === 'red' || col === '#ef4444') {
+            statusLabel = 'Alerta';
+            statusIcon = '▼';
+            statusClass = 'status-crit';
+            glowClass = 'glow-red';
+          } else if (col === '#fbbf24' || col === 'var(--amber)' || col.includes('orange') || col === '#f97316') {
+            statusLabel = 'Crítico';
+            statusIcon = '!';
+            statusClass = 'status-alert';
+            glowClass = 'glow-orange';
+          }
+          
+          return `
+          <div class="glass-card ${glowClass}" ${clickStr || ''}>
+            <div class="card-hdr">
+              <div class="card-title">${title}</div>
+              <div class="card-status ${statusClass}">
+                <span>${statusIcon}</span>
+                <span>${statusLabel}</span>
+              </div>
+            </div>
+            <div class="card-val" style="color: ${color}">${val}</div>
+            <div class="card-sub">${sub}</div>
+          </div>`;
         }
         function _addPrescriptiveBudget(prj, filterY, filterM, monthAnalysis) {
           var b = document.getElementById('exec-summary-body');
@@ -10900,23 +10886,31 @@
               '<div style="font-family:var(--ft);font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:15px">SUGESTÕES DE ATUAÇÃO PRIORITÁRIA (MAIOR ROI)</div>' +
               '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:15px">' +
               topP.map(function (p) {
-                var incList = p.incidents ? p.incidents.map(i => i.ticket) : [];
-                var hoverClick = incList.length > 0 ? 'cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background=\\\'rgba(255,255,255,0.05)\\\'" onmouseout="this.style.background=\\\'rgba(255,255,255,0.02)\\\'" ondblclick=\\\'openModal("Governança", "Impacto Problem #' + p.ticket + '", "incident", ' + JSON.stringify(incList) + ', "open")\\\'' : '"';
-                return '<div title="' + (incList.length > 0 ? 'Duplo clique para listar incidentes' : '') + '" style="background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);' + hoverClick + '>' +
-                  '<div style="font-size:11px;font-weight:700;color:#60a5fa;margin-bottom:4px">#' + p.ticket + '</div>' +
-                  '<div style="font-size:9px;color:var(--dim);text-transform:uppercase;margin-bottom:8px">' + (p.app || 'N/A') + '</div>' +
-                  '<div style="display:flex;justify-content:space-between;margin-bottom:4px">' +
-                  '<span style="font-size:10px;color:var(--muted)">Recorrência:</span>' +
-                  '<span style="font-size:10px;font-weight:700">' + p.inc_count + ' Inc</span>' +
-                  '</div>' +
-                  '<div style="display:flex;justify-content:space-between;margin-bottom:8px">' +
-                  '<span style="font-size:10px;color:var(--muted)">Custo Total:</span>' +
-                  '<span style="font-size:10px;font-weight:700;color:#a78bfa">' + p.total_md.toFixed(2) + ' MD</span>' +
-                  '</div>' +
-                  '<div style="font-size:9px;color:var(--dim);line-height:1.4;border-top:1px solid rgba(255,255,255,0.05);padding-top:8px">' +
-                  'Impacto: O custo crônico deste problema já equivale a <b>' + (p.total_md / budgetTarget * 100).toFixed(1) + '%</b> da cota preventiva.' +
-                  '</div>' +
-                  '</div>';
+                const incList = p.incidents ? p.incidents.map(i => i.ticket) : [];
+                const clickAction = incList.length > 0 ? `ondblclick='openModal("Governança", "Impacto Problem #${p.ticket}", "incident", ${JSON.stringify(incList)}, "open")' style="cursor:pointer;"` : '';
+                const impactPct = (p.total_md / budgetTarget * 100).toFixed(1);
+                
+                return `
+                <div class="glass-card glow-orange" title="${incList.length > 0 ? 'Duplo clique para listar incidentes' : ''}" ${clickAction}>
+                  <div class="card-hdr">
+                    <div class="card-title" style="color:var(--blue); font-weight:700;">#${p.ticket}</div>
+                    <div class="card-status status-alert" style="font-size:8px;">PRIORIDADE</div>
+                  </div>
+                  <div style="font-size:10px; color:var(--dim); text-transform:uppercase; margin: 4px 0 8px 0;">${p.app || 'N/A'}</div>
+                  
+                  <div style="display:flex; justify-content:space-between; margin-bottom:4px">
+                    <span style="font-size:10px; color:var(--muted)">Recorrência:</span>
+                    <span style="font-size:10px; font-weight:700">${p.inc_count} Inc</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:8px">
+                    <span style="font-size:10px; color:var(--muted)">Custo Total:</span>
+                    <span style="font-size:10px; font-weight:700; color:var(--purple)">${p.total_md.toFixed(2)} MD</span>
+                  </div>
+                  
+                  <div style="font-size:9px; color:var(--dim); line-height:1.4; border-top:1px solid rgba(255,255,255,0.05); padding-top:8px">
+                    Impacto: O custo crônico deste problema equivale a <b>${impactPct}%</b> da cota preventiva.
+                  </div>
+                </div>`;
               }).join('') +
               '</div>' +
               '</div>';
@@ -10959,24 +10953,25 @@
         }
 
         function _renderHealthTable(d) {
-          return '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px">' +
-            '<div style="background:rgba(255,255,255,0.03);padding:15px;border-radius:10px;border:1px solid rgba(255,255,255,0.05)">' +
-            '<div style="font-size:9px;color:var(--muted);margin-bottom:5px">MAIOR OFENSOR (ROI)</div>' +
-            '<div style="font-size:13px;font-weight:700;color:#f87171">' + d.ROI + '</div>' +
-            '</div>' +
-            '<div style="background:rgba(255,255,255,0.03);padding:15px;border-radius:10px;border:1px solid rgba(255,255,255,0.05)">' +
-            '<div style="font-size:9px;color:var(--muted);margin-bottom:5px">AGING MÉDIO (PROBLEMS)</div>' +
-            '<div style="font-size:13px;font-weight:700;color:#fbbf24">' + d.Aging + '</div>' +
-            '</div>' +
-            '<div style="background:rgba(255,255,255,0.03);padding:15px;border-radius:10px;border:1px solid rgba(255,255,255,0.05)">' +
-            '<div style="font-size:9px;color:var(--muted);margin-bottom:5px">COBERTURA CAUSA RAIZ</div>' +
-            '<div style="font-size:13px;font-weight:700;color:#34d399">' + d.Cobertura + '</div>' +
-            '</div>' +
-            '<div style="background:rgba(255,255,255,0.03);padding:15px;border-radius:10px;border:1px solid rgba(255,255,255,0.05)">' +
-            '<div style="font-size:9px;color:var(--muted);margin-bottom:5px">INVESTIMENTO PREVENTIVO</div>' +
-            '<div style="font-size:13px;font-weight:700;color:#60a5fa">' + d.Investimento + '</div>' +
-            '</div>' +
-            '</div>';
+          return `
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:15px">
+            <div class="glass-card glow-red">
+              <div style="font-size:8px; color:var(--muted); margin-bottom:5px; text-transform:uppercase;">MAIOR OFENSOR (ROI)</div>
+              <div style="font-size:13px; font-weight:700; color:#f87171">${d.ROI}</div>
+            </div>
+            <div class="glass-card glow-orange">
+              <div style="font-size:8px; color:var(--muted); margin-bottom:5px; text-transform:uppercase;">AGING MÉDIO (PROBLEMS)</div>
+              <div style="font-size:13px; font-weight:700; color:#fbbf24">${d.Aging}</div>
+            </div>
+            <div class="glass-card glow-green">
+              <div style="font-size:8px; color:var(--muted); margin-bottom:5px; text-transform:uppercase;">COBERTURA CAUSA RAIZ</div>
+              <div style="font-size:13px; font-weight:700; color:#34d399">${d.Cobertura}</div>
+            </div>
+            <div class="glass-card">
+              <div style="font-size:8px; color:var(--muted); margin-bottom:5px; text-transform:uppercase;">INVESTIMENTO PREVENTIVO</div>
+              <div style="font-size:13px; font-weight:700; color:var(--blue)">${d.Investimento}</div>
+            </div>
+          </div>`;
         }
 
         function strPrj(s) { return String(s || '').split(' ')[0].toLowerCase(); }

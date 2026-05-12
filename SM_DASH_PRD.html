@@ -18,28 +18,25 @@
     }
 
     :root {
-      --bg: #0B1F2C;
-      --bg-grad: radial-gradient(circle at top, #102638, var(--bg));
-      --surf: #132A3D;
-      --card: #18364F;
-      --glass-surf: rgba(19, 42, 61, 0.75);
-      --glass-card: rgba(24, 54, 79, 0.45);
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --glass-shadow: rgba(0, 0, 0, 0.25);
-      --border: #435363;
+      --bg: #0a0f1a;
+      --bg-2: #0d1422;
+      --card-grad-1: rgba(30, 42, 66, 0.35);
+      --card-grad-2: rgba(12, 19, 33, 0.30);
+      --border: rgba(255, 255, 255, 0.08);
+      --rim: rgba(255, 255, 255, 0.18);
       --text: #ffffff;
-      --muted: #C0CDD5;
+      --muted: #7d8aa0;
+      --muted-2: #a8b2c4;
       --dim: #7C98AB;
       --open: #FF6B00;
       --closed: #CF0A2C;
-      --green: #34d399;
+      --green: #22c55e;
       --amber: #FFBF3B;
       --orange: #FF9E16;
-      --red: #8B2332;
-      --blue: #7C98AB;
-      --purple: #a78bfa;
-      --f: 'Inter', Arial, sans-serif;
-      --ft: 'Inter', Arial, sans-serif;
+      --red: #ef4444;
+      --ft-main: 'Inter', sans-serif;
+      --ft-hdr: 'Montserrat', sans-serif;
+      --ft: var(--ft-main);
     }
 
     @media (prefers-color-scheme: light) {
@@ -63,11 +60,19 @@
 
     html,
     body {
-      background: var(--bg-grad);
+      background: var(--bg);
       color: var(--text);
-      font-family: var(--f);
-      min-height: 100vh
+      font-family: var(--ft-main);
+      min-height: 100vh;
+      overflow-x: hidden;
     }
+
+    /* --- BACKGROUND ORBS --- */
+    .bg-orbs { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.35; }
+    .orb-1 { width: 600px; height: 600px; top: -150px; left: 20%; background: radial-gradient(circle, rgba(249, 115, 22, 0.3) 0%, transparent 70%); }
+    .orb-2 { width: 700px; height: 700px; top: 15%; right: -200px; background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%); }
+    .orb-3 { width: 500px; height: 500px; bottom: -150px; left: 10%; background: radial-gradient(circle, rgba(6, 182, 212, 0.3) 0%, transparent 70%); }
 
     .hdr {
       background: var(--glass-surf);
@@ -86,7 +91,7 @@
     }
 
     .logo {
-      font-family: var(--ft);
+      font-family: var(--ft-hdr);
       font-size: 14px;
       font-weight: 700;
       letter-spacing: .14em;
@@ -212,10 +217,10 @@
       background: var(--bg);
       color: var(--muted);
       font-size: 10px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       transition: all .18s;
-      font-family: var(--f)
+      font-family: var(--ft-hdr)
     }
 
     .fb:hover:not(.dis) {
@@ -262,40 +267,10 @@
     .kstrip {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
-      gap: 1px;
-      background: var(--border);
-      border-bottom: 1px solid var(--border)
-    }
-
-    .kpi {
-      background: var(--surf);
-      padding: 10px 14px
-    }
-
-    .kpi-lbl {
-      font-family: var(--ft);
-      font-size: 7px;
-      font-weight: 600;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 4px
-    }
-
-    .kpi-val {
-      font-size: 20px;
-      font-weight: 700;
-      line-height: 1;
-      margin-bottom: 2px
-    }
-
-    .kpi-sub {
-      font-size: 9px;
-      color: var(--dim);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      flex-wrap: wrap
+      gap: 12px;
+      padding: 12px 24px;
+      background: transparent;
+      border-bottom: 1px solid var(--glass-border);
     }
 
     .bv {
@@ -316,19 +291,21 @@
     }
 
     .rbar {
-      background: rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       border-bottom: 1px solid var(--glass-border);
-      padding: 12px 24px;
+      padding: 14px 24px;
       display: flex;
       align-items: center;
       gap: 16px
     }
 
     .rlbl {
-      font-family: var(--ft);
-      font-size: 7px;
-      font-weight: 600;
-      letter-spacing: .14em;
+      font-family: var(--ft-hdr);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
       text-transform: uppercase;
       color: var(--muted);
       white-space: nowrap
@@ -374,10 +351,10 @@
 
     .ntab {
       padding: 10px 14px;
-      font-family: var(--ft);
-      font-size: 7px;
+      font-family: var(--ft-hdr);
+      font-size: 8px;
       font-weight: 700;
-      letter-spacing: .1em;
+      letter-spacing: .08em;
       text-transform: uppercase;
       cursor: pointer;
       border-bottom: 3px solid transparent;
@@ -397,7 +374,7 @@
     .ntab.active {
       background: rgba(255, 255, 255, .06);
       box-shadow: inset 0 -3px 0 currentColor, 0 -2px 8px rgba(0, 0, 0, .3);
-      font-size: 8px
+      font-size: 9px
     }
 
     .ntab.t-inc.active {
@@ -451,6 +428,89 @@
       display: flex
     }
 
+    /* --- PREMIUM GLASS DESIGN SYSTEM (GEMINI.md) --- */
+    .glass-card {
+      background: linear-gradient(180deg, var(--card-grad-1) 0%, var(--card-grad-2) 100%);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border-radius: 12px;
+      padding: 12px 16px; /* Compacto */
+      border: 1px solid var(--border);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 90px; /* Reduzido de 110px */
+      transition: all 0.3s ease;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+      overflow: hidden;
+    }
+
+    /* Top-edge rim light */
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 15%; right: 15%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.50) 50%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .glass-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.50);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .glow-green { box-shadow: 0 0 35px rgba(34, 197, 94, 0.15), 0 12px 30px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.10); }
+    .glow-orange { box-shadow: 0 0 35px rgba(249, 115, 22, 0.15), 0 12px 30px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.10); }
+    .glow-red { box-shadow: 0 0 35px rgba(239, 68, 68, 0.15), 0 12px 30px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.10); }
+
+    .card-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-family: var(--ft-hdr);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .card-status {
+      font-family: var(--ft-hdr);
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-ok { color: var(--green); }
+    .status-alert { color: var(--orange); }
+    .status-crit { color: var(--red); }
+
+    .card-val {
+      font-size: 28px; /* Reduzido de 32px */
+      font-weight: 300;
+      font-family: var(--ft-hdr);
+      margin: 2px 0;
+      line-height: 1.1;
+      letter-spacing: -0.8px;
+    }
+
+    .card-sub {
+      font-size: 10px;
+      color: var(--muted);
+      opacity: 0.7;
+      font-weight: 400;
+    }
+
     .r2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -468,9 +528,9 @@
     }
 
     .cbt {
-      font-family: var(--ft);
+      font-family: var(--ft-hdr);
       font-size: 8px;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: .12em;
       text-transform: uppercase;
       color: var(--muted);
@@ -581,8 +641,9 @@
     }
 
     .ci-lbl {
-      font-family: var(--ft);
-      font-size: 7px;
+      font-family: var(--ft-hdr);
+      font-size: 9px;
+      font-weight: 700;
       letter-spacing: .12em;
       text-transform: uppercase;
       color: var(--muted);
@@ -596,8 +657,9 @@
     }
 
     .ci-cur {
+      font-family: var(--ft-hdr);
       font-weight: 700;
-      font-size: 18px
+      font-size: 20px
     }
 
     .ci-prev {
@@ -619,16 +681,17 @@
     }
 
     .bklbl {
-      font-family: var(--ft);
-      font-size: 7px;
-      font-weight: 600;
+      font-family: var(--ft-hdr);
+      font-size: 9px;
+      font-weight: 700;
       letter-spacing: .13em;
       text-transform: uppercase;
       margin-bottom: 4px
     }
 
     .bkval {
-      font-size: 22px;
+      font-family: var(--ft-hdr);
+      font-size: 24px;
       font-weight: 700;
       line-height: 1;
       margin-bottom: 2px
@@ -719,45 +782,60 @@
     }
 
     .stitle {
-      font-family: var(--ft);
-      font-size: 7px;
-      font-weight: 600;
-      letter-spacing: .14em;
+      font-family: var(--ft-hdr);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: .05em;
       text-transform: uppercase;
-      margin-bottom: 8px;
-      padding-bottom: 6px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
       border-bottom: 1px solid var(--border)
     }
 
     .tbl {
       width: 100%;
       border-collapse: collapse;
-      font-size: 11px
+      font-size: 11px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
     }
 
     .tbl th {
       text-align: left;
-      padding: 5px 8px;
-      font-family: var(--ft);
-      font-size: 7px;
+      padding: 8px 12px;
+      font-family: var(--ft-main);
+      font-size: 9px;
+      font-weight: 700;
       letter-spacing: .08em;
       text-transform: uppercase;
       color: var(--muted);
-      border-bottom: 1px solid var(--border)
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
     }
+
+    .tbl th:last-child { border-right: none; }
 
     .tbl td {
-      padding: 6px 8px;
-      border-bottom: 1px solid #0a1825;
-      vertical-align: middle
+      padding: 8px 12px;
+      font-family: var(--ft-main);
+      font-size: 11px;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      vertical-align: middle;
+      color: var(--dim);
     }
 
+    .tbl td:last-child { border-right: none; }
+
     .tbl tr:last-child td {
-      border-bottom: none
+      border-bottom: none;
     }
 
     .tbl tr:hover td {
-      background: #0d2030
+      background: rgba(255, 255, 255, 0.01);
+      color: var(--text);
     }
 
     .tno {
@@ -838,6 +916,7 @@
     }
 
     .rcb-label {
+      font-family: var(--ft-main);
       font-size: 11px;
       min-width: 130px
     }
@@ -900,7 +979,7 @@
     }
 
     .slap {
-      font-family: var(--ft);
+      font-family: var(--ft-hdr);
       font-size: 10px;
       font-weight: 700;
       margin-bottom: 8px
@@ -980,7 +1059,7 @@
     }
 
     .cmp-proj-name {
-      font-family: var(--ft);
+      font-family: var(--ft-hdr);
       font-size: 10px;
       font-weight: 700;
       letter-spacing: .05em;
@@ -2174,34 +2253,50 @@
     }
 
     .exec-card {
-      background: var(--card);
+      background: linear-gradient(180deg, var(--card-grad-1) 0%, var(--card-grad-2) 100%);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 16px;
+      border-radius: 12px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      transition: border-color .15s;
+      gap: 6px;
+      transition: all 0.3s ease;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.40);
+      position: relative;
+    }
+
+    .exec-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 15%; right: 15%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.20) 50%, transparent 100%);
+      pointer-events: none;
     }
 
     .exec-card:hover {
-      border-color: #2a5070;
+      transform: translateY(-3px);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.50);
+      border-color: rgba(255, 255, 255, 0.15);
     }
 
     .exec-lbl {
-      font-family: var(--ft);
-      font-size: 8px;
+      font-family: var(--ft-hdr);
+      font-size: 10px;
       font-weight: 700;
-      letter-spacing: .12em;
+      letter-spacing: .1em;
       text-transform: uppercase;
       color: var(--muted);
     }
 
     .exec-val {
-      font-size: 22px;
-      font-weight: 700;
+      font-family: var(--ft-hdr);
+      font-size: 26px;
+      font-weight: 300;
       color: var(--text);
-      line-height: 1.2;
+      line-height: 1.1;
     }
 
     .exec-sub {
@@ -2219,90 +2314,6 @@
 
     .exec-val.crit {
       color: #f87171;
-    }
-
-    /* ── CFO EXECUTIVE SUMMARY (visual only) ────────────────────── */
-    #exec-summary-body {
-      position: relative;
-      background: linear-gradient(180deg, rgba(30, 42, 66, 0.35) 0%, rgba(12, 19, 33, 0.30) 100%) !important;
-      backdrop-filter: blur(40px) saturate(180%);
-      -webkit-backdrop-filter: blur(40px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.08) !important;
-      border-radius: 18px !important;
-      box-shadow:
-        0 30px 60px rgba(0, 0, 0, 0.40),
-        inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
-      overflow: hidden;
-    }
-    #exec-summary-body::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 14%; right: 14%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.40) 50%, transparent 100%);
-      pointer-events: none;
-      z-index: 2;
-    }
-    #exec-summary-body::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 35%;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%);
-      pointer-events: none;
-      border-radius: 18px 18px 0 0;
-      z-index: 0;
-    }
-    #exec-summary-body > * { position: relative; z-index: 1; }
-
-    /* glass-card já existe; reforçamos rim light e profundidade */
-    #exec-summary-body .glass-card {
-      position: relative;
-      background: linear-gradient(180deg, rgba(30, 42, 66, 0.45) 0%, rgba(12, 19, 33, 0.40) 100%) !important;
-      backdrop-filter: blur(20px) saturate(160%);
-      -webkit-backdrop-filter: blur(20px) saturate(160%);
-      border: 1px solid rgba(255, 255, 255, 0.08) !important;
-      border-radius: 14px !important;
-      box-shadow:
-        0 20px 40px rgba(0, 0, 0, 0.35),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      overflow: hidden;
-    }
-    #exec-summary-body .glass-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 16%; right: 16%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.30) 50%, transparent);
-      pointer-events: none;
-    }
-    #exec-summary-body .glass-card > * { position: relative; z-index: 1; }
-
-    /* Variantes de glow herdam cor no rim */
-    #exec-summary-body .glass-card.glow-green   { box-shadow: 0 0 40px rgba(34, 197, 94, 0.14), 0 20px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08); }
-    #exec-summary-body .glass-card.glow-green::before  { background: linear-gradient(90deg, transparent, rgba(134, 239, 172, 0.55) 50%, transparent); }
-    #exec-summary-body .glass-card.glow-orange  { box-shadow: 0 0 40px rgba(249, 115, 22, 0.16), 0 20px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08); }
-    #exec-summary-body .glass-card.glow-orange::before { background: linear-gradient(90deg, transparent, rgba(253, 186, 116, 0.60) 50%, transparent); }
-    #exec-summary-body .glass-card.glow-red     { box-shadow: 0 0 40px rgba(248, 113, 113, 0.18), 0 20px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08); }
-    #exec-summary-body .glass-card.glow-red::before    { background: linear-gradient(90deg, transparent, rgba(252, 165, 165, 0.60) 50%, transparent); }
-
-    /* Tabela MoM e bloco budget recebem aparência glass */
-    #exec-summary-body table {
-      background: rgba(15, 23, 42, 0.30) !important;
-      border-radius: 12px;
-      overflow: hidden;
-      backdrop-filter: blur(10px);
-    }
-
-    /* Tipografia executiva — UPPERCASE letter-spacing igual ao mockup */
-    #exec-summary-body h2 {
-      text-transform: uppercase;
-      letter-spacing: 2.5px;
-      font-weight: 400 !important;
-    }
-    #exec-summary-body h3 {
-      font-weight: 500 !important;
-      letter-spacing: 2px !important;
     }
 
     /* ── Print / Export ──────────────────────────────────────────── */
@@ -2709,6 +2720,7 @@
 
     .main-content .hdr {
       background: transparent;
+      -webkit-backdrop-filter: none;
       backdrop-filter: none;
       border-bottom: none;
       box-shadow: none;
@@ -2734,6 +2746,7 @@
   <div class="bg-orbs">
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
   </div>
 
   <div class="app-layout">
@@ -2922,7 +2935,7 @@
       <div id="panel-exec_summary" class="panel">
         <div style="max-width:1000px;margin:0 auto">
           <div id="exec-summary-body"
-            style="padding:40px;font-family:'Inter', sans-serif">
+            style="background:#0a1219;padding:40px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);box-shadow:0 20px 50px rgba(0,0,0,0.5);font-family:'Inter', sans-serif">
             <!-- Injetado via JS -->
           </div>
         </div>
@@ -4091,12 +4104,7 @@
           ];
 
           document.getElementById('kstrip').innerHTML = items.map(function (it) {
-            var tipAttrs = it.tip ? ' class="tip" data-tip="' + it.tip + '"' : '';
-            return '<div' + tipAttrs + ' style="background:var(--surf);padding:10px 14px;cursor:help">' +
-              '<div class="kpi-lbl">' + it.lbl + '</div>' +
-              '<div class="kpi-val" style="color:' + it.col + '">' + it.val + '</div>' +
-              '<div class="kpi-sub">' + it.sub + '</div>' +
-              '</div>';
+            return buildMatCard(it.lbl, it.val, it.col, it.sub, '', it.tip);
           }).join('');
         }
 
@@ -4327,19 +4335,17 @@
             (sev === 'problem'
               ? '<div id="prob-kpi-container" style="margin-bottom:14px"></div>'
               : '') +
-            (sev === 'incident'
-              ? '<div class="cb" style="padding:8px 4px"><div id="inc-kpi-strip"></div></div>' +
-              '<div id="inc-oncall-detail" style="display:none"></div>' +
+            ((sev === 'incident' || sev === 'user_request')
+              ? '<div class="cb" style="padding:8px 4px"><div id="' + (sev === 'incident' ? 'inc' : 'ur') + '-kpi-strip"></div></div>' +
+              (sev === 'incident' ? '<div id="inc-oncall-detail" style="display:none"></div>' : '') +
               '<div class="r2">' +
-              '<div class="cb"><div class="cbt" style="margin-bottom:10px">Aging Heatmap</div><div id="inc-aging"></div></div>' +
+              '<div class="cb"><div class="cbt" style="margin-bottom:10px">Aging Heatmap</div><div id="' + (sev === 'incident' ? 'inc' : 'ur') + '-aging"></div></div>' +
               '</div>' +
               '<div class="r2">' +
-              '<div class="cb"><div class="cbt" style="margin-bottom:10px">Top 5 Aplicações</div><div id="inc-apps"></div></div>' +
-              '<div class="cb"><div class="cbt" style="margin-bottom:10px">Root Cause Type (Top 6)</div><div id="inc-rct"></div></div>' +
+              '<div class="cb"><div class="cbt" style="margin-bottom:10px">Top 5 Aplicações</div><div id="' + (sev === 'incident' ? 'inc' : 'ur') + '-apps"></div></div>' +
+              '<div class="cb"><div class="cbt" style="margin-bottom:10px">Root Cause Type (Top 6)</div><div id="' + (sev === 'incident' ? 'inc' : 'ur') + '-rct"></div></div>' +
               '</div>' +
-              '<div class="r2">' +
-              '<div class="cb"><div class="cbt" style="margin-bottom:10px">Evolução do Backlog (Linha do Tempo)</div><div id="inc-bk-hist"></div></div>' +
-              '</div>'
+              (sev === 'incident' ? '<div class="r2"><div class="cb"><div class="cbt" style="margin-bottom:10px">Evolução do Backlog (Linha do Tempo)</div><div id="inc-bk-hist"></div></div></div>' : '')
               : '') +
             (['incident', 'user_request', 'problem'].indexOf(sev) >= 0
               ? '<div class="cb" style="margin-top:12px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div class="cbt" id="ts-header-' + sev + '">&#128336; Horas por Ticket (Timesheet)</div><div style="font-size:9px;color:var(--dim)">Fonte: TimesheetsCMS</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px"><div><div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.06em;margin-bottom:6px">TICKETS</div><div id="ts-' + sev + '"></div></div><div><div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.06em;margin-bottom:6px">ANALISTAS</div><div id="ts-staff-chart-' + sev + '"></div></div></div></div>'
@@ -4548,6 +4554,9 @@
                     try { buildSLAMini('sla-mini-incident'); } catch (e) { }
                     try { buildIncKPIs(); } catch (e) { }
                     try { buildOncallDetail(false); } catch (e) { }
+                  }
+                  if (sev === 'user_request') {
+                    try { buildURKPIs(); } catch (e) { }
                   }
                   if (sev === 'problem') {
                     try { buildProblemKPIs(); } catch (e) { }
@@ -4943,21 +4952,15 @@
               // P1 oncall %
               var p1oc = (ocPrj.by_priority || {})['P1'] || {};
               var p1ocLabel = p1oc.pct ? 'P1: ' + p1oc.pct + '% oncall' : ocPrj.countries.join(', ');
-              ocCard = '<div onclick="toggleOncallDetail()" style="cursor:pointer">' +
-                kpiCard('&#127758; On-Call &#9660;', ocCount + ' (' + ocPct + '%)', p1ocLabel, ocCol, 'Tickets abertos fora do horário comercial.\nConsulte a aba de On-call para detalhes de janelas por projeto.\n\nClique para ver análise detalhada.') +
-                '</div>';
+              ocCard = buildMatCard('🌍 On-Call', ocCount + ' (' + ocPct + '%)', ocCol, p1ocLabel, 'onclick="toggleOncallDetail()" style="cursor:pointer"');
             }
             // ────────────────────────────────────────────────────────────
 
-            strip.innerHTML = '<div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0">' +
-              kpiCard('MTTR P1', p1m.median_h + 'h', p1m.gap_x + 'x bench (' + p1m.benchmark_h + 'h)', mttrCol,
-                'Tempo mediano de resolução P1.\nDa abertura até fechamento/resolved.\nBenchmark configurável na aba Config.\nVerde = abaixo do benchmark.') +
-              kpiCard('MTTR P2', p2m.median_h + 'h', 'bench ' + p2m.benchmark_h + 'h', p2m.median_h > p2m.benchmark_h ? '#fbbf24' : '#34d399',
-                'Tempo mediano de resolução P2.\nDa abertura até fechamento/resolved.\nBenchmark configurável na aba Config.\nAmarelo = acima do benchmark.') +
-              kpiCard('Aging +30d', ages.gt30, inc_open.length + ' abertos', ages.gt30 > 0 ? '#f87171' : '#34d399',
-                'Incidentes ainda abertos há mais\nde 30 dias sem resolução.\nContagem sobre tickets com status\nnão fechado/resolved no filtro ativo.') +
-              kpiCard('Reopen Rate', reopen.rate + '%', reopen.count + ' rejected', reopen.rate > 5 ? '#f87171' : '#34d399',
-                'Tickets reabertos após fechamento (status Rejected) sobre o total de tickets fechados no período.\nMede se as resoluções estão "matando" o problema de verdade.\nTarget: abaixo de 5%.') +
+            strip.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;padding:8px 0">' +
+              buildMatCard('MTTR P1', p1m.median_h + 'h', mttrCol, p1m.gap_x + 'x bench (' + p1m.benchmark_h + 'h)') +
+              buildMatCard('MTTR P2', p2m.median_h + 'h', p2m.median_h > p2m.benchmark_h ? '#fbbf24' : '#34d399', 'bench ' + p2m.benchmark_h + 'h') +
+              buildMatCard('Aging +30d', ages.gt30, ages.gt30 > 0 ? '#f87171' : '#34d399', inc_open.length + ' abertos') +
+              buildMatCard('Reopen Rate', reopen.rate + '%', reopen.rate > 5 ? '#f87171' : '#34d399', reopen.count + ' rejected') +
               ocCard +
               '</div>';
           }
@@ -4996,6 +4999,115 @@
             return '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px"><span>' + esc(r.rct) + '</span><span style="font-weight:700">' + r.count + '</span></div>' +
               '<div style="height:4px;background:var(--border);border-radius:2px"><div style="height:4px;background:var(--purple);width:' + w + '%;border-radius:2px"></div></div></div>';
           }).join('');
+
+          // Analytics & Governance Parity
+          var elG = document.getElementById('inc-governance');
+          if (elG) {
+            elG.innerHTML = _renderInsightsRow(prj, curY, curM) +
+                           _renderAppsSection(prj, curY, curM) +
+                           _renderTeamSection(prj, curY, curM) +
+                           _renderProblemSection(prj, curY, curM);
+          }
+        }
+
+        function buildURKPIs() {
+          var ur_all = _ROWS.filter(function (r) {
+            if (selProject && r[_TF.indexOf('prj')] !== selProject) return false;
+            if (selCountry && r[_TF.indexOf('co')] !== selCountry) return false;
+            if (selYear && r[_TF.indexOf('y_o')] !== +selYear) return false;
+            if (selMonth && r[_TF.indexOf('m_o')] !== selMonth) return false;
+            return r[_TF.indexOf('sv')] === 'user_request';
+          });
+          var ur_open = ur_all.filter(function (r) { return r[_TF.indexOf('st')] !== 'closed' && r[_TF.indexOf('st')] !== 'resolved'; });
+          var ur_closed = ur_all.filter(function (r) { return r[_TF.indexOf('st')] === 'closed' || r[_TF.indexOf('st')] === 'resolved'; });
+          var today = new Date();
+          var fi_pr = _TF.indexOf('pr'), fi_yo = _TF.indexOf('y_o'), fi_mo = _TF.indexOf('m_o'), fi_do = _TF.indexOf('d_o'),
+            fi_yc = _TF.indexOf('y_c'), fi_mc = _TF.indexOf('m_c'), fi_dc = _TF.indexOf('d_c'), fi_k = _TF.indexOf('k'),
+            fi_en = _TF.indexOf('en'), fi_st = _TF.indexOf('st'), fi_ap = _TF.indexOf('ap'), fi_rct = _TF.indexOf('rct');
+
+          if (ur_all.length === 0) {
+            ['ur-kpi-strip', 'ur-aging', 'ur-apps', 'ur-rct'].forEach(function (id) {
+              var el = document.getElementById(id);
+              if (el) el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--dim);font-size:11px;border:1px dashed var(--border);border-radius:8px">Sem dados de requisições para os filtros selecionados.</div>';
+            });
+            return;
+          }
+
+          // Aging
+          var ages = { lt7: 0, lt14: 0, lt30: 0, gt30: 0 };
+          var aging_details = [];
+          ur_open.forEach(function (r) {
+            var od = new Date(r[fi_yo], r[fi_mo] - 1, r[fi_do]);
+            var days = Math.floor((today - od) / 86400000);
+            if (days < 7) ages.lt7++;
+            else if (days < 14) ages.lt14++;
+            else if (days < 30) ages.lt30++;
+            else { ages.gt30++; aging_details.push({ ticket: r[fi_k], days: days, pr: r[fi_pr], env: r[fi_en] }); }
+          });
+          aging_details.sort(function (a, b) { return b.days - a.days; });
+
+          // Reopen e Top Apps/RCT
+          var rejected = ur_all.filter(function (r) { return r[fi_st] === 'rejected' }).length;
+          var reopen = { count: rejected, total: ur_closed.length, rate: ur_closed.length > 0 ? Math.round(rejected / ur_closed.length * 1000) / 10 : 0 };
+
+          var appCnt = {}, rctCnt = {};
+          ur_all.forEach(function (r) {
+            if (r[fi_ap]) appCnt[r[fi_ap]] = (appCnt[r[fi_ap]] || 0) + 1;
+            if (r[fi_rct]) rctCnt[r[fi_rct]] = (rctCnt[r[fi_rct]] || 0) + 1;
+          });
+          var top_apps = Object.keys(appCnt).map(function (k) { return { app: k, count: appCnt[k] } }).sort(function (a, b) { return b.count - a.count }).slice(0, 5);
+          var top_rct = Object.keys(rctCnt).map(function (k) { return { rct: k, count: rctCnt[k] } }).sort(function (a, b) { return b.count - a.count }).slice(0, 6);
+
+          // Renderização KPI Strip
+          var strip = document.getElementById('ur-kpi-strip');
+          if (strip) {
+            strip.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;padding:8px 0">' +
+              buildMatCard('Total Abertas', ur_all.length, '#60a5fa', 'User Requests') +
+              buildMatCard('Abertas (Backlog)', ur_open.length, '#fbbf24', 'Tickets pendentes') +
+              buildMatCard('Fechadas', ur_closed.length, '#34d399', 'No período') +
+              buildMatCard('Aging +30d', ages.gt30, ages.gt30 > 0 ? '#f87171' : '#34d399', ur_open.length + ' pendentes') +
+              buildMatCard('Reopen Rate', reopen.rate + '%', reopen.rate > 5 ? '#f87171' : '#34d399', reopen.count + ' rejected') +
+              '</div>';
+          }
+
+          // Aging Heatmap
+          var elA = document.getElementById('ur-aging');
+          if (elA) {
+            var tot = (ages.lt7 + ages.lt14 + ages.lt30 + ages.gt30) || 1;
+            elA.innerHTML = '<div style="padding:4px 0">' +
+              [{ l: '<7d', v: ages.lt7, c: '#34d399' }, { l: '7-14d', v: ages.lt14, c: '#60a5fa' }, { l: '14-30d', v: ages.lt30, c: '#fbbf24' }, { l: '>30d', v: ages.gt30, c: '#f87171' }].map(function (f) {
+                return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div style="width:50px;font-size:10px;color:var(--muted)">' + f.l + '</div>' +
+                  '<div style="flex:1;background:var(--border);height:6px;border-radius:3px"><div style="width:' + Math.round(f.v / tot * 100) + '%;height:6px;background:' + f.c + ';border-radius:3px"></div></div>' +
+                  '<div style="font-size:12px;font-weight:700;color:' + f.c + ';width:20px;text-align:right">' + f.v + '</div></div>';
+              }).join('') + '</div>';
+          }
+
+          // Apps e RCT charts
+          var elP = document.getElementById('ur-apps');
+          if (elP) elP.innerHTML = top_apps.map(function (a) {
+            var w = Math.round(a.count / (top_apps[0].count || 1) * 100);
+            return '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px"><span>' + esc(a.app) + '</span><span style="font-weight:700">' + a.count + '</span></div>' +
+              '<div style="height:4px;background:var(--border);border-radius:2px"><div style="height:4px;background:var(--blue);width:' + w + '%;border-radius:2px"></div></div></div>';
+          }).join('');
+
+          var elR = document.getElementById('ur-rct');
+          if (elR) elR.innerHTML = top_rct.map(function (r) {
+            var w = Math.round(r.count / (top_rct[0].count || 1) * 100);
+            return '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px"><span>' + esc(r.rct) + '</span><span style="font-weight:700">' + r.count + '</span></div>' +
+              '<div style="height:4px;background:var(--border);border-radius:2px"><div style="height:4px;background:var(--purple);width:' + w + '%;border-radius:2px"></div></div></div>';
+          }).join('');
+
+          // Analytics & Governance Parity
+          var elG = document.getElementById('ur-governance');
+          if (elG) {
+            var prj = selProject || 'Todos os Projetos';
+            var curY = selYear ? +selYear : new Date().getFullYear();
+            var curM = selMonth ? +selMonth : new Date().getMonth() + 1;
+            elG.innerHTML = _renderInsightsRow(prj, curY, curM) +
+                           _renderAppsSection(prj, curY, curM) +
+                           _renderTeamSection(prj, curY, curM) +
+                           _renderProblemSection(prj, curY, curM);
+          }
         }
 
         function toggleOncallDetail() {
@@ -6892,7 +7004,7 @@
             return;
           }
 
-          var out = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">';
+          var out = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">';
           ['P1', 'P2', 'P3', 'P4'].forEach(function (pri) {
             var s = filtered[pri];
             var pct = s ? s.pct : null;
@@ -6902,18 +7014,21 @@
             var dash = pct !== null ? +(circ * pct / 100).toFixed(2) : 0;
             var gap = pct !== null ? +(circ - dash).toFixed(2) : circ;
             var isUrgent = (pct !== null && pct < 80);
-            out += '<div style="position:relative;background:var(--bg);border-radius:8px;padding:8px;text-align:center;cursor:pointer' + (isUrgent ? ';outline:1px solid #f87171' : '') + '" onclick="showSLADetail(\'' + pri + '\')">' +
+            
+            var glowClass = pct === null ? '' : pct >= tgt ? 'glow-green' : pct >= 80 ? 'glow-orange' : 'glow-red';
+
+            out += '<div class="glass-card ' + glowClass + '" style="text-align:center;cursor:pointer;padding:12px 8px" onclick="showSLADetail(\'' + pri + '\')">' +
               (isUrgent ? '<div style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#f87171" class="sla-pulse"></div>' : '') +
-              '<div style="font-family:var(--ft);font-size:8px;font-weight:700;color:' + col + ';margin-bottom:4px">' + pri + '</div>' +
+              '<div style="font-family:var(--ft-hdr);font-size:10px;font-weight:700;color:' + col + ';margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">' + pri + '</div>' +
               '<div style="position:relative;width:60px;height:60px;margin:0 auto">' +
               '<svg viewBox="0 0 60 60" width="60" height="60" style="transform:rotate(-90deg)">' +
-              '<circle cx="30" cy="30" r="' + r + '" fill="none" stroke="#1a3a50" stroke-width="6"/>' +
+              '<circle cx="30" cy="30" r="' + r + '" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="6"/>' +
               (pct !== null ? '<circle cx="30" cy="30" r="' + r + '" fill="none" stroke="' + col + '" stroke-width="6" stroke-dasharray="' + dash + ' ' + gap + '" stroke-linecap="round"/>' : '') +
               '</svg>' +
-              '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:' + (pct !== null ? '13' : '10') + 'px;font-weight:700;color:' + col + '">' + (pct !== null ? pct + '%' : 'N/D') + '</div>' +
+              '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:var(--ft-hdr);font-size:' + (pct !== null ? '14' : '10') + 'px;font-weight:700;color:' + col + '">' + (pct !== null ? pct + '%' : 'N/D') + '</div>' +
               '</div>' +
-              '<div style="font-size:8px;color:var(--muted);margin-top:4px">Target: ' + tgt + '%</div>' +
-              (s ? '<div style="font-size:8px;color:' + col + '">' + s.met + 'ok / ' + s.not_met + 'nok</div>' : '') +
+              '<div style="font-family:var(--ft-main);font-size:9px;color:var(--muted);margin-top:8px">Meta: ' + tgt + '%</div>' +
+              (s ? '<div style="font-family:var(--ft-main);font-size:9px;color:' + col + ';font-weight:600">' + s.met + ' ok / ' + s.not_met + ' nok</div>' : '') +
               '</div>';
           });
           out += '</div>';
@@ -8037,12 +8152,35 @@
             var agg = getTSAgg();
             var orange = '#fb923c', blue = '#60a5fa', green = '#34d399', purple = '#a78bfa', dim = '#94a3b8';
 
-            function kpiBadge(icon, label, val, color, tip) {
-              var tipAttrs = tip ? ' class="tip" data-tip="' + tip + '"' : '';
-              return '<div' + tipAttrs + ' style="display:flex;flex-direction:column;align-items:center;padding:12px 18px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.07);min-width:110px">' +
-                '<div style="font-size:18px;margin-bottom:4px">' + icon + '</div>' +
-                '<div style="font-size:18px;font-weight:700;color:' + color + '">' + val + '</div>' +
-                '<div style="font-size:9px;color:var(--muted);letter-spacing:.07em;margin-top:2px">' + label + '</div>' +
+            function kpiBadge(label, val, color, sub, statusInfo) {
+              var glowClass = 'glow-green';
+              var statusLabel = statusInfo ? statusInfo.label : 'OK';
+              var statusIcon = statusInfo ? statusInfo.icon : '✔';
+              var statusClass = 'status-ok';
+              
+              var col = String(color).toLowerCase();
+              if (col === '#f87171' || col === 'var(--red)' || col === 'red' || col === '#ef4444') {
+                glowClass = 'glow-red';
+                statusLabel = statusInfo ? statusInfo.label : 'Alerta';
+                statusIcon = '▼';
+                statusClass = 'status-crit';
+              } else if (col === '#fbbf24' || col === 'var(--amber)' || col.includes('orange') || col === '#f97316') {
+                glowClass = 'glow-orange';
+                statusLabel = statusInfo ? statusInfo.label : 'Atenção';
+                statusIcon = '!';
+                statusClass = 'status-alert';
+              }
+
+              return '<div class="glass-card ' + glowClass + ' tip" data-tip="' + (sub || '') + '" style="flex:1;">' +
+                '<div class="card-hdr">' +
+                '<div class="card-title">' + label + '</div>' +
+                '<div class="card-status ' + statusClass + '">' +
+                '<span>' + statusIcon + '</span>' +
+                '<span>' + statusLabel + '</span>' +
+                '</div>' +
+                '</div>' +
+                '<div class="card-val" style="color:' + color + '">' + val + '</div>' +
+                '<div class="card-sub">' + (sub || '') + '</div>' +
                 '</div>';
             }
 
@@ -8125,20 +8263,15 @@
 
             var activePrjs = (D.projects || []).length;
 
-            var kpiRow = '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px">' +
-              // Executive KPIs
-              kpiBadge('&#128197;', 'MDs PLANEJADOS', plannedMD.toFixed(1), '#60a5fa', 'Range contratual para ' + counted + ' tickets') +
-              kpiBadge('&#9201;', 'MDs CONSUMIDOS', consumedMD.toFixed(1), '#a78bfa', 'Dias faturáveis extraídos do Timesheet') +
-              kpiBadge('&#128202;', 'DELTA (SALDO)', deltaMD.toFixed(1), deltaCol, 'Sobras ou Déficit de MDs em relação ao planejado') +
-              kpiBadge('&#127919;', 'EFICIÊNCIA', (plannedMD > 0 ? efficiency + '%' : '-'), effCol, 'Razão entre Consumo Real e Planejado') +
-
-              // Separator
-              '<div style="width:1px;background:rgba(255,255,255,0.1);margin:5px 5px"></div>' +
-
-              kpiBadge('&#128200;', 'FORECAST MÊS', forecastMD.toFixed(1), foreCol, isCurrentMonth ? 'Projeção de fechamento baseada no ritmo atual' : 'Consumo final do período') +
-              kpiBadge('&#127915;', 'MD / TICKET', mdPerTicketReal.toFixed(2), green, 'Esforço médio real por ticket (Planejado: ' + mdPerTicketPlan.toFixed(2) + ')') +
-              kpiBadge('&#128101;', 'HEADCOUNT', agg.headcount, purple, 'Colaboradores distintos no período') +
-              kpiBadge('&#127764;', 'OVERTIME', agg.overtime_h.toFixed(1) + 'h', agg.overtime_h > 20 ? '#f87171' : dim, 'Horas em fins de semana') +
+            var kpiRow = '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-bottom:12px">' +
+              kpiBadge('MDs PLANEJADOS', plannedMD.toFixed(1), '#60a5fa', 'Meta contratual: ' + counted + ' tickets', { label: 'Range', icon: '📋' }) +
+              kpiBadge('MDs CONSUMIDOS', consumedMD.toFixed(1), '#a78bfa', 'Consumo real extraído do eTEA', { label: 'Real', icon: '⌛' }) +
+              kpiBadge('EFICIÊNCIA', (plannedMD > 0 ? efficiency + '%' : '-'), effCol, 'Razão Consumo vs Planejado', { label: efficiency > 100 ? 'Excedido' : 'Saudável', icon: efficiency > 100 ? '⚠' : '✔' }) +
+              '</div>' +
+              '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-bottom:24px">' +
+              kpiBadge('FORECAST MÊS', forecastMD.toFixed(1), foreCol, 'Projeção de fechamento do período', { label: forecastMD > plannedMD ? 'Risco' : 'Dentro', icon: forecastMD > plannedMD ? '📈' : '📉' }) +
+              kpiBadge('MD / TICKET', mdPerTicketReal.toFixed(2), green, 'Esforço médio por ticket atendido', { label: 'Média', icon: '🎯' }) +
+              kpiBadge('HEADCOUNT', agg.headcount, purple, 'Profissionais alocados no período', { label: 'Equipe', icon: '👥' }) +
               '</div>';
 
             // ── TOP STAFF ────────────────────────────────────────────────
@@ -8146,8 +8279,8 @@
             var staffRows = agg.top_staff.map(function (s, i) {
               var pct = Math.round(s.h / maxStaffH * 100);
               var rank = i === 0 ? '&#129351;' : i === 1 ? '&#129352;' : i === 2 ? '&#129353;' : (i + 1) + '.';
-              return '<div class="tip" data-tip="Esforço total apontado por ' + s.name + ': ' + (s.h / 8).toFixed(2) + ' MD" style="margin-bottom:8px">' +
-                '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">' +
+              return '<div class="tip" data-tip="Esforço total apontado por ' + s.name + ': ' + (s.h / 8).toFixed(2) + ' MD" style="margin-bottom:12px">' +
+                '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px">' +
                 '<span>' + rank + ' ' + s.name + '</span>' +
                 '<span style="color:' + orange + ';font-weight:700">' + (s.h / 8).toFixed(2) + ' MD</span>' +
                 '</div>' +
@@ -8161,8 +8294,8 @@
             var taskRows = agg.top_tasks.map(function (t) {
               var pct = Math.round(t.h / maxTaskH * 100);
               var taskPct = agg.total_h > 0 ? Math.round(t.h / agg.total_h * 100) : 0;
-              return '<div class="tip" data-tip="Esforço total alocado na tarefa: ' + t.task + '" style="margin-bottom:8px">' +
-                '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">' +
+              return '<div class="tip" data-tip="Esforço total alocado na tarefa: ' + t.task + '" style="margin-bottom:12px">' +
+                '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px">' +
                 '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px">' + t.task + '</span>' +
                 '<span style="color:' + blue + ';font-weight:700;white-space:nowrap">' + (t.h / 8).toFixed(2) + ' MD <span style="color:var(--muted);font-weight:400">(' + taskPct + '%)</span></span>' +
                 '</div>' +
@@ -8178,12 +8311,10 @@
             var prioRows = categorizedPrio.map(function (p) {
               var pct = prioTotalMD > 0 ? Math.round(p.d / prioTotalMD * 100) : 0;
               var col = p.name === 'P1' ? '#f87171' : (p.name === 'P2' ? '#f97316' : (p.name === 'P3' ? '#a3e635' : '#60a5fa'));
-
-              // Store data in global variable to avoid long attribute strings
               var key = 'prio_' + p.name + '_' + Math.random().toString(36).substr(2, 9);
               window._tsPrioDetails[key] = p.tix;
 
-              return '<div class="tip" data-tip="Esforço: ' + p.d.toFixed(2) + ' MD (' + pct + '%)\nDouble-click para ver os tickets desta prioridade." style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:10px;cursor:help" ondblclick="showPrioDetail(\'' + p.name + '\', \'' + key + '\')">' +
+              return '<div class="tip" data-tip="Esforço: ' + p.d.toFixed(2) + ' MD (' + pct + '%)\nDouble-click para ver os tickets desta prioridade." style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:10px;cursor:help" ondblclick="showPrioDetail(\'' + p.name + '\', \'' + key + '\')">' +
                 '<span style="flex:1;color:var(--fg);font-weight:700">' + p.name + '</span>' +
                 '<span style="color:var(--muted);margin-right:10px">' + pct + '%</span>' +
                 '<span style="color:' + col + ';font-weight:700">' + p.d.toFixed(2) + ' MD</span>' +
@@ -8197,13 +8328,13 @@
                 var d = data[pr] || { md: 0, n: 0 };
                 var avg = d.n > 0 ? (d.md / d.n).toFixed(2) : '0.00';
                 var col = pr === 'P1' ? '#f87171' : (pr === 'P2' ? '#f97316' : (pr === 'P3' ? '#a3e635' : '#60a5fa'));
-                return '<div class="tip" data-tip="Média calculada sobre ' + d.n + ' tickets encerrados." style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:10px">' +
+                return '<div class="tip" data-tip="Média calculada sobre ' + d.n + ' tickets encerrados." style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:10px">' +
                   '<span style="color:var(--fg);font-weight:700">' + pr + '</span>' +
                   '<span style="color:' + col + ';font-weight:700">' + avg + ' MD avg</span>' +
                   '</div>';
               }).join('');
-              return '<div class="cb" style="padding:14px">' +
-                '<div class="cbt tip" data-tip="Média de Man-Days gastos para encerrar cada ticket desta categoria." style="margin-bottom:10px;color:var(--muted);font-size:10px">&#9881; MD MÉDIO: ' + label.toUpperCase() + '</div>' +
+              return '<div class="glass-card" style="padding:16px">' +
+                '<div class="card-hdr" style="margin-bottom:12px;"><div class="card-title" style="font-size:10px;color:var(--muted)">&#9881; MD MÉDIO: ' + label.toUpperCase() + '</div></div>' +
                 rows +
                 '</div>';
             }
@@ -8218,13 +8349,13 @@
                 var d = data[pr] || { md: 0, n: 0 };
                 var avgH = d.n > 0 ? ((d.md * 8) / d.n).toFixed(1) : '0.0';
                 var col = pr === 'P1' ? '#f87171' : (pr === 'P2' ? '#f97316' : (pr === 'P3' ? '#a3e635' : '#60a5fa'));
-                return '<div class="tip" data-tip="Média calculada sobre ' + d.n + ' tickets encerrados." style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:10px">' +
+                return '<div class="tip" data-tip="Média calculada sobre ' + d.n + ' tickets encerrados." style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:10px">' +
                   '<span style="color:var(--fg);font-weight:700">' + pr + '</span>' +
                   '<span style="color:' + col + ';font-weight:700">' + avgH + ' hrs avg</span>' +
                   '</div>';
               }).join('');
-              return '<div class="cb" style="padding:14px">' +
-                '<div class="cbt tip" data-tip="Média de horas (MD * 8) gastas para encerrar cada ticket desta categoria." style="margin-bottom:10px;color:var(--muted);font-size:10px">&#9202; MÉDIA HORAS: ' + label.toUpperCase() + '</div>' +
+              return '<div class="glass-card" style="padding:16px">' +
+                '<div class="card-hdr" style="margin-bottom:12px;"><div class="card-title" style="font-size:10px;color:var(--muted)">&#9202; MÉDIA HORAS: ' + label.toUpperCase() + '</div></div>' +
                 rows +
                 '</div>';
             }
@@ -8236,11 +8367,11 @@
             var subColors = [orange, blue, green, purple, '#fbbf24', '#f87171'];
             var subRows = agg.top_subs.map(function (s, i) {
               var pct = agg.total_h > 0 ? Math.round(s.h / agg.total_h * 100) : 0;
-              return '<div class="tip" data-tip="Distribuição para ' + s.sub + '" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px">' +
-                '<div style="width:10px;height:10px;border-radius:50%;background:' + (subColors[i] || dim) + ';flex-shrink:0"></div>' +
+              return '<div class="tip" data-tip="Distribuição para ' + s.sub + '" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:11px">' +
+                '<div style="width:8px;height:8px;border-radius:50%;background:' + (subColors[i] || dim) + ';flex-shrink:0"></div>' +
                 '<span style="flex:1">' + s.sub + '</span>' +
                 '<span style="color:' + (subColors[i] || dim) + ';font-weight:700">' + pct + '%</span>' +
-                '<span style="color:var(--muted)">' + (s.h / 8).toFixed(2) + ' MD</span>' +
+                '<span style="color:var(--muted);width:50px;text-align:right">' + (s.h / 8).toFixed(1) + ' MD</span>' +
                 '</div>';
             }).join('');
 
@@ -8249,7 +8380,7 @@
               var val = agg.by_career_grade[g];
               var pct = consumedMD > 0 ? Math.round(val / consumedMD * 100) : 0;
               var col = g.startsWith('3') ? '#f87171' : (g.startsWith('2') ? '#fb923c' : '#60a5fa');
-              return '<div class="tip" data-tip="Esforço consumido por profissionais de nível ' + g + '" style="margin-bottom:12px">' +
+              return '<div class="tip" data-tip="Esforço consumido por profissionais de nível ' + g + '" style="margin-bottom:16px">' +
                 '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">' +
                 '<span>Grade <b>' + g + '</b></span>' +
                 '<span style="font-weight:700;color:' + col + '">' + val.toFixed(1) + ' MD (' + pct + '%)</span>' +
@@ -8272,16 +8403,16 @@
               var gradeTotalMD = agg.by_career_grade[g] || 0;
               var gCol = g.startsWith('4') ? '#a78bfa' : (g.startsWith('3') ? '#f87171' : (g.startsWith('2') ? '#fb923c' : '#60a5fa'));
 
-              staffByGrade += '<div style="margin-bottom:20px;background:rgba(255,255,255,0.02);padding:10px;border-radius:4px;border-left:3px solid ' + gCol + '">' +
-                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:6px">' +
-                '<span style="font-size:11px;font-weight:700;color:' + gCol + '">GRADE ' + g + '</span>' +
-                '<span style="font-size:11px;font-weight:700;color:' + gCol + '">' + gradeTotalMD.toFixed(2) + ' MD</span>' +
+              staffByGrade += '<div style="margin-bottom:24px;background:rgba(255,255,255,0.02);padding:14px;border-radius:8px;border-left:4px solid ' + gCol + '">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:8px">' +
+                '<span style="font-size:12px;font-weight:700;color:' + gCol + ';letter-spacing:0.05em">GRADE ' + g + '</span>' +
+                '<span style="font-size:12px;font-weight:700;color:' + gCol + '">' + gradeTotalMD.toFixed(2) + ' MD</span>' +
                 '</div>' +
-                '<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));gap:10px 30px">';
+                '<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:12px 40px">';
 
               people.forEach(function (p) {
                 staffByGrade += '<div style="display:flex;justify-content:space-between;font-size:11px">' +
-                  '<span style="color:var(--fg)">' + p.name + ' <small style="color:var(--dim);margin-left:4px">' + p.sub + '</small></span>' +
+                  '<span style="color:var(--fg)">' + p.name + ' <small style="color:var(--dim);margin-left:6px">' + p.sub + '</small></span>' +
                   '<span style="font-weight:600;color:var(--fg)">' + p.d.toFixed(2) + ' <small style="color:var(--dim)">MD</small></span>' +
                   '</div>';
               });
@@ -8289,51 +8420,28 @@
               staffByGrade += '</div></div>';
             });
 
-            // ── TREND SPARKLINE ────────────────────────────────────────────
-            var sparkHtml = '';
-            if (agg.weekly.length > 1) {
-              var maxW = Math.max.apply(null, agg.weekly.map(function (w) { return w.h; })) || 1;
-              var barW = Math.floor(Math.min(28, 260 / agg.weekly.length));
-              sparkHtml = '<div style="display:flex;align-items:flex-end;gap:2px;height:50px;margin-top:8px">' +
-                agg.weekly.map(function (w) {
-                  var h = Math.round(w.h / maxW * 48);
-                  var label = w.week.replace(/^\d{4}-/, '');
-                  return '<div title="' + w.week + ': ' + w.h + 'h" style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
-                    '<div style="width:' + barW + 'px;height:' + h + 'px;background:' + orange + ';border-radius:2px 2px 0 0;opacity:.85"></div>' +
-                    '</div>';
-                }).join('') +
-                '</div>' +
-                '<div style="display:flex;justify-content:space-between;font-size:8px;color:var(--dim);margin-top:2px">' +
-                '<span>' + (agg.weekly[0] || {}).week + '</span>' +
-                '<span>' + (agg.weekly[agg.weekly.length - 1] || {}).week + '</span>' +
-                '</div>';
-            }
-
             var hasData = agg.total_h > 0;
             var prjLabel = selProject || 'Todos os Projetos';
 
             // ── LAYOUT COMPLETO ────────────────────────────────────────────
             if (!hasData) {
               c.innerHTML = '<div style="padding:12px 4px 4px">' +
-                '<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">' +
-                '<span style="font-size:16px">&#128336;</span>' +
+                '<div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">' +
+                '<span style="font-size:20px">&#128336;</span>' +
                 '<div>' +
-                '<div style="font-size:13px;font-weight:700;color:' + orange + '">TIMESHEET</div>' +
-                '<div style="font-size:10px;color:var(--muted)">' + prjLabel + ' (Sem dados de consumo)</div>' +
+                '<div style="font-size:14px;font-weight:700;color:' + orange + ';letter-spacing:0.05em">TIMESHEET</div>' +
+                '<div style="font-size:11px;color:var(--muted)">' + prjLabel + ' (Sem dados de consumo)</div>' +
                 '</div>' +
                 '</div>' +
                 kpiRow +
-                '<div style="padding:40px;text-align:center;color:var(--dim)">' +
-                '<div style="font-size:40px;margin-bottom:12px">&#128336;</div>' +
-                '<div style="font-size:13px;margin-bottom:6px">Sem dados de timesheet para o filtro selecionado</div>' +
-                '<div style="font-size:11px;color:var(--dim)">Os MDs Planejados acima são baseados apenas no volume de tickets.</div>' +
+                '<div class="glass-card" style="padding:60px;text-align:center;margin-top:20px">' +
+                '<div style="font-size:48px;margin-bottom:16px;opacity:0.5">&#128336;</div>' +
+                '<div style="font-size:16px;font-weight:600;margin-bottom:8px">Sem dados de timesheet para o período</div>' +
+                '<div style="font-size:12px;color:var(--dim)">Os indicadores contratuais acima são baseados exclusivamente no volume de tickets.</div>' +
                 '</div>' +
                 '</div>';
               return;
             }
-
-            // Cores Atividade
-            var actColors = { INCIDENT: '#f87171', USER_REQUEST: '#60a5fa', PROBLEM: '#a78bfa', CHANGE_REQUEST: '#34d399', INTERNAL: '#94a3b8' };
 
             // 4. Ranking de Complexidade (MTTR vs MD)
             var complexityRows = Object.keys(catData).map(function (k) {
@@ -8345,7 +8453,7 @@
             }).sort(function (a, b) { return b.md - a.md; }).slice(0, 5).map(function (r) {
               var mttrColor = r.mttr > 48 ? '#f87171' : (r.mttr > 24 ? '#fb923c' : '#34d399');
               return '<tr>' +
-                '<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + r.name + '</td>' +
+                '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + r.name + '</td>' +
                 '<td style="text-align:center">' + r.tix + '</td>' +
                 '<td style="text-align:right;font-weight:700;color:var(--text)">' + r.md.toFixed(1) + '</td>' +
                 '<td style="text-align:right;font-weight:700;color:' + mttrColor + '">' + r.mttr.toFixed(0) + 'h</td>' +
@@ -8354,24 +8462,20 @@
 
             c.innerHTML =
               '<div style="padding:12px 4px 4px">' +
-              // Header da Aba
-              '<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">' +
-              '<span style="font-size:16px">&#128336;</span>' +
+              '<div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">' +
+              '<span style="font-size:20px">🕒</span>' +
               '<div>' +
-              '<div style="font-size:13px;font-weight:700;color:' + orange + '">TIMESHEET</div>' +
-              '<div style="font-size:10px;color:var(--muted)">' + prjLabel +
+              '<div style="font-size:14px;font-weight:700;color:' + orange + ';letter-spacing:0.05em">TIMESHEET ANALYSIS</div>' +
+              '<div style="font-size:11px;color:var(--muted)">' + prjLabel +
               (selYear ? ' · ' + selYear : '') +
               (selMonth ? ' · ' + String(selMonth).padStart(2, '0') : '') +
               '</div>' +
               '</div>' +
               '</div>' +
-              // KPI pills
               kpiRow +
-              // Grid Superior (3 colunas)
-              '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">' +
-              // Esforço por Severidade (MDs)
-              '<div class="cb" style="padding:14px">' +
-              '<div class="cbt tip" data-tip="Distribuição proporcional do esforço consumido baseada no volume de tickets de cada severidade." style="margin-bottom:12px;color:#f87171">&#9888; Esforço por Severidade (MDs)</div>' +
+              '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px">' +
+              '<div class="glass-card" style="padding:16px">' +
+              '<div class="card-hdr" style="margin-bottom:16px;color:#f87171"><div class="card-title">⚠ Esforço por Severidade (MDs)</div></div>' +
               (function () {
                 var sevList = Object.keys(sevCount).sort();
                 var colors = {
@@ -8388,95 +8492,68 @@
                   var mds = consumedMD * share;
                   var pct = Math.round(share * 100);
                   var col = colors[p] || '#94a3b8';
-                  return '<div class="tip" data-tip="Esforço estimado para tickets da severidade ' + p + '" style="margin-bottom:10px">' +
-                    '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">' +
+                  return '<div class="tip" data-tip="Esforço estimado para tickets da severidade ' + p + '" style="margin-bottom:12px">' +
+                    '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">' +
                     '<span>' + p + ' <small style="color:var(--dim)">(' + count + ' tix)</small></span>' +
                     '<span style="font-weight:700;color:' + col + '">' + mds.toFixed(2) + ' MD</span>' +
                     '</div>' +
                     '<div style="background:rgba(255,255,255,0.06);border-radius:3px;height:5px">' +
                     '<div style="width:' + pct + '%;height:100%;background:' + col + ';border-radius:3px;transition:.3s"></div>' +
                     '</div></div>';
-                }).join('').replace(/<div/g, function (match, offset, string) {
-                  // Injeta o evento de duplo clique nas severidades se estiver na string correta
-                  if (string.substring(offset).startsWith('<div style="margin-bottom:10px">')) {
-                    // Precisamos de uma lógica mais esperta aqui para pegar a severidade 'p'
-                    // Mas como estamos dentro de um map, o ideal é fazer o replace direto no retorno do map anterior.
-                  }
-                  return match;
-                });
-
+                }).join('');
               })() +
               '</div>' +
-              // Esforço por Senioridade (Career Grade)
-              '<div class="cb" style="padding:14px">' +
-              '<div class="cbt tip" data-tip="Consumo de Man-Days segmentado pelo nível de senioridade (Grade) dos colaboradores envolvidos." style="margin-bottom:12px;color:#fb923c">&#127891; Career Grade (Seniority)</div>' +
+              '<div class="glass-card" style="padding:16px">' +
+              '<div class="card-hdr" style="margin-bottom:16px;color:#fb923c"><div class="card-title">🎓 Career Grade (Seniority)</div></div>' +
               (gradeRows || '<div style="color:var(--dim);font-size:11px">Sem dados de grade</div>') +
               '</div>' +
-              // Top Staff
-              '<div class="cb" style="padding:14px">' +
-              '<div class="cbt tip" data-tip="Recursos com maior alocação de Man-Days no período selecionado." style="margin-bottom:12px;color:' + orange + '">&#128101; Top Colaboradores</div>' +
+              '<div class="glass-card" style="padding:16px">' +
+              '<div class="card-hdr" style="margin-bottom:16px;color:' + orange + '"><div class="card-title">👥 Top Colaboradores</div></div>' +
               (staffRows || '<div style="color:var(--dim);font-size:11px">Sem dados</div>') +
               '</div>' +
               '</div>' +
-
-              // Grid Médio (2 colunas)
-              '<div style="display:grid;grid-template-columns:1.5fr 1fr;gap:12px">' +
-              // Matriz de Complexidade (MTTR vs MD)
-              '<div class="cb" style="padding:14px">' +
-              '<div class="cbt tip" data-tip="Relação entre Volume de Tickets, Esforço (MD) e Tempo de Resolução (MTTR) por módulo ou aplicação." style="margin-bottom:12px;color:' + green + '">&#128200; Matriz de Complexidade (MTTR vs MD)</div>' +
+              '<div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px">' +
+              '<div class="glass-card" style="padding:16px">' +
+              '<div class="card-hdr" style="margin-bottom:16px;color:' + green + '"><div class="card-title">📈 Matriz de Complexidade (MTTR vs MD)</div></div>' +
               '<table class="tbl">' +
               '<thead><tr>' +
-              '<th class="tip" data-tip="Nome do módulo ou categoria da aplicação">Aplicação/Módulo</th>' +
-              '<th class="tip" data-tip="Total de tickets abertos no período" style="text-align:center">Tix</th>' +
-              '<th class="tip" data-tip="Esforço total consumido (estimado via distribuição proporcional)" style="text-align:right">MD</th>' +
-              '<th class="tip" data-tip="Tempo médio de resolução para tickets encerrados" style="text-align:right">MTTR</th>' +
+              '<th>Aplicação/Módulo</th>' +
+              '<th style="text-align:center">Tickets</th>' +
+              '<th style="text-align:right">MD Est.</th>' +
+              '<th style="text-align:right">MTTR</th>' +
               '</tr></thead>' +
               '<tbody>' + (complexityRows || '<tr><td colspan="4" style="text-align:center;color:var(--dim)">Sem dados</td></tr>') + '</tbody>' +
               '</table>' +
               '</div>' +
-
-              // Distribuição por Tarefa (Subiu para o grid médio)
-              '<div class="cb" style="padding:14px">' +
-              '<div class="cbt tip" data-tip="Principais centros de custo e atividades registradas no timesheet." style="margin-bottom:12px;color:' + blue + '">&#128221; Distribuição por Tarefa</div>' +
+              '<div class="glass-card" style="padding:16px">' +
+              '<div class="card-hdr" style="margin-bottom:16px;color:' + blue + '"><div class="card-title">📝 Distribuição por Tarefa</div></div>' +
               (taskRows || '<div style="color:var(--dim);font-size:11px">Sem dados</div>') +
               '</div>' +
               '</div>' +
-
-              // Grid Final (Subsidiary & Sub-projects)
-              '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">' +
-              // Subsidiary
-              '<div class="cb" style="padding:14px">' +
-              '<div class="cbt tip" data-tip="Esforço total segmentado pela unidade/subsidiária do colaborador." style="margin-bottom:12px;color:' + green + '">&#127757; Por Subsidiary</div>' +
+              '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">' +
+              '<div class="glass-card" style="padding:16px">' +
+              '<div class="card-hdr" style="margin-bottom:16px;color:' + green + '"><div class="card-title">🌍 Por Subsidiary</div></div>' +
               (subRows || '<div style="color:var(--dim);font-size:11px">Sem dados</div>') +
               '</div>' +
-              // Esforço por Prioridade
-              '<div class="cb" style="padding:14px">' +
-              '<div class="cbt tip" data-tip="Distribuição do esforço total entre as prioridades dos tickets (P1 a P4)." style="margin-bottom:10px;color:' + purple + '">&#128202; Esforço por Prioridade</div>' +
+              '<div class="glass-card" style="padding:16px">' +
+              '<div class="card-hdr" style="margin-bottom:16px;color:' + purple + '"><div class="card-title">📊 Esforço por Prioridade</div></div>' +
               (prioRows || '<div style="color:var(--dim);font-size:11px">Sem dados de prioridade</div>') +
               '</div>' +
               '</div>' +
-
-              // Nova Linha: Médias por Severidade (MD)
-              '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">' +
+              '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px">' +
               avgInc + avgReq + avgPrb +
               '</div>' +
-
-              // Nova Linha: Médias por Severidade (HORAS)
-              '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">' +
+              '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px">' +
               avgIncH + avgReqH + avgPrbH +
               '</div>' +
-              // Equipe Detalhada (Full Width no lugar da tendência)
-              '<div class="cb" style="padding:16px;margin-top:12px">' +
-              '<div class="cbt" style="margin-bottom:16px;color:#a78bfa;display:flex;justify-content:space-between;align-items:center">' +
-              '<span>&#128101; DETALHAMENTO DE EQUIPE POR NÍVEL (GRADE)</span>' +
+              '<div class="glass-card" style="padding:20px;margin-top:16px">' +
+              '<div class="card-hdr" style="margin-bottom:20px;color:#a78bfa;display:flex;justify-content:space-between;align-items:center">' +
+              '<div class="card-title">👥 DETALHAMENTO DE EQUIPE POR NÍVEL (GRADE)</div>' +
               '<div style="text-align:right">' +
-              '<div style="font-size:11px;color:var(--fg);font-weight:700">' + (matchedRng ? matchedRng.label : 'Fora de Faixa') + ' | Consumo em ' + MPT[selMonth || (new Date().getMonth() + 1)] + '/' + (selYear || new Date().getFullYear()) + ': <span style="color:#a78bfa">' + consumedMD.toFixed(2) + ' MDs</span></div>' +
-              '<div style="font-size:9px;color:var(--dim)">Total acumulado de ' + agg.headcount + ' recursos no período</div>' +
+              '<div style="font-size:12px;color:var(--fg);font-weight:700">' + (matchedRng ? matchedRng.label : 'Fora de Faixa') + ' | <span style="color:#a78bfa">' + consumedMD.toFixed(1) + ' MDs Consumidos</span></div>' +
               '</div>' +
               '</div>' +
-              '<div style="display:flex;flex-direction:column;gap:12px">' +
               staffByGrade +
-              '</div>' +
               '</div>' +
               '</div>';
 
@@ -9378,14 +9455,9 @@
           if (ca.available) {
             var caCol = ca.pct > 30 ? '#f87171' : (ca.pct > 15 ? '#fbbf24' : '#34d399');
             parts.push(
-              '<div class="exec-grid" style="margin-bottom:24px">' +
-              kpiCard('FECHAMENTO ADMINISTRATIVO', ca.pct + '%',
-                ca.admin + ' admin de ' + ca.closed_total + ' fechados',
-                caCol,
-                'Tickets encerrados administrativamente — sem trabalho real de resolução (cancelados, duplicados, classificações erradas).\nUma taxa alta sugere problema na triagem inicial ou tickets sendo abertos sem necessidade.\nVerde ≤15%, amarelo ≤30%, vermelho acima.') +
-              kpiCard('TOTAL FECHADOS NO MÊS', ca.closed_total, 'incidents + user requests + problems', '#a78bfa',
-                'Quantidade total de tickets encerrados no período (somando as três severidades acompanhadas).') +
-              '<div></div><div></div>' +
+              '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:24px">' +
+              buildMatCard('FECHAMENTO ADMINISTRATIVO', ca.pct + '%', caCol, ca.admin + ' admin de ' + ca.closed_total + ' fechados') +
+              buildMatCard('TOTAL FECHADOS NO MÊS', ca.closed_total, '#a78bfa', 'incidents + user requests + problems') +
               '</div>'
             );
           }
@@ -9778,16 +9850,15 @@
             '\nPesos: SLA 30% · Backlog 20% · MTTR 20% · Reopen 15% · Admin 15%';
           var rkTip = 'P1 abertos: ' + rk.p1 + ' (×5) · P2 abertos: ' + rk.p2 + ' (×2) · Aging>30d: ' + rk.aging + ' (×3)' +
             '\nVerde ≤10 · Amarelo ≤25 · Vermelho >25';
-          return '<div class="exec-grid" style="grid-template-columns:2fr 1fr 1fr 1fr;margin-bottom:24px">' +
-            '<div class="tip" data-tip="' + hsTip + '" style="background:var(--bg);border:2px solid ' + hsCol + ';border-radius:10px;padding:18px;display:flex;align-items:center;gap:18px">' +
-            '<div style="font-size:54px;font-weight:700;color:' + hsCol + ';line-height:1">' + hs.score + '</div>' +
-            '<div>' +
-            '<div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--muted)">SERVICE HEALTH SCORE</div>' +
-            '<div style="font-size:10px;color:var(--dim);margin-top:4px">composto SLA + Backlog + MTTR + Reopen + Admin</div>' +
+          return '<div style="display:grid; grid-template-columns: 2fr 1fr; gap:12px; margin-bottom:24px">' +
+            '<div class="glass-card ' + (hs.score >= 80 ? 'glow-green' : (hs.score >= 60 ? 'glow-orange' : 'glow-red')) + ' tip" data-tip="' + hsTip + '" style="display:flex; align-items:center; gap:24px; padding:24px;">' +
+              '<div style="font-size:64px; font-weight:300; color:' + hsCol + '; line-height:1; letter-spacing:-2px;">' + hs.score + '</div>' +
+              '<div>' +
+                '<div class="card-title" style="font-size:12px; margin-bottom:4px;">SERVICE HEALTH SCORE</div>' +
+                '<div class="card-sub">Indicador consolidado de conformidade e performance</div>' +
+              '</div>' +
             '</div>' +
-            '</div>' +
-            kpiCard('RISK INDEX', rk.index, rk.p1 + '×P1 · ' + rk.p2 + '×P2 · ' + rk.aging + '×age', rkCol, rkTip) +
-            '<div></div><div></div>' +
+            buildMatCard('RISK INDEX', rk.index, rkCol, rk.p1 + '×P1 · ' + rk.p2 + '×P2 · ' + rk.aging + '×age') +
             '</div>';
         }
 
@@ -9796,40 +9867,18 @@
           var co_i = _TF.indexOf('co'), prj_i = _TF.indexOf('prj'), st_i = _TF.indexOf('st');
           var y_o_i = _TF.indexOf('y_o'), m_o_i = _TF.indexOf('m_o');
           var stats = {};
-          
           _ROWS.forEach(function(r) {
             if (targetPrj && r[prj_i] !== targetPrj) return;
             if (y && r[y_o_i] !== +y) return;
             if (m && r[m_o_i] !== m) return;
-            
             var co = r[co_i] || 'N/A';
             if (co === 'nan' || !co.trim()) co = 'N/A';
             if (!stats[co]) stats[co] = { total: 0, open: 0, closed: 0 };
-            
             stats[co].total++;
             if (r[st_i] === 'closed' || r[st_i] === 'resolved') stats[co].closed++;
             else stats[co].open++;
           });
-          
-          var sorted = Object.entries(stats).sort((a,b) => b[1].total - a[1].total);
-          
-          // Se não houver projeto selecionado (Visão Global), não mostramos o breakdown por país no topo para evitar poluição
-          if (!targetPrj) return '';
-          
-          // Se só houver um "país" e ele for N/A, não mostramos nada (caso de Chanel, Arrocha, etc)
-          if (sorted.length === 0) return '';
-          if (sorted.length === 1 && (sorted[0][0] === 'N/A' || sorted[0][0] === 'unknown')) return '';
-          
-          return '<div style="margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap">' +
-            sorted.map(function(e) {
-              var name = e[0], d = e[1];
-              return '<div class="tip" data-tip="Volumetria total para ' + name + ' no periodo selecionado" style="background:var(--glass-card);padding:12px 20px;border-radius:12px;border:1px solid var(--glass-border);min-width:140px;flex:1">' +
-                '<div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700">' + name + '</div>' +
-                '<div style="font-size:22px;font-weight:700;margin-top:4px;color:var(--text)">' + d.total + '</div>' +
-                '<div style="font-size:10px;color:var(--dim);margin-top:2px"><span style="color:var(--open)">' + d.open + ' abertos</span> | <span style="color:var(--closed)">' + d.closed + ' fechados</span></div>' +
-                '</div>';
-            }).join('') +
-            '</div>';
+
         }
 
         function _renderInsightsRow(prj, y, m) {
@@ -9842,29 +9891,23 @@
           var ftfCol = ftf.rate >= 95 ? '#34d399' : (ftf.rate >= 85 ? '#fbbf24' : '#f87171');
           var bdCol = bd.eta_days <= 30 ? '#34d399' : (bd.eta_days <= 90 ? '#fbbf24' : '#f87171');
           var cwCol = cw.pct >= 50 ? '#fbbf24' : '#34d399';
-          return '<div class="exec-grid" style="margin-bottom:24px">' +
-            kpiCard('TAXA DE RESOLUÇÃO', rr.rate + '%', rr.closed + ' fechados ÷ ' + rr.open + ' abertos', rrCol,
-              'Para cada 100 tickets abertos no mês, quantos foram fechados.\nAcima de 100% significa que estamos reduzindo o backlog. Abaixo significa que ele está crescendo.\nVerde ≥100%, amarelo ≥80%, vermelho abaixo.') +
-            kpiCard('RESOLUÇÃO NA 1ª TENTATIVA', ftf.rate + '%', ftf.reopened + ' reabertos de ' + ftf.closed + ' fechados', ftfCol,
-              'Tickets resolvidos sem precisar reabrir depois.\nMede a qualidade do fix entregue ao cliente. Quanto maior, melhor.\nTarget: 95% ou mais.') +
-            kpiCard('PROJEÇÃO PARA ZERAR BACKLOG', bd.eta_days + ' dias', bd.closed30 + ' fech. nos últimos 30d (' + bd.perDay + '/dia)', bdCol,
-              'Em quantos dias o backlog atual seria zerado se o ritmo de fechamento dos últimos 30 dias continuasse.\nNão considera novas aberturas — é uma projeção do ritmo atual.\nVerde ≤30d, amarelo ≤90d, vermelho acima.') +
-            kpiCard('% TICKETS DE ALTA PRIORIDADE', hp.pct + '%', hp.hi + ' P1+P2 de ' + hp.total + ' totais', hp.pct > 30 ? '#fbbf24' : '#34d399',
-              'Quanto do volume foi de tickets críticos (P1) ou altos (P2).\nUm pico aqui significa um mês mais turbulento operacionalmente.') +
+          return '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:12px">' +
+            buildMatCard('TAXA DE RESOLUÇÃO', rr.rate + '%', rrCol, rr.closed + ' fechados / ' + rr.open + ' abertos') +
+            buildMatCard('F.T.F RATE', ftf.rate + '%', ftfCol, 'Resolução na 1ª tentativa') +
+            buildMatCard('B.D. ETA', bd.eta_days + 'd', bdCol, bd.perDay + ' fechados/dia') +
             '</div>' +
-            '<div class="exec-grid" style="margin-bottom:24px">' +
-            kpiCard('AGUARDANDO O CLIENTE', cw.pct + '%', cw.wait + ' de ' + cw.open + ' tickets abertos', cwCol,
-              'Parte do backlog que está parada esperando algo do cliente (validação, dados, instalação, etc).\nÚtil para mostrar quanto do atraso NÃO é responsabilidade da equipe.') +
-            '<div></div><div></div><div></div>' +
+            '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:24px">' +
+            buildMatCard('ALTA PRIORIDADE', hp.pct + '%', hp.pct > 30 ? '#fbbf24' : '#34d399', hp.hi + ' tickets P1+P2') +
+            buildMatCard('PENDING USER', cw.pct + '%', cwCol, cw.wait + ' de ' + cw.open + ' tickets') +
             '</div>';
         }
 
         function _renderAppsSection(prj, y, m) {
           var apps = getTopApps(prj, y, m, 5);
           if (!apps.length) return '';
-          return '<div style="margin-bottom:24px;background:#0d2438;border:1px solid #1a3a50;border-radius:12px;padding:20px">' +
-            '<div style="font-family:var(--ft);font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:16px">' +
-            '&#128241; APPLICATION HEALTH — TOP 5' +
+          return '<div class="glass-card" style="margin-bottom:24px; padding:20px">' +
+            '<div class="card-hdr" style="margin-bottom:16px">' +
+            '<div class="card-title">📱 APPLICATION HEALTH — TOP 5</div>' +
             '</div>' +
             '<div class="dtbl-wrap"><table class="dtbl">' +
             '<thead><tr><th>App</th><th style="text-align:right">Tickets</th>' +
@@ -9895,18 +9938,13 @@
           var sl = getServiceLineSplit(prj, y, m);
           if (!top.length && !sl.available) return '';
           var concCol = conc.pct > 70 ? '#f87171' : (conc.pct > 50 ? '#fbbf24' : '#34d399');
-          var html = '<div style="margin-bottom:24px;background:#0d2438;border:1px solid #1a3a50;border-radius:12px;padding:20px">' +
-            '<div style="font-family:var(--ft);font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:16px">' +
-            '&#128101; TEAM & CAPACITY' +
+          var html = '<div class="glass-card" style="margin-bottom:24px; padding:20px">' +
+            '<div class="card-hdr" style="margin-bottom:20px">' +
+            '<div class="card-title">👥 TEAM & CAPACITY</div>' +
             '</div>' +
-            '<div class="exec-grid" style="margin-bottom:16px">' +
-            kpiCard('CONCENTRAÇÃO DE CONHECIMENTO', conc.pct + '%',
-              'top 3 pessoas de ' + conc.people + ' totais',
-              concCol,
-              'Quanto do esforço total está concentrado nas 3 pessoas mais ativas.\nConcentração alta = risco se essas pessoas saírem ou ficarem indisponíveis (férias, doença, turnover).\nVerde ≤50%, amarelo ≤70%, vermelho acima.') +
-            kpiCard('ESFORÇO TOTAL DA EQUIPE', conc.total_md + ' MDs', conc.people + ' pessoas envolvidas no período', '#a78bfa',
-              'Total de Man-Days apontados pelo time todo no período.\n1 MD ≈ 1 dia de trabalho de uma pessoa.') +
-            '<div></div><div></div>' +
+            '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:24px">' +
+            buildMatCard('CONCENTRAÇÃO', conc.pct + '%', concCol, 'top 3 pessoas') +
+            buildMatCard('ESFORÇO TOTAL', conc.total_md + ' MD', conc.people + ' envolvidos') +
             '</div>';
           if (top.length) {
             html += '<div class="cbt" style="margin:8px 0;font-size:11px">TOP 5 ASSIGNEES por MDs</div>' +
@@ -9940,88 +9978,68 @@
           return html;
         }
 
-        // Renderiza a seção Problem Management (KPIs + tabela TOP 5).
         function _renderProblemSection(prj, y, m) {
           var cov = getProblemCoverage(prj, y, m);
           if (!cov.available) {
-            return '<div class="cb" style="margin-bottom:24px;border-color:#92400e">' +
-              '<div class="cbt" style="margin-bottom:8px;color:#fbbf24">&#9888; Problem Management — dados não disponíveis</div>' +
-              '<div style="font-size:10px;color:var(--muted);line-height:1.5">' +
-              'O CSV de tickets atual não traz as colunas <b>Problem</b> e <b>MD\'s</b>.<br>' +
-              'Quando o extrator incluir essas colunas, esta seção exibirá: cobertura PM, ratio de esforço, e os TOP 5 problems por recorrência/MD.' +
-              '</div></div>';
+            return '<div class="glass-card" style="margin-bottom:24px; padding:20px">' +
+              '<div class="card-hdr" style="margin-bottom:12px;color:#fbbf24"><div class="card-title">⚠ Problem Management — dados não disponíveis</div></div>' +
+              '<div style="font-size:11px;color:var(--muted);line-height:1.5">' +
+              'O CSV de tickets atual não traz as colunas Problem e MD\'s.</div></div>';
           }
           var ratio = getProblemEffortRatio(prj, y, m);
           var stats = getProblemStats(prj);
           var topRec = getTopProblems(prj, y, m, 5, 'md');
           var reinc = getReincidenceAfterFix(prj, y, m);
           var fixT = getProblemFixTime(prj);
-
           var covCol = cov.pct >= 70 ? '#34d399' : (cov.pct >= 50 ? '#fbbf24' : '#f87171');
           var ratCol = (ratio.ratio >= 20 && ratio.ratio <= 30) ? '#34d399'
             : (ratio.ratio < 20 ? '#fbbf24' : (ratio.ratio > 50 ? '#f87171' : '#fbbf24'));
           var staleCol = stats.stale > 5 ? '#f87171' : (stats.stale > 2 ? '#fbbf24' : '#34d399');
           var reincCol = reinc.count > 5 ? '#f87171' : (reinc.count > 0 ? '#fbbf24' : '#34d399');
           var fixTCol = fixT.median_d > 90 ? '#f87171' : (fixT.median_d > 30 ? '#fbbf24' : '#34d399');
-
-          var html = '<div style="margin-bottom:24px;background:#0d2438;border:1px solid #1a3a50;border-radius:12px;padding:20px">' +
-            '<div style="font-family:var(--ft);font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:16px;display:flex;align-items:center;gap:10px">' +
-            '<div style="width:24px;height:24px;background:#a78bfa;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px">&#128270;</div>' +
-            'PROBLEM MANAGEMENT' +
+          
+          var html = '<div style="padding:12px 4px 4px">' +
+            '<div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">' +
+            '<span style="font-size:20px">🔍</span>' +
+            '<div>' +
+            '<div style="font-size:14px;font-weight:700;color:#fb923c;letter-spacing:.05em">PROBLEM MANAGEMENT — ' + prj.toUpperCase() + '</div>' +
+            '<div style="font-size:11px;color:var(--muted)">Análise de causa raiz, recorrência e investimento preventivo | ' + MPT[m] + '/' + y + '</div>' +
+            '</div>' +
             '</div>' +
             _renderCountrySection(prj, y, m) +
-            '<div class="exec-grid" style="margin-bottom:12px">' +
-            kpiCard('COBERTURA DE CAUSA RAIZ', cov.pct + '%',
-              cov.linked + ' de ' + cov.total + ' incidents com problem associado', covCol,
-              'Quantos incidents foram analisados a fundo e ligados a um problem (causa raiz).\nCobertura baixa significa que estamos perdendo a oportunidade de identificar e corrigir problemas estruturais.\nTarget: 70% ou mais.') +
-            kpiCard('INVESTIMENTO EM CAUSA RAIZ', ratio.ratio + '%',
-              ratio.prob_md + ' MDs em problems ÷ ' + ratio.inc_md + ' MDs em incidents', ratCol,
-              'Quanto do esforço vai para investigação de causa raiz versus apagar incêndio.\nPadrão de mercado (ITIL): 20% a 30%.\nMuito baixo = só apaga incêndio. Muito alto = analisa demais sem entregar.') +
-            kpiCard('PROBLEMS EM ANÁLISE', stats.open,
-              'de ' + stats.total + ' totais · ' + stats.orphan + ' sem incident vinculado',
-              stats.open > 10 ? '#fbbf24' : '#34d399',
-              'Problems ainda em investigação (não fechados nem rejeitados).\n"Sem incident vinculado" = problems abertos isoladamente; vale auditar se ainda fazem sentido.\n\nClique duplo para ver a lista detalhada.').replace('<div', '<div ondblclick="showOpenProblemsDetail(selProject||\'Todos os Projetos\')" style="cursor:pointer" ') +
-            kpiCard('PROBLEMS PARADOS', stats.stale,
-              'abertos há mais de 30 dias', staleCol,
-              'Problems em análise há mais de 30 dias sem fechar.\nClique duplo para ver a lista detalhada.').replace('<div', '<div ondblclick="showStaleProblemsDetail(selProject||\'Todos os Projetos\')" style="cursor:pointer" ') +
+            '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:12px">' +
+            buildMatCard('COBERTURA', cov.pct + '%', covCol, cov.linked + ' incidents vinculados') +
+            buildMatCard('INVESTIMENTO', ratio.ratio + '%', ratCol, 'esforço em problems') +
+            buildMatCard('EM ANÁLISE', stats.open, stats.open > 10 ? '#fbbf24' : '#34d399', 'tickets em investigação', 'onclick="showOpenProblemsDetail(selProject||\'Todos os Projetos\')" style="cursor:pointer"') +
             '</div>' +
-            '<div class="exec-grid" style="margin-bottom:16px">' +
-            kpiCard('PROBLEMA QUE VOLTOU APÓS FIX', reinc.count,
-              'em ' + reinc.problems + ' problems já encerrados', reincCol,
-              'Incidents que apareceram DEPOIS do problem ter sido fechado — ou seja, o fix permanente não funcionou e o problema voltou.\nMede a efetividade real das correções estruturais.\nVerde 0, amarelo até 5, vermelho acima.') +
-            kpiCard('TEMPO PARA RESOLVER UM PROBLEM', fixT.median_d + ' dias',
-              'tempo típico em ' + fixT.n + ' problems já fechados', fixTCol,
-              'Tempo típico (do meio do grupo) entre abrir e fechar um problem — ou seja, quanto tempo levamos para entregar o fix permanente.\nVerde até 30d, amarelo até 90d, vermelho acima.') +
-            '<div></div><div></div>' +
+            '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:24px">' +
+            buildMatCard('PROBLEMS PARADOS', stats.stale, staleCol, 'mais de 30 dias', 'onclick="showStaleProblemsDetail(selProject||\'Todos os Projetos\')" style="cursor:pointer"') +
+            buildMatCard('REINCIDÊNCIA', reinc.count, reincCol, 'falha após fix permanente') +
+            buildMatCard('MTTR PROBLEM', fixT.median_d + 'd', fixTCol, 'tempo típico de resolução') +
             '</div>';
-
-          // Tabela TOP recorrentes — agora com coluna ROI = MD Total / #Inc
+            
           if (topRec.length && topRec[0].inc_count > 0) {
-            html += '<div class="cbt" style="margin:8px 0 8px 0;font-size:11px">TOP 5 Problems por recorrência (ROI = MD Total ÷ #Inc — menor é melhor)</div>' +
+            html += '<div class="glass-card" style="padding:20px">' +
+              '<div class="card-hdr" style="margin-bottom:15px"><div class="card-title">TOP 5 PROBLEMS POR RECORRÊNCIA (MAIOR ROI)</div></div>' +
               '<div class="dtbl-wrap"><table class="dtbl">' +
               '<thead><tr><th>Problem</th><th>App</th><th>Pri</th><th style="text-align:right">#Inc</th>' +
-              '<th style="text-align:right">MD Self</th><th style="text-align:right">MD Inc</th>' +
-              '<th style="text-align:right">MD Total</th><th style="text-align:right">ROI (MD/Inc)</th><th>Status</th></tr></thead><tbody>' +
+              '<th style="text-align:right">MD Total</th><th style="text-align:right">ROI</th><th>Status</th></tr></thead><tbody>' +
               topRec.map(function (p) {
                 if (!p.inc_count) return '';
                 var statusCol = p.is_open ? '#fbbf24' : 'var(--muted)';
                 var roi = p.inc_count > 0 ? Math.round(p.total_md / p.inc_count * 100) / 100 : 0;
                 var roiCol = roi > 1 ? '#f87171' : (roi > 0.5 ? '#fbbf24' : '#34d399');
                 return '<tr>' +
-                  '<td><b>' + p.ticket + '</b></td>' +
+                  '<td><b>#' + p.ticket + '</b></td>' +
                   '<td>' + (p.app || '—') + '</td>' +
                   '<td>' + (p.priority || '—') + '</td>' +
                   '<td style="text-align:right;font-weight:700">' + p.inc_count + '</td>' +
-                  '<td style="text-align:right">' + p.self_md.toFixed(2) + '</td>' +
-                  '<td style="text-align:right">' + p.inc_md.toFixed(2) + '</td>' +
                   '<td style="text-align:right;font-weight:700;color:#a78bfa">' + p.total_md.toFixed(2) + '</td>' +
                   '<td style="text-align:right;font-weight:700;color:' + roiCol + '">' + roi.toFixed(2) + '</td>' +
                   '<td style="color:' + statusCol + '">' + (p.status || '—') + '</td>' +
                   '</tr>';
               }).join('') +
-              '</tbody></table></div>';
-          } else {
-            html += '<div style="font-size:10px;color:var(--muted);padding:8px 0">Nenhum incident com Problem vinculado no filtro atual.</div>';
+              '</tbody></table></div></div>';
           }
           html += '</div>';
           return html;
@@ -10032,99 +10050,59 @@
           var prj = selProject || 'Todos os Projetos';
           var curY = selYear ? +selYear : new Date().getFullYear();
           var curM = selMonth ? +selMonth : new Date().getMonth() + 1;
-
-          // KPIs período + período anterior (Δ MoM)
           var kpi = getKPIsForPeriod(prj, curY, curM);
           var prevK = getPrevMonthKPIs(prj, curY, curM);
           var sla = getSLAFiltered();
-
-          // SLA P1+P2 ponderado (corrige bug do label antigo)
-          var slaMet = 0, slaTot = 0;
-          ['P1', 'P2'].forEach(function (p) { if (sla[p]) { slaMet += sla[p].met; slaTot += sla[p].total; } });
-          var slaP12 = slaTot > 0 ? Math.round(slaMet / slaTot * 1000) / 10 : 0;
-          var slaTgt = Math.round((CFG.sla.P1.target + CFG.sla.P2.target) / 2 * 10) / 10;
-
           var mttr = getClientMTTR(prj, curY, curM);
           var stale = getClientStale(prj);
           var aging = getClientAging(prj);
           var reopen = getClientReopen(prj, curY, curM);
           var thr = kpi.closed - kpi.open;
           var mds = getMDStats(prj, curY, curM);
-          var ratio = getProblemEffortRatio(prj, curY, curM);
-          var ratCol = (ratio.ratio >= 20 && ratio.ratio <= 30) ? '#34d399'
-            : (ratio.ratio < 20 ? '#fbbf24' : (ratio.ratio > 50 ? '#f87171' : '#fbbf24'));
 
-          var html = '<div style="padding:16px">' +
-            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">' +
+          var html = '<div style="padding:12px 4px 4px">' +
+            '<div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">' +
+            '<span style="font-size:20px">📈</span>' +
             '<div>' +
-            '<div style="font-family:var(--ft);font-size:14px;font-weight:700;color:#FF6B00;letter-spacing:.05em">VISÃO EXECUTIVA — ' + prj.toUpperCase() + '</div>' +
-            '<div style="font-size:10px;color:var(--muted)">Relatório consolidado de performance e tendência | ' + MPT[curM] + '/' + curY + '</div>' +
-            '</div>' +
-            '<div style="text-align:right">' +
-            '<div style="font-size:9px;color:var(--dim)">SLA P1+P2 (Target ' + slaTgt + '%)</div>' +
-            '<div style="font-size:16px;font-weight:700;color:' + (slaP12 >= slaTgt ? '#34d399' : '#f87171') + '">' + slaP12 + '%</div>' +
+            '<div style="font-size:14px;font-weight:700;color:#FF6B00;letter-spacing:.05em">VISÃO EXECUTIVA — ' + prj.toUpperCase() + '</div>' +
+            '<div style="font-size:11px;color:var(--muted)">Relatório consolidado de performance e tendência | ' + MPT[curM] + '/' + curY + '</div>' +
             '</div>' +
             '</div>' +
             _renderExecScore(prj, curY, curM) +
-            '<div class="exec-grid" style="margin-bottom:12px">' +
-            kpiCard('TOTAL ABERTOS', kpi.open, _fmtDelta(kpi.open, prevK.open) + ' vs mês anterior', '#FF6B00',
-              'Tickets criados no período (incident, user request, problem).\nA variação mostra se a demanda está crescendo ou caindo em relação ao mês anterior.') +
-            kpiCard('TOTAL FECHADOS', kpi.closed, _fmtDelta(kpi.closed, prevK.closed) + ' vs mês anterior', '#CF0A2C',
-              'Tickets resolvidos ou encerrados no período.\nIdealmente acompanha ou supera o número de abertos.') +
-            kpiCard('THROUGHPUT LÍQUIDO', (thr >= 0 ? '+' : '') + thr, 'Fechados − Abertos', thr >= 0 ? '#34d399' : '#f87171',
-              'Diferença entre o que foi fechado e o que foi aberto no mês.\nPositivo = backlog encolhendo. Negativo = backlog crescendo.') +
-            kpiCard('BACKLOG ATUAL', kpi.backlog, 'Tickets pendentes', '#fbbf24',
-              'Total de tickets que ainda não foram resolvidos.\nInclui os que aguardam ação da equipe e os que aguardam retorno do cliente.') +
+            '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:12px">' +
+            buildMatCard('TOTAL ABERTOS', kpi.open, '#FF6B00', _fmtDelta(kpi.open, prevK.open) + ' vs mês anterior') +
+            buildMatCard('TOTAL FECHADOS', kpi.closed, '#CF0A2C', _fmtDelta(kpi.closed, prevK.closed) + ' vs mês anterior') +
+            buildMatCard('THROUGHPUT LÍQUIDO', (thr >= 0 ? '+' : '') + thr, thr >= 0 ? '#34d399' : '#f87171', 'Fechados − Abertos') +
             '</div>' +
-            '<div class="exec-grid" style="margin-bottom:24px">' +
-            kpiCard('MTTR P1+P2', mttr.median_h ? mttr.median_h + 'h' : '—', 'Tempo típico em ' + mttr.n + ' incidents', '#a78bfa',
-              'Tempo típico (em horas) para resolver incidents críticos (P1) e altos (P2), da abertura até o fechamento.\nMenor é melhor. Mostra a velocidade de resposta nos casos mais sensíveis.') +
-            kpiCard('BACKLOG SEM ATUALIZAÇÃO', stale.pct + '%', stale.stale + ' de ' + stale.total + ' tickets parados',
-              stale.pct > 30 ? '#f87171' : (stale.pct > 15 ? '#fbbf24' : '#34d399'),
-              'Tickets do backlog sem qualquer atualização há mais dias do que o limite configurado.\nIndica trabalho esquecido ou bloqueado.\nVerde até 15%, amarelo até 30%, vermelho acima.') +
-            kpiCard('IDADE MÉDIA DO BACKLOG', aging.avg + 'd', aging.n + ' tickets abertos',
-              aging.avg > 30 ? '#f87171' : (aging.avg > 14 ? '#fbbf24' : '#34d399'),
-              'Quantos dias, em média, os tickets em aberto estão no backlog.\nQuanto mais alto, mais tempo o cliente está esperando.\nVerde até 14d, amarelo até 30d, vermelho acima.') +
-            kpiCard('TAXA DE REABERTURA', reopen.rate + '%', reopen.rejected + ' reabertos de ' + reopen.closed + ' fechados',
-              reopen.rate > 5 ? '#f87171' : '#34d399',
-              'Quando um ticket fechado precisa voltar a ser trabalhado, ele é reaberto (status Rejected).\nMede se as resoluções estão "matando" o problema de verdade.\nTarget: abaixo de 5%.') +
+            '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:24px">' +
+            buildMatCard('BACKLOG ATUAL', kpi.backlog, '#fbbf24', 'Tickets pendentes') +
+            buildMatCard('MTTR P1+P2', mttr.median_h ? mttr.median_h + 'h' : '—', '#a78bfa', 'Tempo típico em ' + mttr.n + ' incidents') +
+            buildMatCard('STALE BACKLOG', stale.pct + '%', stale.pct > 30 ? '#f87171' : '#34d399', stale.stale + ' parados') +
             '</div>' +
-            // Linha 3: Esforço Real (Onda 2)
-            (mds.available ?
-              '<div class="exec-grid" style="margin-bottom:24px">' +
-              kpiCard('ESFORÇO TOTAL (MDs)', mds.total, mds.n + ' tickets com horas registradas', '#60a5fa',
-                'Soma de Man-Days (MDs) apontados no período. 1 MD ≈ 1 dia de trabalho de uma pessoa.\nMostra o volume real de esforço gasto, independente do número de tickets.') +
-              kpiCard('ESFORÇO MÉDIO POR TICKET', mds.avg + ' MD', 'esforço médio para resolver um ticket', '#34d399',
-                'Esforço total dividido pelo número de tickets.\nQuanto maior, mais complexo está sendo o trabalho médio.') +
-              kpiCard('TICKETS SEM ESFORÇO REGISTRADO', mds.zero_pct + '%', mds.n + ' tickets no período', mds.zero_pct > 20 ? '#fbbf24' : '#34d399',
-                'Tickets fechados sem qualquer hora apontada.\nPode indicar: fechamento administrativo, ticket sem trabalho real, ou falha no registro de horas.\nAcima de 20% merece investigação.') +
-              kpiCard('INVESTIMENTO EM CAUSA RAIZ', ratio.ratio + '%', 'esforço em problems vs incidents', ratCol,
-                'Quanto do esforço vai para investigação de causa raiz (problems) versus apagar incêndio (incidents).\nPadrão de mercado (ITIL): 20% a 30%.\nMuito baixo = só apaga incêndio. Muito alto = analisa demais sem entregar.') +
-              '</div>' : '') +
-            // Insights — Resolution Rate, FTF, Burn-down ETA, P1+P2, Customer Wait
+            '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:24px">' +
+            buildMatCard('IDADE BACKLOG', aging.avg + 'd', aging.avg > 30 ? '#f87171' : '#34d399', aging.n + ' tickets abertos') +
+            buildMatCard('REABERTURA', reopen.rate + '%', reopen.rate > 5 ? '#f87171' : '#34d399', 'Target: < 5%') +
+            (mds.available ? buildMatCard('ESFORÇO (MD)', mds.total, '#60a5fa', mds.n + ' tix com horas') : '<div></div>') +
+            '</div>' +
             _renderInsightsRow(prj, curY, curM) +
-            // Onda 3: Quality (Closed Admin sempre; Country split só Farmatodo)
             _renderQualitySection(prj, curY, curM) +
-            // SLA grid migrado da aba INC — clique no card abre o detail modal flutuante
-            '<div class="cb" style="margin-bottom:24px">' +
-            '<div class="cbt" style="margin-bottom:12px">SLA por Prioridade — clique no card para detalhes</div>' +
-            '<div class="sla-grid" id="sla-cards"></div>' +
-            '<div style="font-size:9px;color:#2a4a60;margin-top:4px" id="sla-cfg-lbl"></div>' +
+            '<div class="glass-card" style="margin-bottom:24px; padding:20px">' +
+            '<div class="card-hdr" style="margin-bottom:12px">' +
+            '<div class="card-title">🛡 SLA POR PRIORIDADE</div>' +
             '</div>' +
-            // Application Health — TOP 5 apps com health score
+            '<div class="sla-grid" id="sla-cards"></div>' +
+            '</div>' +
             _renderAppsSection(prj, curY, curM) +
-            // Team & Capacity — top assignees, knowledge concentration, service line
             _renderTeamSection(prj, curY, curM) +
-            // Onda 1: Problem Management (estendido com Reincidência, Fix Time, ROI)
             _renderProblemSection(prj, curY, curM);
 
           var clientSevs = ['incident', 'user_request', 'problem'];
 
           clientSevs.forEach(function (sev) {
             var sevName = sev.toUpperCase().replace('_', ' ');
-            html += '<div style="margin-bottom:30px;background:#0d2438;border:1px solid #1a3a50;border-radius:12px;padding:20px">' +
-              '<div style="font-family:var(--ft);font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:20px;display:flex;align-items:center;gap:10px">' +
-              '<div style="width:24px;height:24px;background:var(--open);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px">&#128200;</div>' + sevName +
+            html += '<div class="glass-card" style="margin-bottom:30px; padding:20px">' +
+              '<div class="card-hdr" style="margin-bottom:20px">' +
+              '<div class="card-title">📈 ' + sevName + ' ANALYTICS</div>' +
               '</div>' +
               '<div style="display:grid;grid-template-columns:1.5fr 1fr;gap:20px">' +
               '<div class="cb" style="grid-row:span 2;margin:0;height:100%">' +
@@ -10600,35 +10578,33 @@
                   const pct = totalTicketsAll > 0 ? (ap.total / totalTicketsAll * 100) : 0;
                   const bkRatio = ap.total > 0 ? ap.open / ap.total : 0;
                   const healthScore = Math.max(0, Math.min(100, Math.round(100 - bkRatio * 100 - (ap.p1p2 / (ap.total || 1)) * 50)));
-                  const hsColor = healthScore >= 70 ? '#34d399' : (healthScore >= 40 ? '#fbbf24' : '#f87171');
                   const hsLabel = healthScore >= 70 ? 'Saudável' : (healthScore >= 40 ? 'Atenção' : 'Crítico');
+                  const glowClass = healthScore >= 70 ? 'glow-green' : (healthScore >= 40 ? 'glow-orange' : 'glow-red');
                   const isConcentrated = pct > 30;
 
                   return `
-            <div style="background: rgba(15, 23, 42, 0.5); border-radius: 10px; padding: 18px; border: 1px solid ${isConcentrated ? 'rgba(248,113,113,0.3)' : 'rgba(255,255,255,0.05)'}; flex: 1; min-width: 0;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <div style="font-size: 13px; font-weight: 700; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">${i === 0 ? '🥇' : (i === 1 ? '🥈' : '🥉')} ${ap.app}</div>
-                <div style="font-size: 9px; font-weight: 700; color: ${hsColor}; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px;">${hsLabel} (${healthScore})</div>
+            <div class="glass-card ${glowClass}" style="flex: 1; min-width: 0; border-color: ${isConcentrated ? 'rgba(248,113,113,0.3)' : 'var(--border)'};">
+              <div class="card-hdr">
+                <div class="card-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">${i === 0 ? '🥇' : (i === 1 ? '🥈' : '🥉')} ${ap.app}</div>
+                <div class="card-status ${healthScore >= 70 ? 'status-ok' : (healthScore >= 40 ? 'status-alert' : 'status-crit')}">${hsLabel} (${healthScore})</div>
               </div>
               
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0;">
                 <div>
-                  <div style="font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">Volume</div>
-                  <div style="font-size: 16px; font-weight: 700; color: #f1f5f9; margin-top: 2px;">${ap.total} <span style="font-size: 10px; color: var(--muted); font-weight: 400;">(${pct.toFixed(0)}%)</span></div>
+                  <div style="font-size: 8px; color: var(--muted); text-transform: uppercase;">Volume</div>
+                  <div style="font-size: 14px; font-weight: 700; color: #f1f5f9;">${ap.total} <span style="font-size: 9px; color: var(--muted); font-weight: 400;">(${pct.toFixed(0)}%)</span></div>
                 </div>
                 <div>
-                  <div style="font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">Custo</div>
-                  <div style="font-size: 16px; font-weight: 700; color: #a78bfa; margin-top: 2px;">${ap.md.toFixed(1)} <span style="font-size: 10px; color: var(--muted); font-weight: 400;">MDs</span></div>
+                  <div style="font-size: 8px; color: var(--muted); text-transform: uppercase;">Custo</div>
+                  <div style="font-size: 14px; font-weight: 700; color: var(--purple);">${ap.md.toFixed(1)} <span style="font-size: 9px; color: var(--muted); font-weight: 400;">MD</span></div>
                 </div>
               </div>
               
-              <div style="display: flex; gap: 12px; font-size: 9px; color: var(--dim); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+              <div style="display: flex; gap: 10px; font-size: 8px; color: var(--dim); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;">
                 <span>P1/P2: <b style="color: ${ap.p1p2 > 0 ? '#fbbf24' : '#34d399'};">${ap.p1p2}</b></span>
                 <span>Aberto: <b>${ap.open}</b></span>
                 <span>Fechado: <b>${ap.closed}</b></span>
               </div>
-              
-              ${isConcentrated ? `<div style="margin-top: 10px; padding: 6px 10px; background: rgba(248,113,113,0.08); border-radius: 6px; font-size: 9px; color: #f87171;">⚠ Concentração de risco: ${pct.toFixed(0)}% do volume total</div>` : ''}
             </div>`;
                 }).join('');
 
@@ -10654,21 +10630,9 @@
         <p>🟢 <b>Saúde Financeira (${filterY}):</b> Eficiência global de <b style="color:${globalEff <= 100 ? '#34d399' : '#f87171'}">${globalEff.toFixed(1)}%</b> (${totalActual.toFixed(1)}/${totalExpected.toFixed(1)} MDs). Operação dentro da margem planejada.</p>
         <p style="margin-top:10px; margin-bottom:5px;"><b>Estabilidade de Volume (${filterY})</b></p>
         <div style="display:flex; gap:12px; margin-bottom:15px;">
-          <div style="flex:1; background:rgba(255,255,255,0.02); padding:10px 15px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
-             <div style="font-size:10px; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">Global (Inc + UR)</div>
-             <div style="font-size:16px; font-weight:700;">${stGlob.avg.toFixed(1)} <span style="font-size:10px; font-weight:normal; color:var(--dim);">/mês</span></div>
-             <div style="font-size:11px; color:var(--muted); margin-top:2px;">Volatilidade (CV): <b style="color:${stGlob.cv < 20 ? '#34d399' : (stGlob.cv < 40 ? '#fbbf24' : '#f87171')}">${stGlob.cv.toFixed(0)}%</b></div>
-          </div>
-          <div style="flex:1; background:rgba(255,255,255,0.02); padding:10px 15px; border-radius:6px; border:1px solid ${stInc.cv >= 30 ? 'rgba(248,113,113,0.3)' : 'rgba(255,255,255,0.05)'};">
-             <div style="font-size:10px; color:${stInc.cv >= 30 ? '#f87171' : 'var(--muted)'}; text-transform:uppercase; margin-bottom:4px;">Incidentes <span style="font-size:8px;">(Risco)</span></div>
-             <div style="font-size:16px; font-weight:700; color:${stInc.cv >= 30 ? '#f87171' : '#e2e8f0'};">${stInc.avg.toFixed(1)} <span style="font-size:10px; font-weight:normal; color:var(--dim);">/mês</span></div>
-             <div style="font-size:11px; color:var(--muted); margin-top:2px;">Volatilidade (CV): <b style="color:${stInc.cv < 20 ? '#34d399' : (stInc.cv < 30 ? '#fbbf24' : '#f87171')}">${stInc.cv.toFixed(0)}%</b></div>
-          </div>
-          <div style="flex:1; background:rgba(255,255,255,0.02); padding:10px 15px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
-             <div style="font-size:10px; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">Requisições <span style="font-size:8px;">(UR)</span></div>
-             <div style="font-size:16px; font-weight:700;">${stReq.avg.toFixed(1)} <span style="font-size:10px; font-weight:normal; color:var(--dim);">/mês</span></div>
-             <div style="font-size:11px; color:var(--muted); margin-top:2px;">Volatilidade (CV): <b style="color:${stReq.cv < 40 ? '#34d399' : '#fbbf24'}">${stReq.cv.toFixed(0)}%</b></div>
-          </div>
+          ${buildMatCard("Global (Inc + UR)", stGlob.avg.toFixed(1) + ` <span style="font-size:10px; font-weight:normal; color:var(--dim);">/mês</span>`, stGlob.cv < 20 ? '#34d399' : (stGlob.cv < 40 ? '#fbbf24' : '#f87171'), `Volatilidade (CV): ${stGlob.cv.toFixed(0)}%`)}
+          ${buildMatCard("Incidentes (Risco)", stInc.avg.toFixed(1) + ` <span style="font-size:10px; font-weight:normal; color:var(--dim);">/mês</span>`, stInc.cv < 20 ? '#34d399' : (stInc.cv < 30 ? '#fbbf24' : '#f87171'), `Volatilidade (CV): ${stInc.cv.toFixed(0)}%`)}
+          ${buildMatCard("Requisições (UR)", stReq.avg.toFixed(1) + ` <span style="font-size:10px; font-weight:normal; color:var(--dim);">/mês</span>`, stReq.cv < 40 ? '#34d399' : '#fbbf24', `Volatilidade (CV): ${stReq.cv.toFixed(0)}%`)}
         </div>
         
         <h3>2. Mês Corrente</h3>
@@ -10681,62 +10645,38 @@
         <p>🔍 <b>Root Cause Não Preenchida:</b> ${hygieneDetails.length > 0 ? `Tickets fechados sem Root Cause Source: ${hygieneDetails.join(', ')}. Ação necessária: documentar causa raiz antes do fechamento.` : '🟢 Todos os tickets fechados possuem Root Cause preenchida.'}</p>
         ${(() => {
           const idsEmpty = hygieneAlerts.rcEmptyClosed.map(a => a.tk);
-          const clickEmpty = idsEmpty.length > 0 ? `ondblclick='openModal("Governança", "Incident + PM sem RC", "incident", ${JSON.stringify(idsEmpty)}, "open")' style="background:rgba(248,113,113,0.05); padding:15px; border-radius:10px; border:1px solid #f87171; text-align:center; cursor:pointer;" title="Duplo clique para detalhar"` : `style="background:rgba(52,211,153,0.05); padding:15px; border-radius:10px; border:1px solid rgba(52,211,153,0.3); text-align:center;"`;
+          const clickEmpty = idsEmpty.length > 0 ? `ondblclick='openModal("Governança", "Incident + PM sem RC", "incident", ${JSON.stringify(idsEmpty)}, "open")' title="Duplo clique para detalhar" style="cursor:pointer;"` : '';
           const clrEmpty = idsEmpty.length > 0 ? '#f87171' : '#34d399';
           
           const idsPA = hygieneAlerts.rcPendingPA.map(a => a.tk);
-          const clickPA = idsPA.length > 0 ? `ondblclick='openModal("Governança", "Inc Aberto c/ PA e PM Fechado", "incident", ${JSON.stringify(idsPA)}, "open")' style="background:rgba(251,191,36,0.05); padding:15px; border-radius:10px; border:1px solid #fbbf24; text-align:center; cursor:pointer;" title="Duplo clique para detalhar"` : `style="background:rgba(52,211,153,0.05); padding:15px; border-radius:10px; border:1px solid rgba(52,211,153,0.3); text-align:center;"`;
+          const clickPA = idsPA.length > 0 ? `ondblclick='openModal("Governança", "Inc Aberto c/ PA e PM Fechado", "incident", ${JSON.stringify(idsPA)}, "open")' title="Duplo clique para detalhar" style="cursor:pointer;"` : '';
           const clrPA = idsPA.length > 0 ? '#fbbf24' : '#34d399';
 
           const idsNoPM = hygieneAlerts.incNoProblem.map(a => a.tk);
-          const clickNoPM = idsNoPM.length > 0 ? `ondblclick='openModal("Governança", "Incidentes sem PM", "incident", ${JSON.stringify(idsNoPM)}, "open")' style="background:rgba(248,113,113,0.05); padding:15px; border-radius:10px; border:1px solid #f87171; text-align:center; cursor:pointer;" title="Duplo clique para detalhar"` : `style="background:rgba(52,211,153,0.05); padding:15px; border-radius:10px; border:1px solid rgba(52,211,153,0.3); text-align:center;"`;
+          const clickNoPM = idsNoPM.length > 0 ? `ondblclick='openModal("Governança", "Incidentes sem PM", "incident", ${JSON.stringify(idsNoPM)}, "open")' title="Duplo clique para detalhar" style="cursor:pointer;"` : '';
           const clrNoPM = idsNoPM.length > 0 ? '#f87171' : '#34d399';
 
           const idsUE = hygieneAlerts.userError.list.map(a => a.tk);
-          const clickUE = idsUE.length > 0 ? `ondblclick='openModal("Governança", "Custo User Error", "incident", ${JSON.stringify(idsUE)}, "open")' style="background:rgba(251,191,36,0.05); padding:15px; border-radius:10px; border:1px solid #fbbf24; text-align:center; cursor:pointer;" title="Duplo clique para listar tickets de erro do usuário"` : `style="background:rgba(52,211,153,0.05); padding:15px; border-radius:10px; border:1px solid rgba(52,211,153,0.3); text-align:center;"`;
+          const clickUE = idsUE.length > 0 ? `ondblclick='openModal("Governança", "Custo User Error", "incident", ${JSON.stringify(idsUE)}, "open")' title="Duplo clique para listar tickets de erro do usuário" style="cursor:pointer;"` : '';
           const clrUE = idsUE.length > 0 ? '#fbbf24' : '#34d399';
 
           const idsNI = hygieneAlerts.notIdentified.map(a => a.tk);
-          const clickNI = idsNI.length > 0 ? `ondblclick='openModal("Governança", "RC Not Identified", "incident", ${JSON.stringify(idsNI)}, "open")' style="background:rgba(249,115,22,0.05); padding:15px; border-radius:10px; border:1px solid #f97316; text-align:center; cursor:pointer;" title="Duplo clique para auditar fuga de processo"` : `style="background:rgba(52,211,153,0.05); padding:15px; border-radius:10px; border:1px solid rgba(52,211,153,0.3); text-align:center;"`;
+          const clickNI = idsNI.length > 0 ? `ondblclick='openModal("Governança", "RC Not Identified", "incident", ${JSON.stringify(idsNI)}, "open")' title="Duplo clique para auditar fuga de processo" style="cursor:pointer;"` : '';
           const clrNI = idsNI.length > 0 ? '#f97316' : '#34d399';
 
           const idsPU = hygieneAlerts.pendingUser.list;
           const daysPU = hygieneAlerts.pendingUser.totalDays;
           const clrPU = idsPU.length > 0 ? '#fbbf24' : '#34d399';
-          const clickPU = `ondblclick='openModal("Governança", "Gargalo Pending User", "incident", ${JSON.stringify(idsPU)}, "open")' style="background:${idsPU.length > 0 ? 'rgba(251,191,36,0.05)' : 'rgba(52,211,153,0.05)'}; padding:15px; border-radius:10px; border:1px solid ${idsPU.length > 0 ? '#fbbf24' : 'rgba(52,211,153,0.3)'}; text-align:center; cursor:pointer;" title="Duplo clique para auditar gargalo no negócio"`;
+          const clickPU = idsPU.length > 0 ? `ondblclick='openModal("Governança", "Gargalo Pending User", "incident", ${JSON.stringify(idsPU)}, "open")' title="Duplo clique para auditar gargalo no negócio" style="cursor:pointer;"` : '';
 
           return `
           <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:15px 0;">
-            <div ${clickEmpty} onmouseover="if(${idsEmpty.length}>0) this.style.background='rgba(248,113,113,0.1)'" onmouseout="if(${idsEmpty.length}>0) this.style.background='rgba(248,113,113,0.05)'">
-               <div style="font-size:9px; color:${clrEmpty}; text-transform:uppercase; margin-bottom:10px;">Incident + Problem fechados sem RC</div>
-               <div style="font-size:20px; font-weight:700; color:${clrEmpty};">${idsEmpty.length}</div>
-               <div style="font-size:9px; color:var(--dim); margin-top:5px;">${idsEmpty.length > 0 ? 'Duplo clique para detalhar' : 'Nenhuma ocorrência'}</div>
-            </div>
-            <div ${clickPA} onmouseover="if(${idsPA.length}>0) this.style.background='rgba(251,191,36,0.1)'" onmouseout="if(${idsPA.length}>0) this.style.background='rgba(251,191,36,0.05)'">
-               <div style="font-size:9px; color:${clrPA}; text-transform:uppercase; margin-bottom:10px;">Inc Aberto (PA) e PM Fechado</div>
-               <div style="font-size:20px; font-weight:700; color:${clrPA};">${idsPA.length}</div>
-               <div style="font-size:9px; color:var(--dim); margin-top:5px;">${idsPA.length > 0 ? 'Duplo clique para detalhar' : 'Nenhuma ocorrência'}</div>
-            </div>
-            <div ${clickNoPM} onmouseover="if(${idsNoPM.length}>0) this.style.background='rgba(248,113,113,0.1)'" onmouseout="if(${idsNoPM.length}>0) this.style.background='rgba(248,113,113,0.05)'">
-               <div style="font-size:9px; color:${clrNoPM}; text-transform:uppercase; margin-bottom:10px;">Incidentes encerrados sem Problem</div>
-               <div style="font-size:20px; font-weight:700; color:${clrNoPM};">${idsNoPM.length}</div>
-               <div style="font-size:9px; color:var(--dim); margin-top:5px;">${idsNoPM.length > 0 ? 'Duplo clique para detalhar' : 'Nenhuma ocorrência'}</div>
-            </div>
-            <div ${clickUE} onmouseover="if(${idsUE.length}>0) this.style.background='rgba(251,191,36,0.1)'" onmouseout="if(${idsUE.length}>0) this.style.background='rgba(251,191,36,0.05)'">
-               <div style="font-size:9px; color:${clrUE}; text-transform:uppercase; margin-bottom:10px;">Falta de Treinamento (User Error)</div>
-               <div style="font-size:20px; font-weight:700; color:${clrUE};">${idsUE.length} <span style="font-size:11px; font-weight:400;">(${hygieneAlerts.userError.mds.toFixed(1)} MDs)</span></div>
-               <div style="font-size:9px; color:var(--dim); margin-top:5px;">${idsUE.length > 0 ? 'Custo invisível p/ o Negócio' : 'Nenhuma ocorrência'}</div>
-            </div>
-            <div ${clickNI} onmouseover="if(${idsNI.length}>0) this.style.background='rgba(249,115,22,0.1)'" onmouseout="if(${idsNI.length}>0) this.style.background='rgba(249,115,22,0.05)'">
-               <div style="font-size:9px; color:${clrNI}; text-transform:uppercase; margin-bottom:10px;">Falsa Causa Raiz ("Not Identified")</div>
-               <div style="font-size:20px; font-weight:700; color:${clrNI};">${idsNI.length}</div>
-               <div style="font-size:9px; color:var(--dim); margin-top:5px;">${idsNI.length > 0 ? 'Duplo clique p/ auditar analistas' : 'Nenhuma fuga identificada'}</div>
-            </div>
-            <div ${clickPU} onmouseover="if(${idsPU.length}>0) this.style.background='rgba(251,191,36,0.1)'" onmouseout="if(${idsPU.length}>0) this.style.background='rgba(251,191,36,0.05)'">
-               <div style="font-size:9px; color:${clrPU}; text-transform:uppercase; margin-bottom:10px;">Gargalo de Negócio (Pending User)</div>
-               <div style="font-size:20px; font-weight:700; color:${clrPU};">${idsPU.length} <span style="font-size:11px; font-weight:400;">(${daysPU} dias totais)</span></div>
-               <div style="font-size:9px; color:var(--dim); margin-top:5px;">${idsPU.length > 0 ? 'Aguardando ação do Cliente' : 'Fluxo fluindo normalmente'}</div>
-            </div>
+            ${buildMatCard("Incident + Problem fechados sem RC", idsEmpty.length, clrEmpty, idsEmpty.length > 0 ? 'Duplo clique para detalhar' : 'Nenhuma ocorrência', clickEmpty)}
+            ${buildMatCard("Inc Aberto (PA) e PM Fechado", idsPA.length, clrPA, idsPA.length > 0 ? 'Duplo clique para detalhar' : 'Nenhuma ocorrência', clickPA)}
+            ${buildMatCard("Incidentes encerrados sem Problem", idsNoPM.length, clrNoPM, idsNoPM.length > 0 ? 'Duplo clique para detalhar' : 'Nenhuma ocorrência', clickNoPM)}
+            ${buildMatCard("Falta de Treinamento (User Error)", idsUE.length + ` <span style="font-size:11px; font-weight:400;">(${hygieneAlerts.userError.mds.toFixed(1)} MDs)</span>`, clrUE, idsUE.length > 0 ? 'Custo invisível p/ o Negócio' : 'Nenhuma ocorrência', clickUE)}
+            ${buildMatCard("Falsa Causa Raiz ('Not Identified')", idsNI.length, clrNI, idsNI.length > 0 ? 'Duplo clique p/ auditar analistas' : 'Nenhuma fuga identificada', clickNI)}
+            ${buildMatCard("Gargalo de Negócio (Pending User)", idsPU.length + ` <span style="font-size:11px; font-weight:400;">(${daysPU} dias totais)</span>`, clrPU, idsPU.length > 0 ? 'Aguardando ação do Cliente' : 'Fluxo fluindo normalmente', clickPU)}
           </div>`;
         })()}
         
@@ -10809,14 +10749,41 @@
           return html;
         }
 
-        function buildMatCard(title, val, color, sub, clickStr) {
-          const ptr = clickStr ? 'cursor:pointer; transition:all 0.2s;' : '';
-          const hover = clickStr ? `onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(255,255,255,0.02)'"` : '';
-          return `<div ${clickStr || ''} ${hover} style="background:rgba(255,255,255,0.02); padding:15px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); text-align:center; ${ptr}" ${clickStr ? 'title="Duplo clique para detalhar"' : ''}>
-    <div style="font-size:9px; color:var(--muted); text-transform:uppercase; margin-bottom:10px;">${title}</div>
-    <div style="font-size:20px; font-weight:700; color:${color};">${val}</div>
-    <div style="font-size:9px; color:var(--dim); margin-top:5px;">${sub}</div>
-  </div>`;
+        function buildMatCard(title, val, color, sub, clickStr, tip) {
+          let statusLabel = 'OK';
+          let statusIcon = '✔';
+          let statusClass = 'status-ok';
+          let glowClass = 'glow-green';
+          
+          const col = String(color).toLowerCase();
+          // Reconhece tons de vermelho e laranja/amber
+          if (col === '#f87171' || col === 'var(--red)' || col === 'red' || col === '#ef4444' || col === '#cf0a2c') {
+            statusLabel = 'Alerta';
+            statusIcon = '▼';
+            statusClass = 'status-crit';
+            glowClass = 'glow-red';
+          } else if (col === '#fbbf24' || col === 'var(--amber)' || col.includes('orange') || col === '#f97316' || col === '#ff6b00') {
+            statusLabel = 'Atenção';
+            statusIcon = '!';
+            statusClass = 'status-alert';
+            glowClass = 'glow-orange';
+          }
+          
+          let extraClass = tip ? ' tip' : '';
+          let tipAttr = tip ? ` data-tip="${tip}"` : '';
+          
+          return `
+          <div class="glass-card ${glowClass}${extraClass}" ${clickStr || ''}${tipAttr}>
+            <div class="card-hdr">
+              <div class="card-title">${title}</div>
+              <div class="card-status ${statusClass}">
+                <span>${statusIcon}</span>
+                <span>${statusLabel}</span>
+              </div>
+            </div>
+            <div class="card-val" style="color: ${color}">${val}</div>
+            <div class="card-sub">${sub}</div>
+          </div>`;
         }
         function _addPrescriptiveBudget(prj, filterY, filterM, monthAnalysis) {
           var b = document.getElementById('exec-summary-body');
@@ -10900,23 +10867,31 @@
               '<div style="font-family:var(--ft);font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:15px">SUGESTÕES DE ATUAÇÃO PRIORITÁRIA (MAIOR ROI)</div>' +
               '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:15px">' +
               topP.map(function (p) {
-                var incList = p.incidents ? p.incidents.map(i => i.ticket) : [];
-                var hoverClick = incList.length > 0 ? 'cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background=\\\'rgba(255,255,255,0.05)\\\'" onmouseout="this.style.background=\\\'rgba(255,255,255,0.02)\\\'" ondblclick=\\\'openModal("Governança", "Impacto Problem #' + p.ticket + '", "incident", ' + JSON.stringify(incList) + ', "open")\\\'' : '"';
-                return '<div title="' + (incList.length > 0 ? 'Duplo clique para listar incidentes' : '') + '" style="background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);' + hoverClick + '>' +
-                  '<div style="font-size:11px;font-weight:700;color:#60a5fa;margin-bottom:4px">#' + p.ticket + '</div>' +
-                  '<div style="font-size:9px;color:var(--dim);text-transform:uppercase;margin-bottom:8px">' + (p.app || 'N/A') + '</div>' +
-                  '<div style="display:flex;justify-content:space-between;margin-bottom:4px">' +
-                  '<span style="font-size:10px;color:var(--muted)">Recorrência:</span>' +
-                  '<span style="font-size:10px;font-weight:700">' + p.inc_count + ' Inc</span>' +
-                  '</div>' +
-                  '<div style="display:flex;justify-content:space-between;margin-bottom:8px">' +
-                  '<span style="font-size:10px;color:var(--muted)">Custo Total:</span>' +
-                  '<span style="font-size:10px;font-weight:700;color:#a78bfa">' + p.total_md.toFixed(2) + ' MD</span>' +
-                  '</div>' +
-                  '<div style="font-size:9px;color:var(--dim);line-height:1.4;border-top:1px solid rgba(255,255,255,0.05);padding-top:8px">' +
-                  'Impacto: O custo crônico deste problema já equivale a <b>' + (p.total_md / budgetTarget * 100).toFixed(1) + '%</b> da cota preventiva.' +
-                  '</div>' +
-                  '</div>';
+                const incList = p.incidents ? p.incidents.map(i => i.ticket) : [];
+                const clickAction = incList.length > 0 ? `ondblclick='openModal("Governança", "Impacto Problem #${p.ticket}", "incident", ${JSON.stringify(incList)}, "open")' style="cursor:pointer;"` : '';
+                const impactPct = (p.total_md / budgetTarget * 100).toFixed(1);
+                
+                return `
+                <div class="glass-card glow-orange" title="${incList.length > 0 ? 'Duplo clique para listar incidentes' : ''}" ${clickAction}>
+                  <div class="card-hdr">
+                    <div class="card-title" style="color:var(--blue); font-weight:700;">#${p.ticket}</div>
+                    <div class="card-status status-alert" style="font-size:8px;">PRIORIDADE</div>
+                  </div>
+                  <div style="font-size:10px; color:var(--dim); text-transform:uppercase; margin: 4px 0 8px 0;">${p.app || 'N/A'}</div>
+                  
+                  <div style="display:flex; justify-content:space-between; margin-bottom:4px">
+                    <span style="font-size:10px; color:var(--muted)">Recorrência:</span>
+                    <span style="font-size:10px; font-weight:700">${p.inc_count} Inc</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:8px">
+                    <span style="font-size:10px; color:var(--muted)">Custo Total:</span>
+                    <span style="font-size:10px; font-weight:700; color:var(--purple)">${p.total_md.toFixed(2)} MD</span>
+                  </div>
+                  
+                  <div style="font-size:9px; color:var(--dim); line-height:1.4; border-top:1px solid rgba(255,255,255,0.05); padding-top:8px">
+                    Impacto: O custo crônico deste problema equivale a <b>${impactPct}%</b> da cota preventiva.
+                  </div>
+                </div>`;
               }).join('') +
               '</div>' +
               '</div>';
@@ -10959,24 +10934,25 @@
         }
 
         function _renderHealthTable(d) {
-          return '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px">' +
-            '<div style="background:rgba(255,255,255,0.03);padding:15px;border-radius:10px;border:1px solid rgba(255,255,255,0.05)">' +
-            '<div style="font-size:9px;color:var(--muted);margin-bottom:5px">MAIOR OFENSOR (ROI)</div>' +
-            '<div style="font-size:13px;font-weight:700;color:#f87171">' + d.ROI + '</div>' +
-            '</div>' +
-            '<div style="background:rgba(255,255,255,0.03);padding:15px;border-radius:10px;border:1px solid rgba(255,255,255,0.05)">' +
-            '<div style="font-size:9px;color:var(--muted);margin-bottom:5px">AGING MÉDIO (PROBLEMS)</div>' +
-            '<div style="font-size:13px;font-weight:700;color:#fbbf24">' + d.Aging + '</div>' +
-            '</div>' +
-            '<div style="background:rgba(255,255,255,0.03);padding:15px;border-radius:10px;border:1px solid rgba(255,255,255,0.05)">' +
-            '<div style="font-size:9px;color:var(--muted);margin-bottom:5px">COBERTURA CAUSA RAIZ</div>' +
-            '<div style="font-size:13px;font-weight:700;color:#34d399">' + d.Cobertura + '</div>' +
-            '</div>' +
-            '<div style="background:rgba(255,255,255,0.03);padding:15px;border-radius:10px;border:1px solid rgba(255,255,255,0.05)">' +
-            '<div style="font-size:9px;color:var(--muted);margin-bottom:5px">INVESTIMENTO PREVENTIVO</div>' +
-            '<div style="font-size:13px;font-weight:700;color:#60a5fa">' + d.Investimento + '</div>' +
-            '</div>' +
-            '</div>';
+          return `
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:15px">
+            <div class="glass-card glow-red">
+              <div style="font-size:8px; color:var(--muted); margin-bottom:5px; text-transform:uppercase;">MAIOR OFENSOR (ROI)</div>
+              <div style="font-size:13px; font-weight:700; color:#f87171">${d.ROI}</div>
+            </div>
+            <div class="glass-card glow-orange">
+              <div style="font-size:8px; color:var(--muted); margin-bottom:5px; text-transform:uppercase;">AGING MÉDIO (PROBLEMS)</div>
+              <div style="font-size:13px; font-weight:700; color:#fbbf24">${d.Aging}</div>
+            </div>
+            <div class="glass-card glow-green">
+              <div style="font-size:8px; color:var(--muted); margin-bottom:5px; text-transform:uppercase;">COBERTURA CAUSA RAIZ</div>
+              <div style="font-size:13px; font-weight:700; color:#34d399">${d.Cobertura}</div>
+            </div>
+            <div class="glass-card">
+              <div style="font-size:8px; color:var(--muted); margin-bottom:5px; text-transform:uppercase;">INVESTIMENTO PREVENTIVO</div>
+              <div style="font-size:13px; font-weight:700; color:var(--blue)">${d.Investimento}</div>
+            </div>
+          </div>`;
         }
 
         function strPrj(s) { return String(s || '').split(' ')[0].toLowerCase(); }
