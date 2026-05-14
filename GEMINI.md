@@ -9,7 +9,7 @@ Este arquivo define os padrões de atuação da IA e de engenharia para o projet
 - **Execução Orientada a Objetivos:** Transformar pedidos imperativos em metas declarativas com critérios de sucesso claros. Sempre validar o resultado final contra o objetivo inicial antes de encerrar a tarefa.
 
 ## 2. Governança e Dados (VLAEG)
-- **Integridade YTD:** O processamento de dados deve sempre buscar o consolidado desde 01/01 do ano corrente para garantir a precisão dos KPIs anuais.
+- **Foco no Mês Corrente:** O processamento de Time Tracking prioriza o consolidado do mês atual (desde o dia 1) para agilidade operacional, mantendo a integridade dos KPIs mensais.
 - **Determinismo:** O pipeline de dados (Merge -> Build) deve ser determinístico e auditável via logs.
 - **Surgical Diffs:** Ao atualizar o Dashboard (`SM_DASH.html`), manter a integridade da estrutura CSS/JS existente, aplicando mudanças apenas nos blocos funcionais afetados.
 

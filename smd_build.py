@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from collections import defaultdict
 import pandas as pd
+import numpy as np
 import smd_config
 from smd_ai_engine import SMDAIEngine
 
@@ -313,8 +314,22 @@ def process_tickets_data(csv_override=None):
     date_cols = ["Opening Date", "Date of Resolution", "Close Date", "Last Updated Date"]
     for col_name in date_cols:
         if col_name in df.columns:
-            # Usamos dayfirst=True para suportar o formato DD/MM/YYYY do Mantis/Histórico
-            df[col_name] = pd.to_datetime(df[col_name], dayfirst=True, errors="coerce")
+            # Converte garantindo que formatos DD/MM/YYYY (comuns no Mantis) sejam priorizados,
+            # mas mantendo suporte a YYYY-MM-DD (comuns no histórico).
+            d_ser = df[col_name].astype(str).replace(['nan', 'NaT', 'None', ''], np.nan)
+            
+            # Estratégia de conversão robusta:
+            # 1. Tenta formato ISO (YYYY-MM-DD) primeiro, que é inequívoco.
+            v_iso = pd.to_datetime(d_ser, format='ISO8601', errors='coerce')
+            
+            # 2. Tenta formatos com dia primeiro apenas para o que não é ISO
+            # Para evitar UserWarning, passamos apenas as linhas que falharam no ISO
+            failed_iso = v_iso.isna() & d_ser.notna()
+            if failed_iso.any():
+                v_df = pd.to_datetime(d_ser[failed_iso], dayfirst=True, errors='coerce')
+                df[col_name] = v_iso.fillna(v_df)
+            else:
+                df[col_name] = v_iso
             
     # Auditando se ainda restam NaT em Opening Date (não deveriam para tickets válidos)
     nats = df["Opening Date"].isna().sum()
@@ -336,7 +351,7 @@ def process_tickets_data(csv_override=None):
     
     today = datetime.now()
     df["Days_BK"]  = (today - df["Opening Date"]).dt.days.fillna(0).astype(int)
-    df["Days_Upd"] = (today - df["Last Updated Date"]).dt.days.fillna(999).astype(int)
+    df["Days_Upd"] = (today - df["Last Updated Date"]).dt.days.fillna(-1).astype(int)
 
     def fmt_date(ts):
         return ts.strftime("%Y-%m-%d") if pd.notnull(ts) else ""
@@ -435,7 +450,9 @@ def process_tickets_data(csv_override=None):
                 backlog[sv][owner]["tickets"].append({
                     "ticket": tk_id, "status": str(r.get("Status", "N/A")), "days": int(r.get("Days_BK", 0)),
                     "days_upd": int(r.get("Days_Upd", 0)), "opened": fmt_date(r.get("Opening Date")),
-                    "priority": str(r.get("Priority", "N/A")), "summary": str(r.get("Summary", f"Ticket {tk_id}"))[:60], "project": str(r.get("Project Name", "Desconhecido"))
+                    "priority": str(r.get("Priority", "N/A")), "summary": str(r.get("Summary", f"Ticket {tk_id}"))[:60], 
+                    "project": str(r.get("Project Name", "Desconhecido")),
+                    "env": str(r.get("Environment", "N/A")).upper()
                 })
         for owner in ["rc","client"]: backlog[sv][owner]["tickets"].sort(key=lambda x: x["days"], reverse=True)
 

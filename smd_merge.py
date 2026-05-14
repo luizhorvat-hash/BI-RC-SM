@@ -48,8 +48,18 @@ REQUIRED_COLS = [
 ]
 
 # Separador e encoding do Mantis
-CSV_SEP      = ';'
-CSV_ENCODING = 'utf-8-sig'
+CSV_SEP = ";"
+CSV_ENCODING = "utf-8"
+
+# Ordem padronizada de colunas para o Tickets.csv (Garante integridade do build)
+TARGET_COLS = [
+    'Ticket', 'Project Name', 'External ID', 'Priority', 'Severity', 'Category', 
+    'Status', 'Opening Date', 'Date of Resolution', 'Acknowledge SLA', 
+    'Resolution SLA', 'Application', 'Environment', 'Root Cause Source', 
+    'Root Cause Type', 'Summary', 'Last Updated Date', 'Days to Close', 
+    'Country', 'Close Date', 'Closed Admin', 'Invoice', 'SM Audit', 
+    'assigned', 'Service Line', 'Internal Owner', "MD's", 'Problem'
+]
 
 # Colunas que devem ser "fundidas" (se estiver vazio em uma, tenta pegar da outra)
 COALESCE_COLS = [
@@ -74,7 +84,7 @@ log = logging.getLogger(__name__)
 def find_csv_files(source_dir: Path, is_volatile: bool = True) -> list[dict]:
     """
     Varre source_dir e retorna lista de arquivos que batem com os padrões.
-    Retorna: [{'path': Path, 'project': str, 'date': str, 'volatile': bool}, ...]
+    Agora busca recursivamente para achar arquivos em 'processed'.
     """
     if not source_dir.exists():
         log.warning(f"Pasta não encontrada: {source_dir}")
@@ -86,8 +96,14 @@ def find_csv_files(source_dir: Path, is_volatile: bool = True) -> list[dict]:
     today_str = datetime.now().strftime('%Y-%m-%d')
     found = []
     
-    for f in sorted(source_dir.iterdir()):
+    # Busca recursiva (limitada a 1 nível para 'processed')
+    all_files = list(source_dir.glob("*.csv")) + list(source_dir.glob("processed/*.csv"))
+    
+    for f in sorted(all_files):
         if not f.is_file():
+            continue
+        
+        if f.name.lower() in ('tickets.csv', 'smd_merge.log', 'api_key.txt'):
             continue
         
         if f.name.lower() in ('tickets.csv', 'smd_merge.log', 'api_key.txt'):
@@ -111,37 +127,49 @@ def find_csv_files(source_dir: Path, is_volatile: bool = True) -> list[dict]:
 def validate_csv(path: Path, project: str) -> tuple[bool, str, object]:
     """
     Valida se o CSV tem as colunas obrigatórias e dados legíveis.
-    Retorna: (ok, mensagem, dataframe_ou_None)
     """
-    try:
-        import pandas as pd
-        df = pd.read_csv(path, sep=CSV_SEP, encoding=CSV_ENCODING, low_memory=False)
-    except UnicodeDecodeError:
+    import pandas as pd
+    
+    # Tenta ler com diferentes encodings
+    df = None
+    for enc in ['utf-8-sig', 'latin-1', 'cp1252']:
         try:
-            import pandas as pd
-            df = pd.read_csv(path, sep=CSV_SEP, encoding='latin-1', low_memory=False)
-            log.warning(f"  {path.name}: encoding latin-1 (não UTF-8)")
-        except Exception as e:
-            return False, f"Erro de leitura: {e}", None
-    except Exception as e:
-        return False, f"Erro: {e}", None
+            df = pd.read_csv(path, sep=CSV_SEP, encoding=enc, low_memory=False)
+            break
+        except:
+            continue
+            
+    if df is None:
+        return False, "Erro ao abrir arquivo (encoding desconhecido)", None
+
+    # Normalizar nomes de colunas
+    df.columns = [str(c).strip().replace('\ufeff', '') for c in df.columns]
 
     # Verificar colunas obrigatórias
     missing = [c for c in REQUIRED_COLS if c not in df.columns]
+    if missing:
+        # Fallback para nomes de colunas que podem variar
+        if 'Opening Date' not in df.columns and 'Abertura' in df.columns:
+            df = df.rename(columns={'Abertura': 'Opening Date'})
+            if 'Opening Date' in REQUIRED_COLS: missing = [m for m in missing if m != 'Opening Date']
+            
     if missing:
         return False, f"Colunas faltando: {missing}", None
 
     if len(df) == 0:
         return False, "Arquivo vazio", None
 
-    # Verificar se Project Name bate com o nome do arquivo
-    projects_no_csv = df['Project Name'].dropna().unique()
-    if len(projects_no_csv) > 0:
-        csv_prj = str(projects_no_csv[0])
-        if csv_prj.lower() != project.lower() and project.lower() not in csv_prj.lower() and csv_prj.lower() not in project.lower():
-            log.warning(f"  {path.name}: projeto no arquivo ({csv_prj!r}) ≠ nome do arquivo ({project!r})")
+    # Garantir que MD's existe
+    if "MD's" not in df.columns:
+        df["MD's"] = 0.0
+    
+    # Converter strings vazias ou espaços em NaN para que o .first() as ignore
+    df = df.replace(r'^\s*$', np.nan, regex=True)
 
     return True, f"{len(df)} linhas | {len(df.columns)} colunas", df
+
+
+
 
 
 def backup_existing(output_file: Path, backup_dir: Path):
@@ -199,7 +227,13 @@ def merge_files(csv_list: list[dict], existing_file: Path = None) -> object:
     # 3. Carregar arquivo existente (se houver) como base de BAIXA prioridade (ao final)
     if existing_file and existing_file.exists():
         try:
-            df_old = pd.read_csv(existing_file, sep=CSV_SEP, encoding=CSV_ENCODING, low_memory=False)
+            df_old = pd.read_csv(existing_file, sep=CSV_SEP, encoding='utf-8-sig', low_memory=False)
+            df_old.columns = [str(c).strip().replace('\ufeff', '') for c in df_old.columns]
+            
+            # Limpeza do banco antigo (converte "" em NaN e normaliza Ticket)
+            df_old = df_old.replace(r'^\s*$', np.nan, regex=True)
+            df_old['Ticket'] = df_old['Ticket'].astype(str).str.lstrip('0')
+            
             df_old['_export_date'] = datetime.fromtimestamp(existing_file.stat().st_mtime)
             df_old['_priority'] = 2
             frames.append(df_old)
@@ -217,10 +251,18 @@ def merge_files(csv_list: list[dict], existing_file: Path = None) -> object:
     # 4. Normalização PRÉ-CONSOLIDAÇÃO
     log.info(f"Normalizando dados de {len(merged)} linhas...")
     
-    # Datas
+    # Datas (Padronização ISO)
     for date_col in ['Opening Date', 'Close Date', 'Last Updated Date', 'Date of Resolution']:
         if date_col in merged.columns:
-            merged[date_col] = pd.to_datetime(merged[date_col], dayfirst=True, errors='coerce')
+            # Tenta ISO primeiro (inequívoco), depois Dayfirst apenas para o que sobrar
+            v_iso = pd.to_datetime(merged[date_col], format='ISO8601', errors='coerce')
+            
+            failed_iso = v_iso.isna() & merged[date_col].notna()
+            if failed_iso.any():
+                v_df = pd.to_datetime(merged.loc[failed_iso, date_col], dayfirst=True, errors='coerce')
+                merged[date_col] = v_iso.fillna(v_df)
+            else:
+                merged[date_col] = v_iso
             
     # MD's (converter para float tratando a vírgula brasileira)
     if "MD's" in merged.columns:
@@ -238,11 +280,26 @@ def merge_files(csv_list: list[dict], existing_file: Path = None) -> object:
     before_dedup = len(merged)
     merged['Ticket'] = merged['Ticket'].astype(str).str.lstrip('0')
     
-    # Consolidar: o .first() do pandas em um dataframe ordenado pega o primeiro valor não-nulo
-    merged = merged.groupby('Ticket', as_index=False, sort=False).first()
+    # Forçar a presença de todas as colunas do TARGET_COLS
+    for c in TARGET_COLS:
+        if c not in merged.columns:
+            merged[c] = np.nan
+
+    # Garantir que MD's seja numérico antes do merge (para somar corretamente)
+    if "MD's" in merged.columns:
+        merged["MD's"] = merged["MD's"].astype(str).str.replace(',', '.').replace('nan', '0').replace('', '0')
+        merged["MD's"] = pd.to_numeric(merged["MD's"], errors='coerce').fillna(0.0)
+
+    # Consolidar: o .first() do pandas para a maioria, mas .sum() para MD's
+    # Criamos um dicionário de agregação
+    agg_dict = {c: 'first' for c in merged.columns if c != 'Ticket'}
+    if "MD's" in agg_dict:
+        agg_dict["MD's"] = 'sum'
     
-    # Remover colunas auxiliares
-    merged = merged.drop(columns=['_export_date', '_priority'])
+    merged = merged.groupby('Ticket', as_index=False, sort=False).agg(agg_dict)
+    
+    # Reordenar colunas para o padrão final
+    merged = merged[TARGET_COLS]
     
     # Voltar a ordem por ID de ticket (crescente)
     merged['_tk_num'] = pd.to_numeric(merged['Ticket'], errors='coerce')
@@ -253,18 +310,15 @@ def merge_files(csv_list: list[dict], existing_file: Path = None) -> object:
     log.info(f"Tickets consolidados (duplicatas fundidas): {dupes}")
     log.info(f"Total final consolidado: {len(merged)} tickets únicos")
 
-    # Verificar projetos presentes
-    projects = sorted(merged['Project Name'].dropna().unique())
-    log.info(f"Projetos no banco: {projects}")
-
     return merged
 
 
 
 def save_output(df, output_file: Path):
-    """Salva o DataFrame como Tickets.csv com o formato correto."""
+    """Salva o DataFrame como Tickets.csv com o formato ISO para datas."""
     output_file.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(output_file, sep=CSV_SEP, encoding=CSV_ENCODING, index=False)
+    # Forçamos o formato ISO para evitar ambiguidades entre dia e mês
+    df.to_csv(output_file, sep=CSV_SEP, encoding=CSV_ENCODING, index=False, date_format='%Y-%m-%d %H:%M:%S')
     size_kb = output_file.stat().st_size // 1024
     log.info(f"\nSalvo: {output_file} ({size_kb}kb)")
 
